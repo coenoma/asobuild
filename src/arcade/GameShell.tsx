@@ -18,12 +18,29 @@ import { advance, toInput } from './runner';
 import { createRng, randomSeed } from './rng';
 import { sfx } from './sfx';
 import { getBest, incPlays, setBest } from './storage';
-import { shareScore } from './share';
+import { gameUrl, shareScore } from './share';
 import { currentGoal, isAllCleared, nextGoal } from './goals';
 import { FIXED_DT, VIRTUAL_H, VIRTUAL_W, type AnyGame, type Input } from './types';
 import styles from './GameShell.module.css';
 
-type Phase = 'title' | 'playing' | 'over' | 'result';
+type Phase = 'title' | 'playing' | 'over' | 'replay' | 'result';
+
+/** リプレイで見せる長さ（秒）。死ぬ直前だけでいい */
+const REPLAY_SECONDS = 3;
+
+/**
+ * URL の #s=1234 から「出方の種」を読む。
+ *
+ * 同じ種なら出てくる順番が完全に同じになるので、
+ * サーバーを持たなくても「同じ盤面での勝負」が成立する。
+ */
+function readSeedFromHash(): number | null {
+  if (typeof window === 'undefined') return null;
+  const m = /[#&]s=(\d+)/.exec(window.location.hash);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return Number.isFinite(n) && n > 0 ? n >>> 0 : null;
+}
 
 /**
  * ゲームオーバーからリザルト表示までの余韻。
@@ -55,6 +72,11 @@ export function GameShell({ game }: { game: AnyGame }) {
   const [muted, setMuted] = useState(false);
   /** ゲームの中で例外が出たとき。null なら健康 */
   const [crashed, setCrashed] = useState<string | null>(null);
+  /** 直前のプレイの種。おだいURLに使う */
+  const [lastSeed, setLastSeed] = useState(0);
+  const [copied, setCopied] = useState(false);
+  /** ループの中で作った関数を、画面のボタンから呼ぶための橋渡し */
+  const replayRef = useRef<(() => void) | null>(null);
   const resultRef = useRef(result);
   resultRef.current = result;
 
@@ -75,6 +97,21 @@ export function GameShell({ game }: { game: AnyGame }) {
   const onToggleMute = useCallback(() => {
     setMuted(sfx.toggleMute());
   }, []);
+
+  const onCopyChallenge = useCallback(() => {
+    if (!lastSeed) return;
+    const url = `${gameUrl(game.meta.slug)}#s=${lastSeed}`;
+    void navigator.clipboard?.writeText(url).then(
+      () => {
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1800);
+      },
+      () => {
+        // コピーできない環境ではURLをそのまま出して手で選んでもらう
+        window.prompt('このおだいのURL', url);
+      },
+    );
+  }, [game, lastSeed]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -106,6 +143,19 @@ export function GameShell({ game }: { game: AnyGame }) {
     let demoPolicyRng = createRng(randomSeed());
     let demoPrevPress = false;
     let demoRestIn = 0;
+
+    // このプレイの入力を1フレーム1ビットで残しておく。
+    // step が純粋関数で乱数もシード式なので、**シードと入力列だけで完全に再現できる**。
+    // 状態を保存する必要がないので、記録はほぼタダ。
+    let seedUsed = 0;
+    let inputLog: boolean[] = [];
+    // リプレイ再生中の状態（実プレイとは完全に分ける）
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let replayState: any = null;
+    let replayRng = createRng(0);
+    let replayAt = 0;
+    let replayPrev = false;
+    let replaySlow = 0;
     let best = getBest(game.meta.slug);
     let prevScore = 0;
     let phaseTime = 0;
@@ -130,7 +180,12 @@ export function GameShell({ game }: { game: AnyGame }) {
     };
 
     const start = () => {
-      gameRng = createRng(randomSeed());
+      // URL に #s=1234 が付いていたら、その出方で遊ぶ（同じ盤面で勝負できる）
+      const fixed = readSeedFromHash();
+      seedUsed = fixed ?? randomSeed();
+      setLastSeed(seedUsed);
+      inputLog = [];
+      gameRng = createRng(seedUsed);
       state = game.init(gameRng);
       state.time = 0;
       prevScore = 0;
@@ -138,6 +193,30 @@ export function GameShell({ game }: { game: AnyGame }) {
       sfx.jingleStart();
       gotoPhase('playing');
     };
+
+    /**
+     * 死ぬ直前だけをもう一度見せる。
+     * 種と入力列があれば完全に再現できるので、状態を保存しておく必要はない。
+     * 見たい人だけが押す（自動再生にすると「もう一回」までの摩擦になる）。
+     */
+    const startReplay = () => {
+      if (inputLog.length === 0) return;
+      const skip = Math.max(0, inputLog.length - Math.round(REPLAY_SECONDS / FIXED_DT));
+      replayRng = createRng(seedUsed);
+      replayState = game.init(replayRng);
+      replayState.time = 0;
+      replayPrev = false;
+      replaySlow = 0;
+      // 見せたいところまで一気に進める（描かないので一瞬）
+      for (let i = 0; i < skip; i++) {
+        const press = inputLog[i];
+        replayState = advance(game, replayState, toInput(press, replayPrev), replayRng, FIXED_DT);
+        replayPrev = press;
+      }
+      replayAt = skip;
+      gotoPhase('replay');
+    };
+    replayRef.current = startReplay;
 
     const finish = () => {
       const score: number = state.score;
@@ -336,6 +415,7 @@ export function GameShell({ game }: { game: AnyGame }) {
           }
           if (tapped) start();
         } else if (phaseLocal === 'playing') {
+          inputLog.push(inp.hold);
           state = advance(game, state, inp, gameRng, FIXED_DT);
           if (state.score > prevScore) {
             sfx.combo(state.score - prevScore > 1 ? 4 : Math.min(12, state.score));
@@ -350,6 +430,25 @@ export function GameShell({ game }: { game: AnyGame }) {
           // （ゲーム側は over が立っていたら演出だけ進めること）
           state = advance(game, state, inp, gameRng, FIXED_DT);
           if (phaseTime >= OVER_HOLD) finish();
+        } else if (phaseLocal === 'replay') {
+          // 半分の速さで見せる。等速だと何が起きたのか目で追えない
+          replaySlow += 1;
+          if (replaySlow % 2 === 0 && replayAt < inputLog.length) {
+            const press = inputLog[replayAt];
+            replayState = advance(
+              game,
+              replayState,
+              toInput(press, replayPrev),
+              replayRng,
+              FIXED_DT,
+            );
+            replayPrev = press;
+            replayAt += 1;
+          } else if (replayAt >= inputLog.length) {
+            gotoPhase('result');
+          }
+          // 途中でタップしたら切り上げる（見たくない人を待たせない）
+          if (tapped && phaseTime > 0.3) gotoPhase('result');
         } else if (phaseLocal === 'result') {
           if (tapped && phaseTime > RETRY_LOCK) start();
         }
@@ -362,6 +461,19 @@ export function GameShell({ game }: { game: AnyGame }) {
         drawTitle();
       } else if (phaseLocal === 'result') {
         drawResult();
+      } else if (phaseLocal === 'replay') {
+        painter.clear('bg');
+        game.draw(painter, replayState);
+        painter.rect(0, 0, VIRTUAL_W, 16, 'bg2');
+        painter.text(`${replayState.score}${game.meta.unit}`, 6, 3, { color: 'dim', size: 12 });
+        if (Math.floor(blink * 3) % 2 === 0) {
+          painter.text('リプレイ', VIRTUAL_W - 6, 4, { size: 10, align: 'right', color: 'accent2' });
+        }
+        painter.text('タップでとばす', VIRTUAL_W / 2, VIRTUAL_H - 24, {
+          size: 9,
+          align: 'center',
+          color: 'dim',
+        });
       } else {
         painter.clear('bg');
         game.draw(painter, state);
@@ -423,9 +535,17 @@ export function GameShell({ game }: { game: AnyGame }) {
           {muted ? '🔇 音オフ' : '🔊 音オン'}
         </button>
         {phase === 'result' && (
-          <button type="button" onClick={onShare} className={styles.shareButton}>
-            記録を送る
-          </button>
+          <>
+            <button type="button" onClick={() => replayRef.current?.()} className={styles.iconButton}>
+              今のを見る
+            </button>
+            <button type="button" onClick={onCopyChallenge} className={styles.iconButton}>
+              {copied ? 'コピーした' : 'おだいURL'}
+            </button>
+            <button type="button" onClick={onShare} className={styles.shareButton}>
+              記録を送る
+            </button>
+          </>
         )}
       </div>
     </div>

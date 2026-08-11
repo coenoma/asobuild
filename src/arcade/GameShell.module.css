@@ -33,9 +33,12 @@
 
 .controls {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   min-height: 40px;
+  max-width: min(92vw, 400px);
 }
 
 .iconButton,
