@@ -10,11 +10,13 @@
 import type { AnyGame, GameMeta } from '@/arcade/types';
 
 import { meta as hanko } from './hanko/meta';
+import { meta as tamago } from './tamago/meta';
 
-export const metas: GameMeta[] = [hanko];
+export const metas: GameMeta[] = [hanko, tamago];
 
 export const loaders: Record<string, () => Promise<{ default: AnyGame }>> = {
   hanko: () => import('./hanko/game'),
+  tamago: () => import('./tamago/game'),
 };
 
 /** 新しい順（pin があればそれを優先） */

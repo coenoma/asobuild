@@ -27,9 +27,20 @@ const C = {
   cyan: '\x1b[36m',
 };
 
+const GENRE_LABEL: Record<string, string> = {
+  action: '反射・タイミング',
+  puzzle: '手を選ぶ',
+  nurture: '育てる',
+  chance: '引き・収集',
+  oneshot: '1回たどり着いて終わり',
+};
+
 function printReport(rep: GateReport): void {
   const head = rep.pass ? `${C.green}合格${C.reset}` : `${C.red}不合格${C.reset}`;
-  console.log(`\n${C.bold}${rep.title}${C.reset} ${C.dim}(${rep.slug})${C.reset}  ${head}`);
+  const genre = GENRE_LABEL[rep.genre] ?? rep.genre;
+  console.log(
+    `\n${C.bold}${rep.title}${C.reset} ${C.dim}(${rep.slug} / ${genre})${C.reset}  ${head}`,
+  );
   console.log(`${C.dim}${'─'.repeat(60)}${C.reset}`);
 
   for (const [key, label] of [

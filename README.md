@@ -74,6 +74,7 @@ npm run check                # 型・ゲート・ビルド
 
 | | |
 |---|---|
+| [docs/design/genre-map.md](docs/design/genre-map.md) | 遊びの型の地図（型で作り方もゲートも変わる） |
 | [docs/design/fun-doctrine.md](docs/design/fun-doctrine.md) | 面白さの原則（毎回同じ手順を踏むための文書） |
 | [docs/design/feel-catalog.md](docs/design/feel-catalog.md) | 効く工夫のカタログ |
 | [docs/design/broadcast-design.md](docs/design/broadcast-design.md) | 遊んでいない人が見て面白いかの設計 |

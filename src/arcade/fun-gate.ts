@@ -19,10 +19,11 @@ import {
   type PlayResult,
   type Policy,
 } from './runner';
-import type { BaseState, FunGate, GameDefinition } from './types';
+import type { BaseState, FunGate, GameDefinition, Genre } from './types';
 
 export const FUN_GATE_DEFAULT: FunGate = {
   idleSurvivalMaxSec: 8,
+  idleSurvivalMinSec: 0,
   randomSurvivalMinSec: 3,
   randomSurvivalMaxSec: 30,
   smartSurvivalMinSec: 20,
@@ -33,6 +34,59 @@ export const FUN_GATE_DEFAULT: FunGate = {
   sessionMinutesMax: 30,
   eventIntervalMinSec: 0.25,
   eventIntervalMaxSec: 4,
+};
+
+/**
+ * 遊びの型ごとの既定値。
+ * 型が変われば「良い状態」も変わるので、同じものさしを当ててはいけない。
+ */
+const GENRE_GATE: Record<Genre, Partial<FunGate>> = {
+  action: {},
+  // 考える時間があるぶん、1手の間隔も1プレイの長さも長くてよい
+  puzzle: { smartSurvivalMaxSec: 420, randomSurvivalMaxSec: 90, eventIntervalMaxSec: 10 },
+  // 放置が遊びの一部。少し放っておいたくらいで終わっては困る。
+  // 上振れの基準を下げているのは、育てるものは「毎回同じように世話する」のが基本で、
+  // 反射ゲームほどスコアが跳ねないため。代わりに「どう育つか」の分岐で飽きさせる／させないが決まる
+  nurture: {
+    idleSurvivalMinSec: 45,
+    smartSurvivalMaxSec: 600,
+    eventIntervalMaxSec: 12,
+    upsideRatioMin: 1.2,
+  },
+  // 運の波が主役なので、上振れを強めに求める
+  chance: { upsideRatioMin: 1.8, smartSurvivalMaxSec: 400, eventIntervalMaxSec: 8 },
+  // 1回たどり着いて終わり。繰り返し前提の項目は外す
+  oneshot: { smartSurvivalMaxSec: 900, eventIntervalMaxSec: 15 },
+};
+
+/** 全ジャンルで見る項目 */
+const COMMON_CHECKS = [
+  'determinism',
+  'first-score',
+  'skill-matters',
+  'event-pace',
+  'first-goal-early',
+  'session-length',
+];
+
+/**
+ * 型ごとに、どの項目を効かせるか。
+ * action の「放置すると死ぬ」を nurture に当てると、正しく作れているものが落ちる。
+ */
+const GENRE_CHECKS: Record<Genre, string[]> = {
+  action: [
+    ...COMMON_CHECKS,
+    'idle-dies',
+    'not-instant-death',
+    'not-mashable',
+    'skilled-lasts',
+    'always-ends',
+    'upside',
+  ],
+  puzzle: [...COMMON_CHECKS, 'not-mashable', 'skilled-lasts', 'always-ends', 'upside'],
+  nurture: [...COMMON_CHECKS, 'idle-survives', 'always-ends', 'upside'],
+  chance: [...COMMON_CHECKS, 'always-ends', 'upside'],
+  oneshot: ['determinism', 'first-score', 'skill-matters', 'event-pace', 'completable'],
 };
 
 export interface Dist {
@@ -65,6 +119,7 @@ export interface GateCheck {
 export interface GateReport {
   slug: string;
   title: string;
+  genre: Genre;
   pass: boolean;
   deterministic: boolean;
   stats: Record<string, PolicyStats>;
@@ -120,7 +175,12 @@ export function runFunGate<S extends BaseState>(
   opts: { runs?: number } = {},
 ): GateReport {
   const runs = opts.runs ?? 200;
-  const gate: FunGate = { ...FUN_GATE_DEFAULT, ...(game.meta.funGate ?? {}) };
+  const genre: Genre = game.meta.genre ?? 'action';
+  const gate: FunGate = {
+    ...FUN_GATE_DEFAULT,
+    ...GENRE_GATE[genre],
+    ...(game.meta.funGate ?? {}),
+  };
   const cap = gate.smartSurvivalMaxSec * 2;
 
   const idle = collect(game, 'idle', () => () => ({ press: false }), Math.min(runs, 60), cap);
@@ -135,7 +195,7 @@ export function runFunGate<S extends BaseState>(
   const skillRatio = smart.stats.score.p50 / Math.max(random.stats.score.p50, 0.5);
   const upsideRatio = smart.stats.score.p90 / Math.max(smart.stats.score.p50, 0.5);
 
-  const checks: GateCheck[] = [
+  const allChecks: GateCheck[] = [
     {
       id: 'determinism',
       label: '再現性（同じ操作なら同じ結果）',
@@ -151,6 +211,22 @@ export function runFunGate<S extends BaseState>(
       actual: `${r1(idle.stats.seconds.p50)}秒`,
       expected: `${gate.idleSurvivalMaxSec}秒以内`,
       fix: '何もしなくても生き残れてしまう。時間とともに上がる圧（落下速度・出現間隔・制限時間の減り）を1つ入れる。',
+    },
+    {
+      id: 'idle-survives',
+      label: '放置しても壊れない（ほったらかしにできるか）',
+      pass: idle.stats.seconds.p50 >= gate.idleSurvivalMinSec,
+      actual: `${r1(idle.stats.seconds.p50)}秒`,
+      expected: `${gate.idleSurvivalMinSec}秒以上`,
+      fix: '少し放っておいただけで終わってしまう。育てるものは「見ていない時間がある」のが前提なので、放置に耐える猶予を長くする。減るものは減っても、取り返しがつく形にする。',
+    },
+    {
+      id: 'completable',
+      label: '最後までたどり着ける',
+      pass: smart.stats.endedRate >= 0.9,
+      actual: `到達率 ${Math.round(smart.stats.endedRate * 100)}%`,
+      expected: '90%以上',
+      fix: '正しい手順をとっても終わりに届いていない。詰みがあるか、bot() が終わり方を知らない。どちらなのかを先に切り分ける。',
     },
     {
       id: 'first-score',
@@ -216,7 +292,7 @@ export function runFunGate<S extends BaseState>(
   const totalSeconds = smart.results.reduce((a, r) => a + r.seconds, 0);
   const eventInterval = totalEvents > 0 ? totalSeconds / totalEvents : Infinity;
 
-  checks.push({
+  allChecks.push({
     id: 'event-pace',
     label: '画面で何かが起きる間隔（見ていて退屈しないか）',
     pass: eventInterval >= gate.eventIntervalMinSec && eventInterval <= gate.eventIntervalMaxSec,
@@ -238,7 +314,7 @@ export function runFunGate<S extends BaseState>(
     const playsNeeded = reachRate > 0 ? 1 / reachRate : Infinity;
     const minutes = (playsNeeded * smart.stats.seconds.p50) / 60;
 
-    checks.push({
+    allChecks.push({
       id: 'first-goal-early',
       label: '最初の称号がすぐ届く',
       pass: first.score <= smart.stats.score.p50,
@@ -247,7 +323,7 @@ export function runFunGate<S extends BaseState>(
       fix: '最初の称号が遠すぎる。1〜2プレイで届く線まで下げる。最初のごほうびが遅いと2回目が起きない。',
     });
 
-    checks.push({
+    allChecks.push({
       id: 'session-length',
       label: '一気に遊びきれる長さ（やりきり感）',
       pass: minutes >= gate.sessionMinutesMin && minutes <= gate.sessionMinutesMax,
@@ -268,9 +344,15 @@ export function runFunGate<S extends BaseState>(
     reasonCount.set(r.reason, (reasonCount.get(r.reason) ?? 0) + 1);
   }
 
+  // 遊びの型に合う項目だけを見る。合わない項目で落とすと、
+  // 正しく作れているものを不合格にしてしまう
+  const active = new Set(GENRE_CHECKS[genre]);
+  const checks = allChecks.filter((c) => active.has(c.id));
+
   return {
     slug: game.meta.slug,
     title: game.meta.title,
+    genre,
     pass: checks.every((c) => c.pass),
     deterministic,
     stats: { idle: idle.stats, random: random.stats, smart: smart.stats },

@@ -24,7 +24,7 @@ function opt(name, fallback) {
 }
 
 if (!slug || !/^[a-z][a-z0-9-]*$/.test(slug)) {
-  console.error('使い方: npm run new -- <slug> [--title タイトル] [--howto あそびかた] [--control tap|hold|tap-hold|aim] [--constraint 制約] [--unit 点]');
+  console.error('使い方: npm run new -- <slug> [--title タイトル] [--howto あそびかた] [--control tap|hold|tap-hold|aim] [--genre action|puzzle|nurture|chance|oneshot] [--constraint 制約] [--unit 点]');
   console.error('slug は半角英小文字・数字・ハイフンのみ（例: potato-nobashi）');
   process.exit(1);
 }
@@ -32,6 +32,7 @@ if (!slug || !/^[a-z][a-z0-9-]*$/.test(slug)) {
 const title = opt('title', slug);
 const howto = opt('howto', 'タップでうごかす');
 const control = opt('control', 'tap');
+const genre = opt('genre', 'action');
 const unit = opt('unit', '点');
 const constraint = opt('constraint', '');
 const today = new Date().toISOString().slice(0, 10);
@@ -51,6 +52,7 @@ export const meta: GameMeta = {
   // 20文字以内。読まなくても分かる一行にする
   howto: '${howto}',
   control: '${control}',
+  genre: '${genre}',
   released: '${today}',
   unit: '${unit}',
   theme: 'keitai',${constraint ? `\n  constraint: '${constraint}',` : ''}
@@ -208,4 +210,10 @@ console.log(`  src/games/registry.ts に登録`);
 console.log(`\n次にやること:`);
 console.log(`  1. npm run dev      → http://localhost:3020/g/${slug} で触ってみる`);
 console.log(`  2. npm run fun -- ${slug}   → 面白さゲートの数字を見て直す`);
-console.log(`  3. docs/design/fun-doctrine.md の「見送る判断」まで入れられたら合格ライン\n`);
+console.log(`  3. docs/design/fun-doctrine.md の「見送る判断」まで入れられたら合格ライン`);
+if (genre !== 'action') {
+  console.log(`\n⚠️ 雛形の中身は action（反射）用です。`);
+  console.log(`   ${genre} の作りは docs/design/genre-map.md を読んでから step/draw/bot を書き換えてください。`);
+  console.log(`   型が変わると、面白さゲートが見る項目も変わります。`);
+}
+console.log('');

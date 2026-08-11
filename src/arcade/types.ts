@@ -85,13 +85,39 @@ export type Control =
 export type ThemeName = 'keitai' | 'mono' | 'flash';
 
 /**
+ * 遊びの型。当時のケータイゲームを、作り方が変わる単位で5つに分けたもの。
+ *
+ * これは飾りではなく、**面白さゲートで何を見るかが変わる**。
+ * 例えば action では「放置すると死ぬ」が必須だが、nurture では逆に
+ * 「放置しても壊れない」ことを見る。取り違えると正しいゲームが不合格になる。
+ *
+ * どの型で作るかの判断は docs/design/genre-map.md。
+ */
+export type Genre =
+  /** 反射・回避・タイミング。糸通し／チャリ走の系統。既定 */
+  | 'action'
+  /** 手を選ぶ。盤面と手数があり、時間ではなく判断で進む */
+  | 'puzzle'
+  /** 育てる・世話する。時間が味方で、放置そのものが遊びの一部 */
+  | 'nurture'
+  /** 引き・収集。運の波が主役で、判断がそれを少し曲げる */
+  | 'chance'
+  /** 1回たどり着いて終わり。謎解き・クイズ・診断 */
+  | 'oneshot';
+
+/**
  * 面白さゲートのしきい値。
  * 既定値は FUN_GATE_DEFAULT（fun-gate.ts）にあり、
  * ゲームごとに meta.funGate で部分的に上書きできる。
  */
 export interface FunGate {
-  /** 放置ボットがこの秒数より長く生き残ったら不合格（＝緊張がない） */
+  /** 放置ボットがこの秒数より長く生き残ったら不合格（＝緊張がない）。action 系で効く */
   idleSurvivalMaxSec: number;
+  /**
+   * 放置ボットがこの秒数より早く終わったら不合格。nurture 系で効く。
+   * 「ほったらかしにしても即座に壊れない」ことを見る（action とは真逆の要求）。
+   */
+  idleSurvivalMinSec: number;
   /** ランダムボットの生存中央値の下限（＝理不尽に即死しない） */
   randomSurvivalMinSec: number;
   /** ランダムボットの生存中央値の上限（＝適当でも無双できてしまう、を防ぐ） */
@@ -147,6 +173,11 @@ export interface GameMeta {
   howto: string;
   /** 操作方式 */
   control: Control;
+  /**
+   * 遊びの型。省略すると 'action' として扱う。
+   * ここを間違えると面白さゲートが見当違いの判定をするので、必ず合わせること。
+   */
+  genre?: Genre;
   /** 公開日 YYYY-MM-DD */
   released: string;
   /** 収録企画の制約（例: 「マックのポテトM」）。一覧に出る */
