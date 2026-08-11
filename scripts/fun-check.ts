@@ -15,6 +15,10 @@ const args = process.argv.slice(2);
 const all = args.includes('--all');
 const runsArg = args.find((a) => a.startsWith('--runs='));
 const runs = runsArg ? Number(runsArg.split('=')[1]) : 200;
+const offsetArg = args.find((a) => a.startsWith('--seed-offset='));
+const seedOffset = offsetArg ? Number(offsetArg.split('=')[1]) : 0;
+/** いまの数字を「これが正」として記録し直す */
+const record = args.includes('--record');
 const targets = all ? metas.map((m) => m.slug) : args.filter((a) => !a.startsWith('--'));
 
 const C = {
@@ -73,6 +77,86 @@ function printReport(rep: GateReport): void {
   }
 }
 
+interface GateRecord {
+  slug: string;
+  genre: string;
+  recordedAt: string;
+  runs: number;
+  pass: boolean;
+  idle: { secondsP50: number };
+  random: { secondsP50: number; scoreP50: number };
+  smart: { secondsP50: number; scoreP50: number; scoreP90: number };
+}
+
+function recordPath(slug: string): string {
+  return `docs/records/gate/${slug}.json`;
+}
+
+function toRecord(rep: GateReport, runCount: number): GateRecord {
+  const round = (n: number) => Math.round(n * 10) / 10;
+  return {
+    slug: rep.slug,
+    genre: rep.genre,
+    recordedAt: new Date().toISOString().slice(0, 10),
+    runs: runCount,
+    pass: rep.pass,
+    idle: { secondsP50: round(rep.stats.idle.seconds.p50) },
+    random: {
+      secondsP50: round(rep.stats.random.seconds.p50),
+      scoreP50: round(rep.stats.random.score.p50),
+    },
+    smart: {
+      secondsP50: round(rep.stats.smart.seconds.p50),
+      scoreP50: round(rep.stats.smart.score.p50),
+      scoreP90: round(rep.stats.smart.score.p90),
+    },
+  };
+}
+
+async function writeRecord(rep: GateReport, runCount: number): Promise<void> {
+  const { mkdir, writeFile } = await import('node:fs/promises');
+  const path = await import('node:path');
+  const file = path.join(process.cwd(), recordPath(rep.slug));
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, `${JSON.stringify(toRecord(rep, runCount), null, 2)}\n`, 'utf8');
+  console.log(`  ${C.dim}記録を更新: ${recordPath(rep.slug)}${C.reset}`);
+}
+
+async function readRecord(slug: string): Promise<GateRecord | null> {
+  try {
+    const { readFile } = await import('node:fs/promises');
+    const path = await import('node:path');
+    const text = await readFile(path.join(process.cwd(), recordPath(slug)), 'utf8');
+    return JSON.parse(text) as GateRecord;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 前回の記録と見比べて、手触りが大きく変わっていないか見る。
+ *
+ * 共通ランタイムを触ったときに、既存のゲームが知らないうちに変わってしまうのを
+ * 機械が見張るための仕組み。意図した変更なら記録を更新すればよい。
+ */
+function findDrift(rep: GateReport, prev: GateRecord): string[] {
+  const now = toRecord(rep, 0);
+  const drift: string[] = [];
+  const check = (label: string, before: number, after: number, tolerance = 0.25) => {
+    if (before === 0 && after === 0) return;
+    const base = Math.max(Math.abs(before), 1);
+    const diff = (after - before) / base;
+    if (Math.abs(diff) > tolerance) {
+      drift.push(`${label} ${before} → ${after}（${diff > 0 ? '+' : ''}${Math.round(diff * 100)}%）`);
+    }
+  };
+  check('上手い人のスコア中央値', prev.smart.scoreP50, now.smart.scoreP50);
+  check('上手い人の生存中央値', prev.smart.secondsP50, now.smart.secondsP50);
+  check('でたらめの生存中央値', prev.random.secondsP50, now.random.secondsP50);
+  check('放置の生存中央値', prev.idle.secondsP50, now.idle.secondsP50);
+  return drift;
+}
+
 /**
  * 収録カンペ（/live）へ結果を流す。
  * カンペが無くても検定は成立するので、失敗しても黙って進む。
@@ -113,10 +197,28 @@ async function main(): Promise<void> {
       continue;
     }
     const mod = await load();
-    const rep = runFunGate(mod.default, { runs });
+    const rep = runFunGate(mod.default, { runs, seedOffset });
     printReport(rep);
     await pushToLive(rep);
     if (!rep.pass) failed++;
+
+    if (record) {
+      await writeRecord(rep, runs);
+    } else if (seedOffset === 0) {
+      // 種をずらして測っているときは、ぶれて当然なので比べない
+      const prev = await readRecord(rep.slug);
+      if (prev) {
+        const drift = findDrift(rep, prev);
+        if (drift.length > 0) {
+          console.log(`\n  ${C.yellow}前回の記録から手触りが変わっています${C.reset}`);
+          for (const d of drift) console.log(`    ${C.yellow}${d}${C.reset}`);
+          console.log(
+            `  ${C.dim}意図した変更なら記録を更新してください: npm run fun -- ${rep.slug} --record${C.reset}`,
+          );
+          failed++;
+        }
+      }
+    }
 
     const insp = mod.default.meta.inspiration;
     if (insp) {

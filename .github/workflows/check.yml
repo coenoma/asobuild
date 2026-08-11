@@ -1,0 +1,32 @@
+name: check
+
+# 型・面白さゲート・ビルドを通す。
+# ゲートは前回の記録（docs/records/gate/）と見比べるので、
+# 共通ランタイムを触って既存ゲームの手触りが変わった場合もここで気づける。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: 型チェック
+        run: npm run typecheck
+
+      - name: 面白さゲート（記録との比較つき）
+        run: npm run fun:all
+
+      - name: ビルド
+        run: npm run build

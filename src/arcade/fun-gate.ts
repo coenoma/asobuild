@@ -151,10 +151,13 @@ function collect<S extends BaseState>(
   makePolicy: () => Policy<S>,
   runs: number,
   maxSeconds: number,
+  seedOffset: number,
 ): { stats: PolicyStats; results: PlayResult[] } {
   const results: PlayResult[] = [];
   for (let i = 0; i < runs; i++) {
-    results.push(playOnce(game, { seed: 1000 + i * 7919, policy: makePolicy(), maxSeconds }));
+    results.push(
+      playOnce(game, { seed: 1000 + seedOffset + i * 7919, policy: makePolicy(), maxSeconds }),
+    );
   }
   return {
     stats: {
@@ -172,9 +175,11 @@ const r1 = (n: number) => Math.round(n * 10) / 10;
 
 export function runFunGate<S extends BaseState>(
   game: GameDefinition<S>,
-  opts: { runs?: number } = {},
+  opts: { runs?: number; seedOffset?: number } = {},
 ): GateReport {
   const runs = opts.runs ?? 200;
+  // 種をずらして測ると、たまたま今の種でうまくいっているだけの調整を見つけられる
+  const seedOffset = opts.seedOffset ?? 0;
   const genre: Genre = game.meta.genre ?? 'action';
   const gate: FunGate = {
     ...FUN_GATE_DEFAULT,
@@ -183,9 +188,9 @@ export function runFunGate<S extends BaseState>(
   };
   const cap = gate.smartSurvivalMaxSec * 2;
 
-  const idle = collect(game, 'idle', () => () => ({ press: false }), Math.min(runs, 60), cap);
-  const random = collect(game, 'random', () => makeRandomPolicy<S>(), runs, cap);
-  const smart = collect(game, 'smart', () => makeSmartPolicy(game), runs, cap);
+  const idle = collect(game, 'idle', () => () => ({ press: false }), Math.min(runs, 60), cap, seedOffset);
+  const random = collect(game, 'random', () => makeRandomPolicy<S>(), runs, cap, seedOffset);
+  const smart = collect(game, 'smart', () => makeSmartPolicy(game), runs, cap, seedOffset);
 
   // 決定論チェック: 同じシード・同じ方針なら完全に同じ結果になるはず
   const a = playOnce(game, { seed: 42, policy: makeSmartPolicy(game), maxSeconds: cap });

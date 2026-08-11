@@ -53,6 +53,8 @@ export function GameShell({ game }: { game: AnyGame }) {
     allCleared: false,
   });
   const [muted, setMuted] = useState(false);
+  /** ゲームの中で例外が出たとき。null なら健康 */
+  const [crashed, setCrashed] = useState<string | null>(null);
   const resultRef = useRef(result);
   resultRef.current = result;
 
@@ -133,7 +135,7 @@ export function GameShell({ game }: { game: AnyGame }) {
       state.time = 0;
       prevScore = 0;
       incPlays(game.meta.slug);
-      sfx.tap();
+      sfx.jingleStart();
       gotoPhase('playing');
     };
 
@@ -163,7 +165,9 @@ export function GameShell({ game }: { game: AnyGame }) {
         nextDiff: next ? next.score - best : 0,
         allCleared,
       });
-      if (got || isBest) sfx.best();
+      // 称号を取った瞬間がいちばん強いので、そこはファンファーレにする
+      if (got) sfx.jingleGoal();
+      else if (isBest) sfx.best();
       gotoPhase('result');
     };
 
@@ -282,7 +286,20 @@ export function GameShell({ game }: { game: AnyGame }) {
     };
 
     const frame = (now: number) => {
+      try {
+        tick(now);
+      } catch (err) {
+        // ゲームの中で落ちても、固まった画面のまま放置しない。
+        // 収録中に出ても、それ自体がネタになる形で見せる
+        cancelAnimationFrame(raf);
+        console.error('[asobuild] ゲームが落ちました', err);
+        setCrashed(err instanceof Error ? err.message : String(err));
+        return;
+      }
       raf = requestAnimationFrame(frame);
+    };
+
+    const tick = (now: number) => {
       const elapsed = Math.min((now - last) / 1000, 0.25);
       last = now;
       acc += elapsed;
@@ -325,7 +342,7 @@ export function GameShell({ game }: { game: AnyGame }) {
             prevScore = state.score;
           }
           if (state.over) {
-            sfx.over();
+            sfx.jingleOver();
             gotoPhase('over');
           }
         } else if (phaseLocal === 'over') {
@@ -374,6 +391,20 @@ export function GameShell({ game }: { game: AnyGame }) {
       detach();
     };
   }, [game]);
+
+  if (crashed) {
+    return (
+      <div className={styles.root}>
+        <div className={styles.crash}>
+          <p className={styles.crashTitle}>エラーが はっせい しました</p>
+          <p className={styles.crashBody}>{crashed}</p>
+          <button type="button" className={styles.crashButton} onClick={() => window.location.reload()}>
+            もう一回
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.root}>

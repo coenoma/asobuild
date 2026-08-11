@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "next dev -p ${PORT:-3020}",
+    "dev:rec": "node scripts/rec.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

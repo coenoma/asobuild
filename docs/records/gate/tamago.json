@@ -1,0 +1,19 @@
+{
+  "slug": "tamago",
+  "genre": "nurture",
+  "recordedAt": "2026-08-11",
+  "runs": 200,
+  "pass": true,
+  "idle": {
+    "secondsP50": 47.9
+  },
+  "random": {
+    "secondsP50": 31,
+    "scoreP50": 11
+  },
+  "smart": {
+    "secondsP50": 100,
+    "scoreP50": 478,
+    "scoreP90": 685
+  }
+}

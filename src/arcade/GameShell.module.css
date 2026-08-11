@@ -67,3 +67,49 @@
   filter: brightness(1.1);
   color: #101820;
 }
+
+/* ゲームが落ちたとき。画面の枠はそのままに、中身だけ差し替える */
+.crash {
+  width: min(92vw, 400px);
+  aspect-ratio: 240 / 320;
+  max-height: min(72vh, 640px);
+  border: 3px solid var(--frame);
+  border-radius: 10px;
+  background: #101820;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+}
+
+.crashTitle {
+  margin: 0;
+  font-size: 16px;
+  color: var(--accent);
+  line-height: 1.8;
+}
+
+.crashBody {
+  margin: 0;
+  font-size: 11px;
+  color: var(--dim);
+  line-height: 1.8;
+  word-break: break-word;
+  max-height: 40%;
+  overflow: hidden;
+}
+
+.crashButton {
+  font: inherit;
+  font-size: 13px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #101820;
+  font-weight: 700;
+  cursor: pointer;
+}
