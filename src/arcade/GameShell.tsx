@@ -14,7 +14,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Painter } from './painter';
 import { InputSource } from './input';
-import { advance } from './runner';
+import { advance, toInput } from './runner';
 import { createRng, randomSeed } from './rng';
 import { sfx } from './sfx';
 import { getBest, incPlays, setBest } from './storage';
@@ -94,6 +94,16 @@ export function GameShell({ game }: { game: AnyGame }) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let state: any = null;
     let gameRng = createRng(randomSeed());
+
+    // タイトルの裏でボットに遊ばせ続ける（ゲームセンターのアトラクトモード）。
+    // 開いた瞬間に遊び方が伝わるうえ、bot() を必須にしてある見返りが目に見える形になる。
+    // 実プレイ用の state / rng とは完全に分けて、記録や進行に一切影響させない。
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let demoState: any = null;
+    let demoRng = createRng(randomSeed());
+    let demoPolicyRng = createRng(randomSeed());
+    let demoPrevPress = false;
+    let demoRestIn = 0;
     let best = getBest(game.meta.slug);
     let prevScore = 0;
     let phaseTime = 0;
@@ -106,6 +116,15 @@ export function GameShell({ game }: { game: AnyGame }) {
       phaseLocal = p;
       phaseTime = 0;
       setPhase(p);
+    };
+
+    const startDemo = () => {
+      demoRng = createRng(randomSeed());
+      demoPolicyRng = createRng(randomSeed());
+      demoState = game.init(demoRng);
+      demoState.time = 0;
+      demoPrevPress = false;
+      demoRestIn = 0;
     };
 
     const start = () => {
@@ -161,6 +180,12 @@ export function GameShell({ game }: { game: AnyGame }) {
 
     const drawTitle = () => {
       painter.clear('bg');
+      // 裏で動いているデモを薄く見せる。文字が読めることを優先して強めに伏せる
+      if (demoState) {
+        game.draw(painter, demoState);
+        painter.alpha(0.76, () => painter.rect(0, 0, VIRTUAL_W, VIRTUAL_H, 'bg'));
+        painter.text('DEMO', VIRTUAL_W - 6, 6, { size: 8, align: 'right', color: 'dim' });
+      }
       painter.rect(0, 92, VIRTUAL_W, 2, 'line');
       painter.text(game.meta.title, VIRTUAL_W / 2, 60, { size: 22, align: 'center', color: 'ink' });
       painter.text(game.meta.howto, VIRTUAL_W / 2, 104, { size: 12, align: 'center', color: 'dim' });
@@ -279,6 +304,19 @@ export function GameShell({ game }: { game: AnyGame }) {
         };
 
         if (phaseLocal === 'title') {
+          // 裏のデモを進める。死んだら少し置いて、別のシードで次のデモへ
+          if (!demoState) {
+            startDemo();
+          } else if (demoState.over) {
+            demoRestIn -= FIXED_DT;
+            if (demoRestIn <= 0) startDemo();
+          } else {
+            const action = game.bot(demoState, demoPolicyRng);
+            const demoInput = toInput(action.press, demoPrevPress, action.px, action.py);
+            demoState = advance(game, demoState, demoInput, demoRng, FIXED_DT);
+            demoPrevPress = action.press;
+            if (demoState.over) demoRestIn = 0.8;
+          }
           if (tapped) start();
         } else if (phaseLocal === 'playing') {
           state = advance(game, state, inp, gameRng, FIXED_DT);

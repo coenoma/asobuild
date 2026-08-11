@@ -1,0 +1,227 @@
+/*
+ * 収録カンペ。録画に映すので、離れて見ても読める大きさを最優先にしている。
+ * 16:9 のウィンドウいっぱいに収まり、スクロールしない。
+ */
+
+.root {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: 1.4vh;
+  padding: 2vh 2.4vw;
+  background: #101820;
+  color: #e9f1e4;
+  overflow: hidden;
+  font-feature-settings: 'palt';
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2vw;
+  border-bottom: 2px solid #2d3d4f;
+  padding-bottom: 1.2vh;
+}
+
+.brand {
+  font-size: clamp(14px, 1.5vw, 22px);
+  letter-spacing: 0.14em;
+  color: #7e8d9c;
+}
+
+.phases {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.6vw;
+}
+
+.phase,
+.phaseOn {
+  font-size: clamp(14px, 1.6vw, 24px);
+  padding: 0.4vh 1.1vw;
+  border-radius: 999px;
+  border: 2px solid #2d3d4f;
+  color: #7e8d9c;
+  white-space: nowrap;
+}
+
+.phaseOn {
+  border-color: #ffd23f;
+  background: #ffd23f;
+  color: #101820;
+  font-weight: 700;
+}
+
+/* 主役。ここが読めれば他が読めなくても成立する */
+.say {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: clamp(28px, 5.4vw, 92px);
+  line-height: 1.25;
+  font-weight: 700;
+  padding: 0 1vw;
+  word-break: break-word;
+  transition: color 0.2s ease;
+}
+
+.sayFresh {
+  color: #ffd23f;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 1.6vw;
+}
+
+.panel {
+  border: 2px solid #2d3d4f;
+  border-radius: 12px;
+  background: #1d2a38;
+  padding: 1.4vh 1.4vw;
+  min-height: 22vh;
+}
+
+.panelTitle {
+  margin: 0 0 0.8vh;
+  font-size: clamp(12px, 1.2vw, 18px);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: #7e8d9c;
+}
+
+.clock {
+  font-size: clamp(32px, 4.4vw, 76px);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.clockHurry {
+  color: #ffd23f;
+}
+
+.clockUp {
+  color: #ef476f;
+  font-size: clamp(26px, 3.4vw, 58px);
+}
+
+.barTrack {
+  margin-top: 1vh;
+  height: 2.2vh;
+  background: #101820;
+  border: 2px solid #2d3d4f;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: #3ddc84;
+  transition: width 0.25s linear;
+}
+
+.barFillHurry {
+  background: #ff6b35;
+}
+
+.gatePass,
+.gateFail {
+  font-size: clamp(22px, 2.6vw, 44px);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.gatePass {
+  color: #3ddc84;
+}
+
+.gateFail {
+  color: #ff6b35;
+}
+
+.checks {
+  list-style: none;
+  margin: 0.8vh 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.2vh 1vw;
+  font-size: clamp(11px, 1.1vw, 17px);
+}
+
+.checkOk {
+  color: #7e8d9c;
+}
+
+.checkNg {
+  color: #e9f1e4;
+  font-weight: 700;
+}
+
+.mark {
+  display: inline-block;
+  width: 1.4em;
+}
+
+.checkOk .mark {
+  color: #3ddc84;
+}
+
+.checkNg .mark {
+  color: #ef476f;
+}
+
+.empty {
+  margin: 0;
+  color: #7e8d9c;
+  font-size: clamp(11px, 1.1vw, 16px);
+  line-height: 1.9;
+}
+
+.empty code {
+  color: #4cc9f0;
+}
+
+.log {
+  list-style: none;
+  margin: 0;
+  padding: 1vh 0 0;
+  border-top: 2px solid #2d3d4f;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3vh;
+  font-size: clamp(11px, 1.15vw, 18px);
+  color: #7e8d9c;
+  /* 画面からはみ出させない。多いときは古いものから切れてよい */
+  max-height: 18vh;
+  overflow: hidden;
+}
+
+.logHead {
+  color: #e9f1e4;
+}
+
+.logTime {
+  display: inline-block;
+  min-width: 4.5em;
+  color: #4cc9f0;
+  font-variant-numeric: tabular-nums;
+}
+
+.offline {
+  position: fixed;
+  right: 1.2vw;
+  bottom: 1.2vh;
+  background: #ef476f;
+  color: #101820;
+  padding: 0.6vh 1vw;
+  border-radius: 8px;
+  font-size: clamp(11px, 1vw, 15px);
+  font-weight: 700;
+}

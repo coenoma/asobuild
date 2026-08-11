@@ -7,3 +7,6 @@ build/
 next-env.d.ts
 .env*.local
 .vercel
+
+# 収録カンペの作業ログ（PUBLIC なので公開しない。台本にするなら npm run live -- archive）
+.live/

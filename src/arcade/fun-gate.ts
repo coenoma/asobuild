@@ -310,9 +310,12 @@ export function runFunGate<S extends BaseState>(
   if (goals.length) {
     const first = goals[0];
     const last = goals[goals.length - 1];
-    const reachRate = smart.results.filter((r) => r.score >= last.score).length / smart.results.length;
-    const playsNeeded = reachRate > 0 ? 1 / reachRate : Infinity;
+    const reachCount = smart.results.filter((r) => r.score >= last.score).length;
+    const playsNeeded = reachCount > 0 ? smart.results.length / reachCount : Infinity;
     const minutes = (playsNeeded * smart.stats.seconds.p50) / 60;
+    // 到達回数が少ないと推定が大きくぶれる（実測: 80回試行で56分、200回で8分と出た）。
+    // 足りないときは当て推量で合否を出さず、「判定できない」と言う
+    const enoughSamples = reachCount >= 5;
 
     allChecks.push({
       id: 'first-goal-early',
@@ -326,13 +329,14 @@ export function runFunGate<S extends BaseState>(
     allChecks.push({
       id: 'session-length',
       label: '一気に遊びきれる長さ（やりきり感）',
-      pass: minutes >= gate.sessionMinutesMin && minutes <= gate.sessionMinutesMax,
-      actual: Number.isFinite(minutes)
-        ? `およそ ${Math.round(minutes)}分で「${last.label}」まで到達`
-        : `「${last.label}」に到達できない`,
-      expected: `${gate.sessionMinutesMin}〜${gate.sessionMinutesMax}分`,
-      fix:
-        minutes > gate.sessionMinutesMax
+      pass: enoughSamples && minutes >= gate.sessionMinutesMin && minutes <= gate.sessionMinutesMax,
+      actual: !enoughSamples
+        ? `最後の称号「${last.label}」への到達が ${smart.results.length}回中 ${reachCount}回しかなく、判定できない`
+        : `およそ ${Math.round(minutes)}分で「${last.label}」まで到達`,
+      expected: `${gate.sessionMinutesMin}〜${gate.sessionMinutesMax}分（到達5回以上で判定）`,
+      fix: !enoughSamples
+        ? `まず試行を増やして測り直す（npm run fun -- ${game.meta.slug} --runs=400）。それでも到達が数回なら、最後の称号が遠すぎるので下げる。`
+        : minutes > gate.sessionMinutesMax
           ? '最後の称号が遠すぎる。1セッションで終わらないと「やりきった」が起きない。最後の目標を下げるか、1プレイあたりの得点を上げる。'
           : '最後の称号が近すぎる。すぐ全部埋まると遊ぶ理由が消える。目標を足すか、最後の目標を上げる。',
     });

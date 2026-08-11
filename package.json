@@ -13,6 +13,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "new": "node scripts/new-game.mjs",
+    "say": "node scripts/live.mjs say",
+    "live": "node scripts/live.mjs",
     "fun": "tsx scripts/fun-check.ts",
     "fun:all": "tsx scripts/fun-check.ts --all",
     "check": "npm run typecheck && npm run fun:all && npm run build"

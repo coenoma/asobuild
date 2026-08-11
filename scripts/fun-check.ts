@@ -73,6 +73,29 @@ function printReport(rep: GateReport): void {
   }
 }
 
+/**
+ * 収録カンペ（/live）へ結果を流す。
+ * カンペが無くても検定は成立するので、失敗しても黙って進む。
+ */
+async function pushToLive(rep: GateReport): Promise<void> {
+  try {
+    const { appendFile, mkdir } = await import('node:fs/promises');
+    const path = await import('node:path');
+    const dir = path.join(process.cwd(), '.live');
+    await mkdir(dir, { recursive: true });
+    const event = {
+      t: Date.now(),
+      kind: 'gate',
+      slug: rep.slug,
+      pass: rep.pass,
+      checks: rep.checks.map((c) => ({ label: c.label, pass: c.pass })),
+    };
+    await appendFile(path.join(dir, 'status.jsonl'), `${JSON.stringify(event)}\n`, 'utf8');
+  } catch {
+    // カンペは無くてよい
+  }
+}
+
 async function main(): Promise<void> {
   if (targets.length === 0) {
     console.log('使い方: npm run fun -- <slug>   /   npm run fun:all');
@@ -92,6 +115,7 @@ async function main(): Promise<void> {
     const mod = await load();
     const rep = runFunGate(mod.default, { runs });
     printReport(rep);
+    await pushToLive(rep);
     if (!rep.pass) failed++;
 
     const insp = mod.default.meta.inspiration;
