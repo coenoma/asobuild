@@ -36,6 +36,6 @@ export const meta: GameMeta = {
     { score: 300, label: 'かけだし' },
     { score: 2000, label: 'ひよっこ' },
     { score: 7000, label: 'いい親' },
-    { score: 19000, label: '名人級' },
+    { score: 16500, label: '名人級' },
   ],
 };

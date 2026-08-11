@@ -188,15 +188,15 @@ export default defineGame<TamagoState>({
     const judge = (text: string, good: boolean) => {
       n.judgeText = text;
       n.judgeGood = good;
-      n.judgeTimer = 0.75;
+      n.judgeTimer = 0.45;
     };
 
     /** 離したときの判定 */
     const release = (amount: number, spilled: boolean) => {
       n.charging = false;
       n.lastGauge = amount;
-      n.lastShown = 0.8;
-      n.cooldown = 0.32;
+      n.lastShown = 0.45;
+      n.cooldown = 0.45;
       n.eat = 1;
 
       if (spilled) {
@@ -238,8 +238,16 @@ export default defineGame<TamagoState>({
         }
       }
 
-      if (n.genki > 0) nextBite(n, rng);
+      // ここで次のお題を作らない。
+      // 判定を見ている最中にゾーンが動くと、がたっとずれて見えるうえ、
+      // 「どこで外したのか」が分からなくなる（実際にそう指摘を受けた）
     };
+
+    // 判定を見せ終わってから、次のお題に切り替える。
+    // ゾーンが動くのは「判定の文字が消えるのと同時」になる
+    if (s.cooldown > 0 && n.cooldown <= 0 && n.genki > 0) {
+      nextBite(n, rng);
+    }
 
     // ゲージ。押している間だけ伸びる
     if (n.cooldown <= 0) {

@@ -8,12 +8,12 @@
     "secondsP50": 7.6
   },
   "random": {
-    "secondsP50": 13.1,
-    "scoreP50": 24
+    "secondsP50": 14.3,
+    "scoreP50": 12
   },
   "smart": {
-    "secondsP50": 147.2,
-    "scoreP50": 17886,
-    "scoreP90": 21936
+    "secondsP50": 159,
+    "scoreP50": 13860,
+    "scoreP90": 17024
   }
 }
