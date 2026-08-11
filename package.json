@@ -22,6 +22,7 @@
     "ogp": "tsx scripts/gen-ogp.ts",
     "playtest": "tsx scripts/playtest.ts",
     "ship": "npm run check && tsx scripts/ship-check.ts",
+    "status": "tsx scripts/status.ts",
     "check": "npm run typecheck && npm run fun:all && npm run build"
   },
   "dependencies": {
