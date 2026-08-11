@@ -201,7 +201,13 @@ async function main(): Promise<void> {
     const rep = runFunGate(mod.default, { runs, seedOffset });
     printReport(rep);
     await pushToLive(rep);
-    if (!rep.pass) failed++;
+    // ボツ棚のものは「基準に届かなかった記録」なので、合否では止めない
+    const isBotsu = mod.default.meta.status === 'botsu';
+    if (isBotsu) {
+      console.log(`  ${C.dim}（ボツ棚。合否は問いません）${C.reset}`);
+    } else if (!rep.pass) {
+      failed++;
+    }
 
     if (record) {
       await writeRecord(rep, runs);

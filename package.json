@@ -18,6 +18,8 @@
     "live": "node scripts/live.mjs",
     "fun": "tsx scripts/fun-check.ts",
     "fun:all": "tsx scripts/fun-check.ts --all",
+    "tune": "tsx scripts/tune.ts",
+    "ogp": "tsx scripts/gen-ogp.ts",
     "check": "npm run typecheck && npm run fun:all && npm run build"
   },
   "dependencies": {
@@ -26,6 +28,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@napi-rs/canvas": "^1.0.5",
     "@types/node": "^22.10.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",

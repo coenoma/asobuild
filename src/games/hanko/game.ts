@@ -25,6 +25,17 @@ import {
 } from '@/arcade/feel';
 import { meta } from './meta';
 
+/**
+ * 収録中に触ることになる数値。`npm run tune` がここを動かして当たりを探せるよう、
+ * 定数ではなく書き換えられる入れ物にしてある（通常のプレイでは変わらない）。
+ */
+const TUNE = {
+  /** 書類の間隔の初期値。小さいほど最初から忙しい */
+  spawnBase: 1.2,
+  /** 速度の上がり方（毎秒）。大きいほど早く難しくなる */
+  speedGain: 3.5,
+};
+
 /** 判定ワクの中心 Y */
 const ZONE_Y = 214;
 /** ドンピシャ／ナイス／セーフ の判定幅 */
@@ -91,7 +102,7 @@ function pickTarget(docs: Doc[]): Doc | null {
 
 /** 経過時間から現在の書類の間隔。50秒あたりで成功後の硬直より短くなり、破綻が始まる */
 function spawnInterval(time: number): number {
-  return Math.max(0.1, 1.2 - time * 0.022);
+  return Math.max(0.1, TUNE.spawnBase - time * 0.022);
 }
 
 /** 差戻の出やすさ。開始8秒は出さない（最初の成功体験を邪魔しない） */
@@ -145,7 +156,7 @@ export default defineGame<HankoState>({
     // 当たった瞬間の「止め」の最中は世界を進めない（手応えを作る）
     if (!feelTick(n, input, dt)) return n;
 
-    n.speed = 50 + s.time * 3.5;
+    n.speed = 50 + s.time * TUNE.speedGain;
     n.cooldown = Math.max(0, s.cooldown - dt);
     n.stampAnim = Math.max(0, s.stampAnim - dt * 5);
     n.judgeTimer = Math.max(0, s.judgeTimer - dt);
@@ -353,5 +364,26 @@ export default defineGame<HankoState>({
 
   reason(s) {
     return s.deathReason || '書類が捌けなくなった';
+  },
+
+  tunables: {
+    spawnBase: {
+      label: '書類の間隔',
+      min: 0.7,
+      max: 2.2,
+      get: () => TUNE.spawnBase,
+      set: (v) => {
+        TUNE.spawnBase = v;
+      },
+    },
+    speedGain: {
+      label: '速度の上がり方',
+      min: 1.5,
+      max: 7,
+      get: () => TUNE.speedGain,
+      set: (v) => {
+        TUNE.speedGain = v;
+      },
+    },
   },
 });

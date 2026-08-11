@@ -19,12 +19,21 @@ export const loaders: Record<string, () => Promise<{ default: AnyGame }>> = {
   tamago: () => import('./tamago/game'),
 };
 
-/** 新しい順（pin があればそれを優先） */
-export function sortedMetas(): GameMeta[] {
-  return [...metas].sort((a, b) => {
+function byNewest(list: GameMeta[]): GameMeta[] {
+  return [...list].sort((a, b) => {
     if ((b.pin ?? 0) !== (a.pin ?? 0)) return (b.pin ?? 0) - (a.pin ?? 0);
     return b.released.localeCompare(a.released);
   });
+}
+
+/** 表に出すもの（新しい順） */
+export function sortedMetas(): GameMeta[] {
+  return byNewest(metas.filter((m) => m.status !== 'botsu'));
+}
+
+/** ボツ棚。消さずに残しておく */
+export function botsuMetas(): GameMeta[] {
+  return byNewest(metas.filter((m) => m.status === 'botsu'));
 }
 
 export function findMeta(slug: string): GameMeta | undefined {

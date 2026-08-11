@@ -199,6 +199,16 @@ export interface GameMeta {
   /** 動画 URL（あれば一覧からリンクする） */
   video?: string;
   /**
+   * 一覧での扱い。既定は 'live'。
+   *
+   * 'botsu' にしても消さずに遊べるまま残す。うまくいかなかったものを
+   * 理由つきで並べておくこと自体が、この番組の中身になる
+   * （docs/design/broadcast-design.md「失敗が面白い」）。
+   */
+  status?: 'live' | 'botsu';
+  /** ボツにした理由。ボツ棚にそのまま出るので、正直に短く書く */
+  botsuReason?: string;
+  /**
    * 着想元がある場合は必ず書く（何も下敷きにしていないなら省略してよい）。
    * ゲームページにそのまま表示される。隠さず出すことが誠実さの表明になる。
    */
@@ -229,6 +239,28 @@ export interface GameDefinition<S extends BaseState = BaseState> {
   bot(state: S, rng: Rng): BotAction;
   /** 死因を一行で（リザルト画面に出る）。「なぜ死んだか」が伝わると次が回る */
   reason?(state: S): string;
+  /**
+   * 調整してよい数値。`npm run tune` がここを動かして当たりを探す。
+   * 書かなくても動くが、書いておくと難度調整が一気に速くなる。
+   */
+  tunables?: Record<string, Tunable>;
+}
+
+/**
+ * 調整する数値に名前をつけて外から触れるようにしたもの。
+ *
+ * 収録中の「ここの数字を上げて」→ ゲート → また上げて、の往復が
+ * いちばん時間を食う。`npm run tune` が自動で当たりを探せるように、
+ * 触ってよい値だけを名前つきで公開しておく。
+ */
+export interface Tunable {
+  /** 人に伝わる名前（例:「書類の間隔」） */
+  label: string;
+  /** 探索してよい範囲 */
+  min: number;
+  max: number;
+  get(): number;
+  set(value: number): void;
 }
 
 /** 型を書かずに定義を作るためのヘルパ（games 側はこれを使う） */

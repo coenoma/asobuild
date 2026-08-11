@@ -1,9 +1,11 @@
 import Link from 'next/link';
-import { sortedMetas } from '@/games/registry';
+import { botsuMetas, sortedMetas } from '@/games/registry';
+import { Collection } from './Collection';
 import styles from './page.module.css';
 
 export default function Home() {
   const metas = sortedMetas();
+  const botsu = botsuMetas();
 
   return (
     <main className={styles.main}>
@@ -40,6 +42,31 @@ export default function Home() {
           </ul>
         )}
       </section>
+
+      <Collection slugs={metas.map((m) => m.slug)} />
+
+      {botsu.length > 0 && (
+        <section className={styles.botsuSection} aria-labelledby="botsu-heading">
+          <h2 id="botsu-heading" className={styles.sectionTitle}>
+            ボツ棚
+          </h2>
+          <p className={styles.botsuLead}>
+            うまくいかなかったもの。消さずに置いてあります。遊べます。
+          </p>
+          <ul className={styles.grid}>
+            {botsu.map((m) => (
+              <li key={m.slug}>
+                <Link href={`/g/${m.slug}`} className={styles.botsuCard}>
+                  <span className={styles.botsuBadge}>ボツ</span>
+                  <span className={styles.cardTitle}>{m.title}</span>
+                  <span className={styles.cardHowto}>{m.howto}</span>
+                  {m.botsuReason && <span className={styles.botsuReason}>{m.botsuReason}</span>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className={styles.gateBanner}>
         <Link href="/gate" className={styles.gateLink}>
