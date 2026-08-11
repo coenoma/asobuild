@@ -1,0 +1,270 @@
+.main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px 20px 64px;
+}
+
+.nav {
+  padding-bottom: 12px;
+}
+
+.back {
+  font-size: 13px;
+  color: var(--dim);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--accent);
+}
+
+.header {
+  padding: 16px 0 28px;
+}
+
+.title {
+  margin: 0 0 12px;
+  font-size: clamp(26px, 6vw, 38px);
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
+.lead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 2;
+  color: var(--dim);
+}
+
+.lead strong {
+  color: var(--text);
+  font-weight: 400;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 20px;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip,
+.chipOn {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+}
+
+.chipOn {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #101820;
+  font-weight: 700;
+}
+
+.chip:disabled,
+.chipOn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.go {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 14px;
+  border-radius: 10px;
+  border: 2px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.go:hover:not(:disabled) {
+  background: var(--accent);
+  color: #101820;
+}
+
+.go:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.stage {
+  margin-top: 20px;
+}
+
+.statusRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.status {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.elapsed {
+  font-size: 12px;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.barTrack {
+  height: 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.15s linear;
+}
+
+.canvas {
+  margin-top: 14px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 560 / 150;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.result {
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+
+.verdictPass,
+.verdictFail {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.verdictPass {
+  color: #3ddc84;
+}
+
+.verdictFail {
+  color: var(--accent2);
+}
+
+.checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.ok,
+.ng {
+  display: grid;
+  grid-template-columns: 1.6em 1fr auto;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.ok {
+  color: var(--dim);
+}
+
+.ng {
+  color: var(--text);
+}
+
+.ok .mark {
+  color: #3ddc84;
+}
+
+.ng .mark {
+  color: #ef476f;
+}
+
+.checkValue {
+  font-size: 11px;
+  color: var(--dim);
+  text-align: right;
+}
+
+.reasons {
+  margin: 16px 0 0;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.about {
+  margin-top: 40px;
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+}
+
+.aboutTitle {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+}
+
+.terms {
+  display: grid;
+  grid-template-columns: 5.5em 1fr;
+  gap: 8px 14px;
+  margin: 0 0 18px;
+  font-size: 13px;
+}
+
+.terms dt {
+  color: var(--accent);
+}
+
+.terms dd {
+  margin: 0;
+  color: var(--dim);
+  line-height: 1.8;
+}
+
+.note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--dim);
+  line-height: 1.9;
+}
+
+.note strong {
+  color: var(--text);
+  font-weight: 400;
+}
+
+.note code {
+  color: var(--accent);
+}

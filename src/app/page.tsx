@@ -41,6 +41,13 @@ export default function Home() {
         )}
       </section>
 
+      <section className={styles.gateBanner}>
+        <Link href="/gate" className={styles.gateLink}>
+          <span className={styles.gateTitle}>ボットが何百回も遊んで検定しています</span>
+          <span className={styles.gateSub}>めんどうさゲートを動かしてみる →</span>
+        </Link>
+      </section>
+
       <footer className={styles.footer}>
         <p>
           つくりかたも全部公開しています →{' '}

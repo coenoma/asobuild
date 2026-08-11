@@ -159,19 +159,31 @@ function collect<S extends BaseState>(
       playOnce(game, { seed: 1000 + seedOffset + i * 7919, policy: makePolicy(), maxSeconds }),
     );
   }
+  return { stats: makeStats(name, results, runs), results };
+}
+
+function makeStats(name: string, results: PlayResult[], runs: number): PolicyStats {
   return {
-    stats: {
-      name,
-      runs,
-      score: dist(results.map((r) => r.score)),
-      seconds: dist(results.map((r) => r.seconds)),
-      endedRate: results.filter((r) => r.ended).length / runs,
-    },
-    results,
+    name,
+    runs,
+    score: dist(results.map((r) => r.score)),
+    seconds: dist(results.map((r) => r.seconds)),
+    endedRate: results.filter((r) => r.ended).length / runs,
   };
 }
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
+
+/** 3種のボットの結果。判定はここから作る */
+interface Collected {
+  stats: PolicyStats;
+  results: PlayResult[];
+}
+
+/** ゲートの設定を組み立てる（既定 → 型ごと → ゲームごとの順で上書き） */
+function resolveGate(genre: Genre, override?: Partial<FunGate>): FunGate {
+  return { ...FUN_GATE_DEFAULT, ...GENRE_GATE[genre], ...(override ?? {}) };
+}
 
 export function runFunGate<S extends BaseState>(
   game: GameDefinition<S>,
@@ -181,17 +193,31 @@ export function runFunGate<S extends BaseState>(
   // 種をずらして測ると、たまたま今の種でうまくいっているだけの調整を見つけられる
   const seedOffset = opts.seedOffset ?? 0;
   const genre: Genre = game.meta.genre ?? 'action';
-  const gate: FunGate = {
-    ...FUN_GATE_DEFAULT,
-    ...GENRE_GATE[genre],
-    ...(game.meta.funGate ?? {}),
-  };
+  const gate = resolveGate(genre, game.meta.funGate);
   const cap = gate.smartSurvivalMaxSec * 2;
 
   const idle = collect(game, 'idle', () => () => ({ press: false }), Math.min(runs, 60), cap, seedOffset);
   const random = collect(game, 'random', () => makeRandomPolicy<S>(), runs, cap, seedOffset);
   const smart = collect(game, 'smart', () => makeSmartPolicy(game), runs, cap, seedOffset);
 
+  return buildReport(game, genre, gate, cap, idle, random, smart);
+}
+
+/**
+ * 集めた結果から判定を作る。
+ *
+ * ここを1か所にしておくことで、コマンドラインからの実行（同期）と
+ * ブラウザでの実行（非同期・途中経過つき）が、必ず同じ基準で判定される。
+ */
+function buildReport<S extends BaseState>(
+  game: GameDefinition<S>,
+  genre: Genre,
+  gate: FunGate,
+  cap: number,
+  idle: Collected,
+  random: Collected,
+  smart: Collected,
+): GateReport {
   // 決定論チェック: 同じシード・同じ方針なら完全に同じ結果になるはず
   const a = playOnce(game, { seed: 42, policy: makeSmartPolicy(game), maxSeconds: cap });
   const b = playOnce(game, { seed: 42, policy: makeSmartPolicy(game), maxSeconds: cap });
@@ -371,4 +397,93 @@ export function runFunGate<S extends BaseState>(
       .sort((x, y) => y.count - x.count)
       .slice(0, 3),
   };
+}
+
+/**
+ * 画面に描かせるための小休止。
+ *
+ * setTimeout(0) だと、裏に回ったタブでは 1秒に1回まで抑えられてしまい、
+ * 検定が何十倍も遅くなる（実測: 300回が84秒たっても終わらなかった）。
+ * MessageChannel はその抑制を受けないので、こちらを使う。
+ */
+function yieldToUI(): Promise<void> {
+  if (typeof MessageChannel === 'undefined') {
+    return new Promise((resolve) => setTimeout(resolve, 0));
+  }
+  return new Promise((resolve) => {
+    const ch = new MessageChannel();
+    ch.port1.onmessage = () => {
+      ch.port1.close();
+      resolve();
+    };
+    ch.port2.postMessage(null);
+  });
+}
+
+/** ブラウザで走らせるときの途中経過 */
+export interface GateProgress {
+  policy: 'idle' | 'random' | 'smart';
+  done: number;
+  total: number;
+  /** ここまでに出たスコア（分布を描くのに使う） */
+  scores: number[];
+}
+
+/**
+ * ブラウザ用。少しずつ走らせて、途中経過を返しながら進む。
+ *
+ * 判定そのものは同期版と同じ buildReport を通るので、
+ * 画面で見えている結果とコマンドラインの結果は必ず一致する。
+ * （見せるためだけの別実装を作ると、そのうち食い違って信用できなくなる）
+ */
+export async function runFunGateAsync<S extends BaseState>(
+  game: GameDefinition<S>,
+  opts: {
+    runs?: number;
+    seedOffset?: number;
+    onProgress?: (p: GateProgress) => void;
+    /** 何回ごとに画面へ制御を返すか。小さいほど滑らかだが遅くなる */
+    yieldEvery?: number;
+  } = {},
+): Promise<GateReport> {
+  const runs = opts.runs ?? 200;
+  const seedOffset = opts.seedOffset ?? 0;
+  const genre: Genre = game.meta.genre ?? 'action';
+  const gate = resolveGate(genre, game.meta.funGate);
+  const cap = gate.smartSurvivalMaxSec * 2;
+  const yieldEvery = opts.yieldEvery ?? 6;
+
+  const collectAsync = async (
+    name: 'idle' | 'random' | 'smart',
+    makePolicy: () => Policy<S>,
+    count: number,
+  ): Promise<{ stats: PolicyStats; results: PlayResult[] }> => {
+    const results: PlayResult[] = [];
+    for (let i = 0; i < count; i++) {
+      results.push(
+        playOnce(game, {
+          seed: 1000 + seedOffset + i * 7919,
+          policy: makePolicy(),
+          maxSeconds: cap,
+        }),
+      );
+      if ((i + 1) % yieldEvery === 0 || i === count - 1) {
+        opts.onProgress?.({
+          policy: name,
+          done: i + 1,
+          total: count,
+          scores: results.map((r) => r.score),
+        });
+        // 画面を描かせる隙を作る
+        await yieldToUI();
+      }
+    }
+    return { stats: makeStats(name, results, count), results };
+  };
+
+  const idle = await collectAsync('idle', () => () => ({ press: false }), Math.min(runs, 60));
+  const random = await collectAsync('random', () => makeRandomPolicy<S>(), runs);
+  const smart = await collectAsync('smart', () => makeSmartPolicy(game), runs);
+
+  return buildReport(game, genre, gate, cap, idle, random, smart);
 }
