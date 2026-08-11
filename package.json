@@ -4,7 +4,7 @@
   "private": true,
   "description": "アソビルド — 制約つきでミニゲーム/ツールを量産する器",
   "engines": {
-    "node": "22.x"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "next dev -p ${PORT:-3020}",
