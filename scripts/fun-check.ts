@@ -245,6 +245,11 @@ async function main(): Promise<void> {
     process.exit(1);
   }
   console.log(`${C.green}すべて基準を満たしています。${C.reset}`);
+  console.log(
+    `${C.yellow}ただし、これは「面白くなりようがない状態ではない」というだけです。${C.reset}`,
+  );
+  console.log(`${C.dim}面白いかどうかは、実際に3回遊んで人が決めます:${C.reset}`);
+  console.log(`${C.dim}  npm run dev  →  npm run playtest -- <slug>${C.reset}`);
 }
 
 void main();

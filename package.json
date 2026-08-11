@@ -20,6 +20,8 @@
     "fun:all": "tsx scripts/fun-check.ts --all",
     "tune": "tsx scripts/tune.ts",
     "ogp": "tsx scripts/gen-ogp.ts",
+    "playtest": "tsx scripts/playtest.ts",
+    "ship": "npm run check && tsx scripts/ship-check.ts",
     "check": "npm run typecheck && npm run fun:all && npm run build"
   },
   "dependencies": {
