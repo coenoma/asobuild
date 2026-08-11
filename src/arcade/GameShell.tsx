@@ -23,7 +23,7 @@ import { currentGoal, isAllCleared, nextGoal } from './goals';
 import { FIXED_DT, VIRTUAL_H, VIRTUAL_W, type AnyGame, type Input } from './types';
 import styles from './GameShell.module.css';
 
-type Phase = 'title' | 'playing' | 'over' | 'replay' | 'result';
+type Phase = 'title' | 'playing' | 'paused' | 'over' | 'replay' | 'result';
 
 /** リプレイで見せる長さ（秒）。死ぬ直前だけでいい */
 const REPLAY_SECONDS = 3;
@@ -77,6 +77,9 @@ export function GameShell({ game }: { game: AnyGame }) {
   const [copied, setCopied] = useState(false);
   /** ループの中で作った関数を、画面のボタンから呼ぶための橋渡し */
   const replayRef = useRef<(() => void) | null>(null);
+  const pauseRef = useRef<(() => void) | null>(null);
+  const resumeRef = useRef<(() => void) | null>(null);
+  const quitRef = useRef<(() => void) | null>(null);
   const resultRef = useRef(result);
   resultRef.current = result;
 
@@ -179,6 +182,33 @@ export function GameShell({ game }: { game: AnyGame }) {
       demoRestIn = 0;
     };
 
+    /**
+     * 中断まわり。
+     *
+     * リトライの前に確認を挟まない（fun-doctrine ⑤）のと、プレイ中に抜けられることは別の話。
+     * 抜け道が無いと、電話が来ただけで記録を捨てることになる。
+     * 共通シェルが持つので、ゲーム側は何もしなくてよい。
+     */
+    const pause = () => {
+      if (phaseLocal !== 'playing') return;
+      gotoPhase('paused');
+    };
+    const resume = () => {
+      if (phaseLocal !== 'paused') return;
+      // 止まっていた分をまとめて進めないよう、時間を捨ててから戻る
+      last = performance.now();
+      acc = 0;
+      gotoPhase('playing');
+    };
+    const quit = () => {
+      if (phaseLocal !== 'paused') return;
+      // 途中でやめても、そこまで遊んだ結果には変わりないので記録は残す
+      finish('とちゅうでやめた');
+    };
+    pauseRef.current = pause;
+    resumeRef.current = resume;
+    quitRef.current = quit;
+
     const start = () => {
       // URL に #s=1234 が付いていたら、その出方で遊ぶ（同じ盤面で勝負できる）
       const fixed = readSeedFromHash();
@@ -218,12 +248,12 @@ export function GameShell({ game }: { game: AnyGame }) {
     };
     replayRef.current = startReplay;
 
-    const finish = () => {
+    const finish = (overrideReason?: string) => {
       const score: number = state.score;
       const prevBest = best;
       const isBest = setBest(game.meta.slug, score);
       if (isBest) best = score;
-      const reason = game.reason?.(state) ?? '';
+      const reason = overrideReason ?? game.reason?.(state) ?? '';
 
       // 称号は「一度でも到達したか」で決まるので、記録（ベスト）を基準に見る
       const goals = game.meta.goals;
@@ -399,7 +429,9 @@ export function GameShell({ game }: { game: AnyGame }) {
           py: input.py,
         };
 
-        if (phaseLocal === 'title') {
+        if (phaseLocal === 'paused') {
+          // 止まっている間は何も進めない（時間も入力も）
+        } else if (phaseLocal === 'title') {
           // 裏のデモを進める。死んだら少し置いて、別のシードで次のデモへ
           if (!demoState) {
             startDemo();
@@ -457,11 +489,26 @@ export function GameShell({ game }: { game: AnyGame }) {
         input.endFrame();
       }
 
-      if (phaseLocal === 'title') {
+      // 型の絞り込みで比較が潰れないよう、いったん Phase として受け直す
+      const ph: Phase = phaseLocal;
+      if (ph === 'title') {
         drawTitle();
-      } else if (phaseLocal === 'result') {
+      } else if (ph === 'result') {
         drawResult();
-      } else if (phaseLocal === 'replay') {
+      } else if (ph === 'paused') {
+        // 止めている間も、後ろで何が起きていたかは見せたまま伏せる
+        painter.clear('bg');
+        game.draw(painter, state);
+        drawHud();
+        painter.alpha(0.72, () => painter.rect(0, 0, VIRTUAL_W, VIRTUAL_H, 'bg'));
+        // ゲームの絵と重ならない高さに置く
+        painter.text('ちゅうだん中', VIRTUAL_W / 2, 66, { size: 16, align: 'center', color: 'ink' });
+        painter.text(`いま ${state.score}${game.meta.unit}`, VIRTUAL_W / 2, 92, {
+          size: 11,
+          align: 'center',
+          color: 'dim',
+        });
+      } else if (ph === 'replay') {
         painter.clear('bg');
         game.draw(painter, replayState);
         painter.rect(0, 0, VIRTUAL_W, 16, 'bg2');
@@ -479,11 +526,20 @@ export function GameShell({ game }: { game: AnyGame }) {
         game.draw(painter, state);
         drawHud();
         // 赤の点滅は最初の一瞬だけ。そのあとは「やられた絵」を隠さない
-        if (phaseLocal === 'over' && phaseTime < 0.18 && Math.floor(blink * 24) % 2 === 0) {
+        if (ph === 'over' && phaseTime < 0.18 && Math.floor(blink * 24) % 2 === 0) {
           painter.alpha(0.3, () => painter.rect(0, 0, VIRTUAL_W, VIRTUAL_H, 'bad'));
         }
       }
     };
+
+    // ESC は「遊ぶための入力」ではなく画面の操作なので、InputSource とは分けて扱う
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      if (phaseLocal === 'playing') pause();
+      else if (phaseLocal === 'paused') resume();
+    };
+    window.addEventListener('keydown', onEsc);
 
     // タブを離れている間ブラウザはフレームを止める。戻ったときに
     // 止まっていた分をまとめて進めると「見ていない間に死んでいた」が起きるので、
@@ -499,6 +555,7 @@ export function GameShell({ game }: { game: AnyGame }) {
     raf = requestAnimationFrame(frame);
     return () => {
       cancelAnimationFrame(raf);
+      window.removeEventListener('keydown', onEsc);
       document.removeEventListener('visibilitychange', onVisibility);
       detach();
     };
@@ -531,6 +588,21 @@ export function GameShell({ game }: { game: AnyGame }) {
       </div>
 
       <div className={styles.controls}>
+        {phase === 'playing' && (
+          <button type="button" onClick={() => pauseRef.current?.()} className={styles.iconButton}>
+            やめる（ESC）
+          </button>
+        )}
+        {phase === 'paused' && (
+          <>
+            <button type="button" onClick={() => resumeRef.current?.()} className={styles.shareButton}>
+              つづける
+            </button>
+            <button type="button" onClick={() => quitRef.current?.()} className={styles.quitButton}>
+              ここでやめる
+            </button>
+          </>
+        )}
         <button type="button" onClick={onToggleMute} className={styles.iconButton} aria-pressed={muted}>
           {muted ? '🔇 音オフ' : '🔊 音オン'}
         </button>

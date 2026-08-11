@@ -116,3 +116,20 @@
   font-weight: 700;
   cursor: pointer;
 }
+
+/* 中断してやめるほう。押し間違えても取り返しがつくよう、目立たせすぎない */
+.quitButton {
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+}
+
+.quitButton:hover {
+  border-color: #ef476f;
+  color: #ef476f;
+}
