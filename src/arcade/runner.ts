@@ -101,17 +101,25 @@ export function playOnce<S extends BaseState>(
 export const idlePolicy: Policy<BaseState> = () => ({ press: false });
 
 /**
- * でたらめボット。人間の初見に近い。
- * 押しっぱなしにも押さないままにも寄らないよう、押す確率と離す確率を非対称にしている。
+ * でたらめボット。何も分かっていない人の代わり。
+ *
+ * 「押し始めたら、でたらめな長さだけ押し続ける」形にしてある。
+ * 毎フレーム一定確率で離す作りにしていた頃は、押す時間がほぼ一定の短さにしかならず、
+ * 長押しで加減するゲーム（ゲージを伸ばして離す等）では**構造的に一度も成功できなかった**。
+ * それだと「初見でも点が入るか」の判定が、ゲームの出来ではなくボットの都合で決まってしまう。
+ *
  * 内部状態を持つので、プレイごとに作り直すこと。
  */
 export function makeRandomPolicy<S extends BaseState>(): Policy<S> {
   let pressing = false;
-  return (_state, rng) => {
+  let releaseAt = 0;
+  return (_state, rng, frame) => {
     if (pressing) {
-      if (rng.chance(0.12)) pressing = false;
-    } else if (rng.chance(0.06)) {
+      if (frame >= releaseAt) pressing = false;
+    } else if (rng.chance(0.07)) {
       pressing = true;
+      // 3〜75フレーム（0.05〜1.25秒）押し続ける。短い連打も長押しも出る
+      releaseAt = frame + 3 + rng.int(72);
     }
     return { press: pressing, px: rng.range(0, VIRTUAL_W), py: rng.range(0, VIRTUAL_H) };
   };

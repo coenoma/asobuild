@@ -34,8 +34,14 @@ import { meta } from './meta';
 
 /** 収録中に触る数値。npm run tune が動かせるよう入れ物にしてある */
 const TUNE = {
-  /** ゲージが伸びる速さ（毎秒）。上げるほど忙しい */
-  gaugeSpeed: 0.92,
+  /**
+   * ゲージが伸びる速さ（毎秒）。
+   *
+   * 0.92 だと、ゾーン幅0.15 を通過するのに 0.16秒 しかない。
+   * 人の反応は 0.2〜0.25秒 かかるので、**構造的に間に合わない速さ**だった。
+   * 0.58 なら通過に 0.26秒 かかり、狙って止められる。
+   */
+  gaugeSpeed: 0.58,
   /** ちょうどいいゾーンの広さ。狭いほど難しい */
   zoneWidth: 0.15,
   /** おなかの減り（毎秒） */
@@ -45,13 +51,22 @@ const TUNE = {
    * これが無いと、上手い人が永遠に失敗せず終わらない（ゲートで実測済み）。
    * 速くなるとフレームあたりの移動量がドンピシャ幅を超え、やがてゾーンも越える。
    */
-  speedRamp: 0.045,
+  speedRamp: 0.144,
 };
 
 const GAUGE_X = 26;
 const GAUGE_W = VIRTUAL_W - GAUGE_X * 2;
 const GAUGE_Y = 250;
 const GAUGE_H = 22;
+
+/**
+ * えさ1回でおなかがどれだけ増えるか。
+ *
+ * ここが大きすぎると、おなかの減りと釣り合う量が「ごく少量」になり、
+ * ちょうどいいゾーンが**ほぼ左端に張り付く**（実際にそう見えるという指摘を受けた）。
+ * 減り（haraDrain × 1サイクル ≒ 10）と釣り合う量がまんなか付近に来るようにしてある。
+ */
+const FEED_SCALE = 52;
 
 /** ゾーンの中心にどれだけ近ければ「ドンピシャ」か */
 const PERFECT = 0.028;
@@ -93,7 +108,7 @@ export interface TamagoState extends BaseState, FeelState {
 
 /** おなかの空き具合から「ちょうどいい量」を決める。減っているほど多めが正解 */
 function idealAmount(hara: number): number {
-  return Math.max(0.16, Math.min(0.86, (100 - hara) / 100));
+  return Math.max(0.22, Math.min(0.86, (100 - hara) / 100));
 }
 
 /** 次の一口のお題を決める */
@@ -124,6 +139,11 @@ function nextBite(s: TamagoState, rng: Rng): void {
       }
     }
   }
+  // はじめのうちはゾーンを広くする。
+  // 最初の1回で当たらないと初見はそこで帰るので、入口だけは甘くしておく
+  // （fun-doctrine ②「3秒で最初の1点」）
+  if (s.time < 9) s.zoneWidth *= 2.1;
+
   // ゾーンが端に寄りすぎないようにする（届かない／避けようがない、をなくす）
   s.zoneCenter = Math.max(s.zoneWidth / 2 + 0.05, Math.min(0.92, s.zoneCenter));
 }
@@ -178,8 +198,11 @@ export default defineGame<TamagoState>({
     n.eat = Math.max(0, s.eat - dt * 3);
     n.cooldown = Math.max(0, s.cooldown - dt);
 
-    // おなかは放っておくと減る。空になるとげんきが削れる
-    n.hara = Math.max(0, s.hara - TUNE.haraDrain * dt);
+    // おなかは放っておくと減る。空になるとげんきが削れる。
+    // 減る速さをゲージの速さに合わせて上げているのは、そうしないと後半は
+    // 1回あたりの時間が短くなり、ちょうどいい量がどんどん左へ寄ってしまうため
+    const drainNow = TUNE.haraDrain * (1 + s.time * TUNE.speedRamp * 0.8);
+    n.hara = Math.max(0, s.hara - drainNow * dt);
     if (n.hara <= 0) {
       n.genki = Math.max(0, n.genki - 30 * dt);
       n.deathReason = 'おなかをすかせたまま';
@@ -188,15 +211,15 @@ export default defineGame<TamagoState>({
     const judge = (text: string, good: boolean) => {
       n.judgeText = text;
       n.judgeGood = good;
-      n.judgeTimer = 0.45;
+      n.judgeTimer = 0.3;
     };
 
     /** 離したときの判定 */
     const release = (amount: number, spilled: boolean) => {
       n.charging = false;
       n.lastGauge = amount;
-      n.lastShown = 0.45;
-      n.cooldown = 0.45;
+      n.lastShown = 0.3;
+      n.cooldown = 0.3;
       n.eat = 1;
 
       if (spilled) {
@@ -208,7 +231,7 @@ export default defineGame<TamagoState>({
       } else {
         const diff = Math.abs(amount - n.zoneCenter);
         const half = n.zoneWidth / 2;
-        n.hara = Math.min(100, n.hara + amount * 78);
+        n.hara = Math.min(100, n.hara + amount * FEED_SCALE);
         if (diff <= PERFECT) {
           n.combo += 1;
           const mult = 1 + Math.min(8, Math.floor(n.combo / 3));
@@ -415,6 +438,15 @@ export default defineGame<TamagoState>({
       get: () => TUNE.zoneWidth,
       set: (v) => {
         TUNE.zoneWidth = v;
+      },
+    },
+    speedRamp: {
+      label: '難しくなる速さ',
+      min: 0.02,
+      max: 0.2,
+      get: () => TUNE.speedRamp,
+      set: (v) => {
+        TUNE.speedRamp = v;
       },
     },
     haraDrain: {

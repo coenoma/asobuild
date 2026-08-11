@@ -27,7 +27,13 @@ export const FUN_GATE_DEFAULT: FunGate = {
   randomSurvivalMinSec: 3,
   randomSurvivalMaxSec: 30,
   smartSurvivalMinSec: 20,
-  smartSurvivalMaxSec: 240,
+  /**
+   * 上手い人の1プレイの上限。
+   * fun-doctrine では「40〜90秒」を目安にしているのに、ここが 240秒 では
+   * 明らかに長すぎるゲームが素通りしてしまう（実際に158秒のものが通った）。
+   * 目安より少し余裕をみて 120秒 にしている。
+   */
+  smartSurvivalMaxSec: 120,
   skillRatioMin: 2.0,
   upsideRatioMin: 1.3,
   sessionMinutesMin: 6,
