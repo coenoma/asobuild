@@ -52,6 +52,12 @@ export interface PlayResult {
   /** 打ち切りではなく、ちゃんとゲームオーバーで終わったか */
   ended: boolean;
   reason?: string;
+  /**
+   * スコアが動いた回数。
+   * 「画面の上で目に見えることが何回起きたか」の代わりとして使う。
+   * これが少ないゲームは、遊んでいない人が見ると何も起きていないように見える。
+   */
+  scoreEvents: number;
 }
 
 /** ボットに1回プレイさせる */
@@ -66,11 +72,17 @@ export function playOnce<S extends BaseState>(
   let state = game.init(rng);
   let prevPress = false;
   let frame = 0;
+  let scoreEvents = 0;
+  let prevScore = state.score;
 
   while (!state.over && frame < maxFrames) {
     const action = opts.policy(state, policyRng, frame);
     const input = toInput(action.press, prevPress, action.px, action.py);
     state = advance(game, state, input, rng, FIXED_DT);
+    if (state.score !== prevScore) {
+      scoreEvents++;
+      prevScore = state.score;
+    }
     prevPress = action.press;
     frame++;
   }
@@ -81,6 +93,7 @@ export function playOnce<S extends BaseState>(
     frames: frame,
     ended: state.over,
     reason: state.over ? game.reason?.(state) : undefined,
+    scoreEvents,
   };
 }
 

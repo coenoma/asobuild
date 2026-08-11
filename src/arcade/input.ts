@@ -10,6 +10,15 @@ import { VIRTUAL_H, VIRTUAL_W } from './types';
 
 export class InputSource {
   press = false;
+  /**
+   * 直近のフレーム処理より後に押し始めたか。
+   *
+   * これが無いと、押してすぐ離す素早いタップ（down と up が同じフレーム内で起きる）を
+   * 取りこぼす。`press` の変化だけを見ていると、フレーム処理のときには既に false に
+   * 戻っていて「押されなかった」ことになってしまう。
+   */
+  justPressed = false;
+  justReleased = false;
   px = VIRTUAL_W / 2;
   py = VIRTUAL_H / 2;
   /** 一度でも入力があったか（音の解禁判定に使う） */
@@ -77,7 +86,17 @@ export class InputSource {
 
   private sync() {
     const next = this.pointers.size > 0 || this.keys.size > 0;
-    if (next) this.touched = true;
+    if (next && !this.press) {
+      this.justPressed = true;
+      this.touched = true;
+    }
+    if (!next && this.press) this.justReleased = true;
     this.press = next;
+  }
+
+  /** 1フレーム分の処理が終わったら呼ぶ。押した／離したの記録を消す */
+  endFrame(): void {
+    this.justPressed = false;
+    this.justReleased = false;
   }
 }

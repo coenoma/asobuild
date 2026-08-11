@@ -14,13 +14,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Painter } from './painter';
 import { InputSource } from './input';
-import { advance, toInput } from './runner';
+import { advance } from './runner';
 import { createRng, randomSeed } from './rng';
 import { sfx } from './sfx';
 import { getBest, incPlays, setBest } from './storage';
 import { shareScore } from './share';
 import { currentGoal, isAllCleared, nextGoal } from './goals';
-import { FIXED_DT, VIRTUAL_H, VIRTUAL_W, type AnyGame } from './types';
+import { FIXED_DT, VIRTUAL_H, VIRTUAL_W, type AnyGame, type Input } from './types';
 import styles from './GameShell.module.css';
 
 type Phase = 'title' | 'playing' | 'over' | 'result';
@@ -95,7 +95,6 @@ export function GameShell({ game }: { game: AnyGame }) {
     let state: any = null;
     let gameRng = createRng(randomSeed());
     let best = getBest(game.meta.slug);
-    let prevPress = false;
     let prevScore = 0;
     let phaseTime = 0;
     let acc = 0;
@@ -198,8 +197,9 @@ export function GameShell({ game }: { game: AnyGame }) {
     };
 
     const drawResult = () => {
+      // 後ろでゲームは動き続けているが、読ませたいのは結果のほうなので強めに伏せる
       game.draw(painter, state);
-      painter.alpha(0.82, () => painter.rect(0, 0, VIRTUAL_W, VIRTUAL_H, 'bg'));
+      painter.alpha(0.94, () => painter.rect(0, 0, VIRTUAL_W, VIRTUAL_H, 'bg'));
       const r = resultRef.current;
       painter.text('おわり', VIRTUAL_W / 2, 62, { size: 13, align: 'center', color: 'dim' });
       painter.text(`${r.score}`, VIRTUAL_W / 2, 84, { size: 44, align: 'center', color: 'accent' });
@@ -268,13 +268,19 @@ export function GameShell({ game }: { game: AnyGame }) {
         acc -= FIXED_DT;
         steps++;
         phaseTime += FIXED_DT;
-        const press = input.press;
-        const tapped = press && !prevPress;
+        // 押してすぐ離すタップも拾えるよう、押下は押しっぱなし状態ではなくエッジで見る
+        const tapped = input.justPressed;
+        const inp: Input = {
+          tap: tapped,
+          hold: input.press || tapped,
+          release: input.justReleased,
+          px: input.px,
+          py: input.py,
+        };
 
         if (phaseLocal === 'title') {
           if (tapped) start();
         } else if (phaseLocal === 'playing') {
-          const inp = toInput(press, prevPress, input.px, input.py);
           state = advance(game, state, inp, gameRng, FIXED_DT);
           if (state.score > prevScore) {
             sfx.combo(state.score - prevScore > 1 ? 4 : Math.min(12, state.score));
@@ -287,14 +293,14 @@ export function GameShell({ game }: { game: AnyGame }) {
         } else if (phaseLocal === 'over') {
           // やられた後も step を回し続ける。ここが見せ場になる
           // （ゲーム側は over が立っていたら演出だけ進めること）
-          const inp = toInput(press, prevPress, input.px, input.py);
           state = advance(game, state, inp, gameRng, FIXED_DT);
           if (phaseTime >= OVER_HOLD) finish();
         } else if (phaseLocal === 'result') {
           if (tapped && phaseTime > RETRY_LOCK) start();
         }
 
-        prevPress = press;
+        // 同じフレームで複数回 step が回っても、押下は最初の1回だけに効かせる
+        input.endFrame();
       }
 
       if (phaseLocal === 'title') {
@@ -312,9 +318,21 @@ export function GameShell({ game }: { game: AnyGame }) {
       }
     };
 
+    // タブを離れている間ブラウザはフレームを止める。戻ったときに
+    // 止まっていた分をまとめて進めると「見ていない間に死んでいた」が起きるので、
+    // 復帰時は経過時間を捨てる。
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        last = performance.now();
+        acc = 0;
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
     raf = requestAnimationFrame(frame);
     return () => {
       cancelAnimationFrame(raf);
+      document.removeEventListener('visibilitychange', onVisibility);
       detach();
     };
   }, [game]);

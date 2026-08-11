@@ -70,3 +70,29 @@
   margin: 0;
   color: var(--text);
 }
+
+.inspiration {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+.inspirationTitle {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.inspiration p {
+  margin: 0;
+}
+
+.inspiration strong {
+  color: var(--text);
+  font-weight: 400;
+}

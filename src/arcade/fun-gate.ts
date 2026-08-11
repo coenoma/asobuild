@@ -31,6 +31,8 @@ export const FUN_GATE_DEFAULT: FunGate = {
   upsideRatioMin: 1.3,
   sessionMinutesMin: 6,
   sessionMinutesMax: 30,
+  eventIntervalMinSec: 0.25,
+  eventIntervalMaxSec: 4,
 };
 
 export interface Dist {
@@ -207,6 +209,24 @@ export function runFunGate<S extends BaseState>(
       fix: 'どのプレイも同じ点数で終わっている。連続成功のボーナスや、リスクを取ると大きい選択肢を足す。',
     },
   ];
+
+  // 遊んでいない人が画面を見ているとき、どれくらいの間隔で何かが起きるか。
+  // 動画で見せる前提なので、無風が続くゲームは「何も起きていない」に見えてしまう。
+  const totalEvents = smart.results.reduce((a, r) => a + r.scoreEvents, 0);
+  const totalSeconds = smart.results.reduce((a, r) => a + r.seconds, 0);
+  const eventInterval = totalEvents > 0 ? totalSeconds / totalEvents : Infinity;
+
+  checks.push({
+    id: 'event-pace',
+    label: '画面で何かが起きる間隔（見ていて退屈しないか）',
+    pass: eventInterval >= gate.eventIntervalMinSec && eventInterval <= gate.eventIntervalMaxSec,
+    actual: Number.isFinite(eventInterval) ? `${r1(eventInterval)}秒に1回` : '何も起きない',
+    expected: `${gate.eventIntervalMinSec}〜${gate.eventIntervalMaxSec}秒に1回`,
+    fix:
+      eventInterval > gate.eventIntervalMaxSec
+        ? '間が空きすぎて、遊んでいない人には何も起きていないように見える。加点の刻みを細かくするか、出てくる物を増やす。'
+        : '起きることが多すぎて、何が起きたのか目で追えない。加点をまとめる、出現を減らす。',
+  });
 
   // 到達目標があるなら「一気に遊んでやりきれる長さか」も見る。
   // ここが長すぎるゲームは、終わりが見えないので次に開かれない。

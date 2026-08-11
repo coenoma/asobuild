@@ -105,12 +105,36 @@ export interface FunGate {
   /** smart スコアの p90/p50 の下限（＝「今日は乗ってる」が起きる） */
   upsideRatioMin: number;
   /**
+   * 目に見えることが起きる間隔（秒）の許容範囲。
+   * 動画で見ている人にとって、長すぎる無風は「何も起きていない」に見え、
+   * 短すぎると何が起きたのか追えなくなる。
+   */
+  eventIntervalMinSec: number;
+  eventIntervalMaxSec: number;
+  /**
    * 最後の称号に届くまでの想定時間（分）の許容範囲。meta.goals があるときだけ効く。
    * ボット基準の数字なので、人間が遊ぶ時間はこれより長くなる。
    * 「一気に遊んで15〜30分でやりきれる」を狙って 6〜30分を既定にしている。
    */
   sessionMinutesMin: number;
   sessionMinutesMax: number;
+}
+
+/**
+ * 着想元の記録。
+ *
+ * 既存作を下敷きにした企画では**必ず書く**。
+ * 何を借りて何を自分で作ったかを残しておくことが、
+ * 「公開してよいか」を判断するときの材料になる。
+ * 詳しい線引きは docs/design/rights-and-originality.md。
+ */
+export interface Inspiration {
+  /** 何から着想したか（ジャンル・時代・作品) */
+  from: string;
+  /** 借りたもの。遊びの仕組みだけであるべき */
+  borrowed: string;
+  /** 自分で作ったもの（キャラ・絵・音・UI・配置・タイトル・コード） */
+  original: string;
 }
 
 /** ゲームのメタ情報。一覧・OGP・共有文・面白さゲートがここを読む */
@@ -143,6 +167,11 @@ export interface GameMeta {
   pin?: number;
   /** 動画 URL（あれば一覧からリンクする） */
   video?: string;
+  /**
+   * 着想元がある場合は必ず書く（何も下敷きにしていないなら省略してよい）。
+   * ゲームページにそのまま表示される。隠さず出すことが誠実さの表明になる。
+   */
+  inspiration?: Inspiration;
   /** 一覧カードの背景色（palette のキー名）。省略時はテーマ既定 */
   accent?: string;
 }

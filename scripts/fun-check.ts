@@ -82,6 +82,16 @@ async function main(): Promise<void> {
     const rep = runFunGate(mod.default, { runs });
     printReport(rep);
     if (!rep.pass) failed++;
+
+    const insp = mod.default.meta.inspiration;
+    if (insp) {
+      console.log(`\n  ${C.yellow}着想元の記録あり: ${insp.from}${C.reset}`);
+      console.log(`  ${C.dim}借りたもの: ${insp.borrowed}${C.reset}`);
+      console.log(`  ${C.dim}自作した部分: ${insp.original}${C.reset}`);
+      console.log(
+        `  ${C.yellow}→ 公開前に docs/design/rights-and-originality.md のチェックリストを通すこと。${C.reset}`,
+      );
+    }
   }
 
   console.log('');

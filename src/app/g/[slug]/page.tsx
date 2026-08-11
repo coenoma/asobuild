@@ -59,6 +59,18 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
             </a>
           </p>
         )}
+
+        {meta.inspiration && (
+          <div className={styles.inspiration}>
+            <h2 className={styles.inspirationTitle}>着想について</h2>
+            <p>
+              {meta.inspiration.from}から着想を得ています。参考にしたのは
+              <strong>{meta.inspiration.borrowed}</strong>で、
+              {meta.inspiration.original}はすべてこの作品のために作ったものです。
+              既存作品の画像・音・コードは使用していません。
+            </p>
+          </div>
+        )}
       </section>
     </main>
   );
