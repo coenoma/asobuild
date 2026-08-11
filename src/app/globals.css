@@ -1,0 +1,48 @@
+:root {
+  --bg: #0b1016;
+  --surface: #16202b;
+  --surface2: #1d2a38;
+  --line: #2b3a4a;
+  --text: #e9f1e4;
+  --dim: #8fa0b0;
+  --accent: #ffd23f;
+  --accent2: #ff6b35;
+  --frame: #2b3a4a;
+
+  /*
+   * Canvas を 240x320 で描いて拡大しているので、どのフォントでも勝手にドットになる。
+   * わざわざドット風の Web フォント（数MB）を読む必要がない。
+   */
+  --font-dot: system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-dot);
+  font-size: 15px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(circle at 20% -10%, rgb(255 210 63 / 6%), transparent 45%),
+    radial-gradient(circle at 85% 5%, rgb(76 201 240 / 6%), transparent 40%);
+  background-attachment: fixed;
+}
+
+a {
+  color: var(--accent);
+}
+
+button {
+  font-family: inherit;
+}

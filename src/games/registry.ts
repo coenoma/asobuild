@@ -1,0 +1,30 @@
+/**
+ * ゲームの登録簿。ゲームを1本足すたびに、ここへ2行だけ追記する。
+ * （`npm run new -- <slug>` を使えば自動で追記されるので、手で書く必要はない）
+ *
+ * metas はメタ情報だけを静的に読む（一覧・OGP 用）。
+ * loaders はゲーム本体を遅延読み込みする（ページを開いたときだけ落ちてくる）。
+ * この2本立てにしておくと、ゲームが100本になっても一覧は軽いまま。
+ */
+
+import type { AnyGame, GameMeta } from '@/arcade/types';
+
+import { meta as hanko } from './hanko/meta';
+
+export const metas: GameMeta[] = [hanko];
+
+export const loaders: Record<string, () => Promise<{ default: AnyGame }>> = {
+  hanko: () => import('./hanko/game'),
+};
+
+/** 新しい順（pin があればそれを優先） */
+export function sortedMetas(): GameMeta[] {
+  return [...metas].sort((a, b) => {
+    if ((b.pin ?? 0) !== (a.pin ?? 0)) return (b.pin ?? 0) - (a.pin ?? 0);
+    return b.released.localeCompare(a.released);
+  });
+}
+
+export function findMeta(slug: string): GameMeta | undefined {
+  return metas.find((m) => m.slug === slug);
+}

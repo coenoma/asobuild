@@ -1,0 +1,184 @@
+/**
+ * アソビルド共通ランタイムの型定義。
+ *
+ * ここが「1ゲーム＝2ファイルで書ける」の根拠になっている。
+ * ゲーム作者が書くのは init / step / draw / bot の 4 関数だけで、
+ * 入力・ループ・スコア・ハイスコア・リトライ・共有・レトロ描画は
+ * すべて共通ランタイム側が持つ。
+ *
+ * 最重要の制約: step は「純粋関数」であること。
+ * 同じ state・同じ input・同じ dt からは必ず同じ結果が出ること。
+ * これが崩れると面白さゲート（npm run fun）が機能しなくなる。
+ */
+
+import type { Painter } from './painter';
+import type { Rng } from './rng';
+
+/** 仮想解像度の幅（ガラケーの QVGA 縦持ちに合わせている） */
+export const VIRTUAL_W = 240;
+/** 仮想解像度の高さ */
+export const VIRTUAL_H = 320;
+/** 固定タイムステップ（秒）。可変 dt は非決定論になるので使わない */
+export const FIXED_DT = 1 / 60;
+
+/** 1フレーム分の入力。操作は原則「1ボタン」に閉じる */
+export interface Input {
+  /** このフレームで押し始めたか */
+  tap: boolean;
+  /** 押され続けているか */
+  hold: boolean;
+  /** このフレームで離したか */
+  release: boolean;
+  /** ポインタ X（仮想解像度 0..VIRTUAL_W）。control:'aim' 以外は使わない */
+  px: number;
+  /** ポインタ Y（仮想解像度 0..VIRTUAL_H）。control:'aim' 以外は使わない */
+  py: number;
+}
+
+/** すべてのゲーム状態が必ず持つフィールド */
+export interface BaseState {
+  /** 現在スコア。整数で持つ（表示のブレを防ぐため） */
+  score: number;
+  /** true になった瞬間にゲームオーバー。step 内で立てる */
+  over: boolean;
+  /** 開始からの経過秒。ランタイムが自動加算するので step 内で触らない */
+  time: number;
+  /** 最後まで到達して終わったか（ステージ制など、終わりがあるゲームで使う） */
+  cleared?: boolean;
+}
+
+/**
+ * 到達目標。「次もやる理由」と「やりきった感」はここから生まれる。
+ *
+ * スコアが伸び続けるだけのゲームは、3回遊ぶと飽きる。
+ * 段階的な称号があると、1回ごとに「あと少しで次」が生まれ、
+ * 全部埋めた時点で「やりきった」が成立する。
+ */
+export interface Goal {
+  /** この点数に到達したら与える */
+  score: number;
+  /** 称号（4〜6文字） */
+  label: string;
+}
+
+/** ボットの1フレーム分の意思。press だけで戦えるのが良いゲームの証拠 */
+export interface BotAction {
+  /** ボタンを押しているか */
+  press: boolean;
+  /** control:'aim' のときの狙い先 */
+  px?: number;
+  py?: number;
+}
+
+/** 操作方式。これ以外を増やすときは docs/design/fun-doctrine.md を先に更新すること */
+export type Control =
+  /** 押した瞬間だけ意味がある（例: ジャンプ、ハンコ） */
+  | 'tap'
+  /** 押している長さが意味を持つ（例: 溜める、伸ばす） */
+  | 'hold'
+  /** tap と hold の両方を使う */
+  | 'tap-hold'
+  /** 画面のどこを押したかが意味を持つ（例: 落ちものを指で払う） */
+  | 'aim';
+
+/** 見た目のテーマ。増やすときは palette.ts と対で */
+export type ThemeName = 'keitai' | 'mono' | 'flash';
+
+/**
+ * 面白さゲートのしきい値。
+ * 既定値は FUN_GATE_DEFAULT（fun-gate.ts）にあり、
+ * ゲームごとに meta.funGate で部分的に上書きできる。
+ */
+export interface FunGate {
+  /** 放置ボットがこの秒数より長く生き残ったら不合格（＝緊張がない） */
+  idleSurvivalMaxSec: number;
+  /** ランダムボットの生存中央値の下限（＝理不尽に即死しない） */
+  randomSurvivalMinSec: number;
+  /** ランダムボットの生存中央値の上限（＝適当でも無双できてしまう、を防ぐ） */
+  randomSurvivalMaxSec: number;
+  /** 上手いボットの生存中央値の下限（＝上手ければ続く） */
+  smartSurvivalMinSec: number;
+  /** 上手いボットの生存中央値の上限（＝無限に終わらない） */
+  smartSurvivalMaxSec: number;
+  /** スコア中央値 smart/random の下限（＝腕前が効く。運ゲー判定） */
+  skillRatioMin: number;
+  /** smart スコアの p90/p50 の下限（＝「今日は乗ってる」が起きる） */
+  upsideRatioMin: number;
+  /**
+   * 最後の称号に届くまでの想定時間（分）の許容範囲。meta.goals があるときだけ効く。
+   * ボット基準の数字なので、人間が遊ぶ時間はこれより長くなる。
+   * 「一気に遊んで15〜30分でやりきれる」を狙って 6〜30分を既定にしている。
+   */
+  sessionMinutesMin: number;
+  sessionMinutesMax: number;
+}
+
+/** ゲームのメタ情報。一覧・OGP・共有文・面白さゲートがここを読む */
+export interface GameMeta {
+  /** URL に出る識別子。半角英小文字とハイフンのみ */
+  slug: string;
+  /** 表示名（日本語可・全角8文字程度まで） */
+  title: string;
+  /** あそびかた。20文字以内・読まなくても分かる一行にする */
+  howto: string;
+  /** 操作方式 */
+  control: Control;
+  /** 公開日 YYYY-MM-DD */
+  released: string;
+  /** 収録企画の制約（例: 「マックのポテトM」）。一覧に出る */
+  constraint?: string;
+  /** 見た目テーマ。既定は keitai */
+  theme?: ThemeName;
+  /** スコアの単位（例: 「点」「m」「個」） */
+  unit: string;
+  /**
+   * 到達目標。3〜5個を並べる（点数の小さい順でなくてよい。ランタイム側で並べ替える）。
+   * 最初のひとつは数プレイで届く線に、最後のひとつは
+   * 「一気に遊んで15〜30分で届く」線に置く。この幅が1セッションの長さを決める。
+   */
+  goals?: Goal[];
+  /** 面白さゲートの部分上書き */
+  funGate?: Partial<FunGate>;
+  /** 一覧の並びを固定したいときだけ。大きいほど上 */
+  pin?: number;
+  /** 動画 URL（あれば一覧からリンクする） */
+  video?: string;
+  /** 一覧カードの背景色（palette のキー名）。省略時はテーマ既定 */
+  accent?: string;
+}
+
+/**
+ * ゲーム本体。games/<slug>/game.ts が default export する形。
+ *
+ * bot() を必須にしているのは意図的。
+ * 「10行のボットが書けない」＝「ルールが一言で説明できない」なので、
+ * その時点でこのチャンネルのゲームとしては不合格。
+ */
+export interface GameDefinition<S extends BaseState = BaseState> {
+  meta: GameMeta;
+  /** 初期状態を作る。乱数は必ず引数の rng を使う（Math.random 禁止） */
+  init(rng: Rng): S;
+  /**
+   * 1フレーム進める。引数を書き換えず、新しい state を返すこと。
+   * 乱数は必ず引数の rng を使う（ここで Math.random を使うと再現性が消える）。
+   */
+  step(state: S, input: Input, dt: number, rng: Rng): S;
+  /** 描画。state を書き換えないこと */
+  draw(g: Painter, state: S): void;
+  /** 面白さゲート用の簡易 AI。上手い人の再現を狙う */
+  bot(state: S, rng: Rng): BotAction;
+  /** 死因を一行で（リザルト画面に出る）。「なぜ死んだか」が伝わると次が回る */
+  reason?(state: S): string;
+}
+
+/** 型を書かずに定義を作るためのヘルパ（games 側はこれを使う） */
+export function defineGame<S extends BaseState>(def: GameDefinition<S>): GameDefinition<S> {
+  return def;
+}
+
+/**
+ * 状態の型を問わずゲームを持ち回すための型。
+ * 共通シェルや登録簿は個々のゲームの状態を知る必要がないのでこれを使う。
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyGame = GameDefinition<any>;

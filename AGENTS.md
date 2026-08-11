@@ -1,0 +1,27 @@
+# AGENTS.md
+
+このリポジトリの規範は **[CLAUDE.md](./CLAUDE.md)** にまとめてあります。
+Claude Code 以外のツール（Cursor / Codex など）を使う場合も、同じ内容に従ってください。
+
+内容を二重に持つと必ず片方が腐るので、ここにはリンクだけを置いています。
+
+| 知りたいこと | 場所 |
+|---|---|
+| 守るべき規範（全体） | [CLAUDE.md](./CLAUDE.md) |
+| ゲーム実装の規約 | [.claude/rules/games.md](./.claude/rules/games.md) |
+| 共通ランタイムを触るときの注意 | [.claude/rules/arcade.md](./.claude/rules/arcade.md) |
+| サイト側の規約 | [.claude/rules/web.md](./.claude/rules/web.md) |
+| 面白さの原則（作る前に読む） | [docs/design/fun-doctrine.md](./docs/design/fun-doctrine.md) |
+| 効く工夫のカタログ | [docs/design/feel-catalog.md](./docs/design/feel-catalog.md) |
+| 既存作の調査のやり方 | [docs/research/README.md](./docs/research/README.md) |
+| 開発の始め方 | [docs/guides/はじめかた.md](./docs/guides/はじめかた.md) |
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

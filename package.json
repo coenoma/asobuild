@@ -1,0 +1,34 @@
+{
+  "name": "asobuild",
+  "version": "0.1.0",
+  "private": true,
+  "description": "アソビルド — 制約つきでミニゲーム/ツールを量産する器",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "next dev -p ${PORT:-3020}",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "new": "node scripts/new-game.mjs",
+    "fun": "tsx scripts/fun-check.ts",
+    "fun:all": "tsx scripts/fun-check.ts --all",
+    "check": "npm run typecheck && npm run fun:all && npm run build"
+  },
+  "dependencies": {
+    "next": "16.3.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "eslint": "^9.18.0",
+    "eslint-config-next": "16.3.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.0"
+  }
+}
