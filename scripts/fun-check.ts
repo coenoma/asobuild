@@ -173,6 +173,7 @@ async function pushToLive(rep: GateReport): Promise<void> {
       slug: rep.slug,
       pass: rep.pass,
       checks: rep.checks.map((c) => ({ label: c.label, pass: c.pass })),
+      topReason: rep.topReasons[0]?.reason ?? null,
     };
     await appendFile(path.join(dir, 'status.jsonl'), `${JSON.stringify(event)}\n`, 'utf8');
   } catch {
