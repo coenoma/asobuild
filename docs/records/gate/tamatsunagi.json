@@ -1,0 +1,19 @@
+{
+  "slug": "tamatsunagi",
+  "genre": "action",
+  "recordedAt": "2026-08-11",
+  "runs": 200,
+  "pass": true,
+  "idle": {
+    "secondsP50": 7.7
+  },
+  "random": {
+    "secondsP50": 14.8,
+    "scoreP50": 17
+  },
+  "smart": {
+    "secondsP50": 73.6,
+    "scoreP50": 607,
+    "scoreP90": 968
+  }
+}
