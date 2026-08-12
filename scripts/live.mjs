@@ -3,6 +3,7 @@
  * 収録カンペ（/live）へ、いまの状況を流す。
  *
  *   npm run say -- "ボットが全滅した"        いまの一言（画面の主役）
+ *   npm run live -- constraint "ポテトM…"     その回の制約（収録中ずっと出す）
  *   npm run live -- phase じっそう           フェーズを進める
  *   npm run live -- timer start 25 ポテトM   制限時間を開始（分）
  *   npm run live -- timer stop               制限時間を止める
@@ -32,6 +33,7 @@ function usage() {
   console.log(`収録カンペに流す
 
   npm run say -- "文言"                 いまの一言
+  npm run live -- constraint "ポテトMを食べ終わるまで"   その回の制約（出しっぱなし）
   npm run live -- phase <きかく|じっそう|けんてい|ためし>
   npm run live -- timer start <分> [ラベル]
   npm run live -- timer stop
@@ -52,6 +54,18 @@ switch (cmd) {
     }
     await append({ kind: 'say', text });
     console.log(`カンペ: ${text}`);
+    break;
+  }
+
+  case 'constraint': {
+    // その回の制約は、途中から見た人にも何の回か伝える情報なので出しっぱなしにする
+    const text = rest.join(' ').trim();
+    if (!text) {
+      console.error('制約を書いてください: npm run live -- constraint "ポテトMを食べ終わるまで"');
+      process.exit(1);
+    }
+    await append({ kind: 'constraint', text });
+    console.log(`制約: ${text}`);
     break;
   }
 

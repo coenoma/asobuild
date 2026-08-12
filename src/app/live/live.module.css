@@ -1,47 +1,72 @@
 /*
- * 収録カンペ。録画に映すので、離れて見ても読める大きさを最優先にしている。
- * 16:9 のウィンドウいっぱいに収まり、スクロールしない。
+ * 収録カンペ。
+ *
+ * 置かれるのは「ターミナル｜ゲーム｜カンペ」横3分割の右端＝**縦長の細い列**。
+ *   ・MacBook Air 内蔵（1470×956 相当）→ 約 490×880   ← こちらを主対象にする
+ *   ・フル HD の外部ディスプレイ        → 約 640×1080
+ *
+ * 文字の大きさは vw（列の幅）で伸ばしつつ、**vh の上限も併せて掛けている**。
+ * 幅だけで決めると、幅の割に背が低い窓（640×1040）で縦が足りず、
+ * 一言が下の枠に食い込んだ（実測）。狭いほうに合わせるのが正しい。縦は行数が正義なので、要素を積みすぎない。
+ * スクロールは出さない（録画に映るため）。
  */
 
 .root {
   height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr auto auto;
-  gap: 1.4vh;
-  padding: 2vh 2.4vw;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6vh;
+  padding: 2.2vh 4vw;
   background: #101820;
   color: #e9f1e4;
   overflow: hidden;
   font-feature-settings: 'palt';
 }
 
+/* ── 見出し（番組名と、その回の制約） ── */
+
 .header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2vw;
+  flex-direction: column;
+  gap: 0.4vh;
   border-bottom: 2px solid #2d3d4f;
   padding-bottom: 1.2vh;
 }
 
 .brand {
-  font-size: clamp(14px, 1.5vw, 22px);
+  font-size: clamp(11px, 2.4vw, 18px);
   letter-spacing: 0.14em;
   color: #7e8d9c;
 }
+
+/*
+ * その回の制約（「ポテトMを食べ終わるまで」）。
+ * 途中から見た人にも何の回か分かるように、収録中ずっと出しておく
+ */
+.constraint {
+  margin: 0;
+  font-size: clamp(15px, min(4.2vw, 3.2vh), 30px);
+  font-weight: 700;
+  line-height: 1.3;
+  color: #4cc9f0;
+}
+
+/* ── フェーズの帯 ── */
 
 .phases {
   display: flex;
   list-style: none;
   margin: 0;
   padding: 0;
-  gap: 0.6vw;
+  gap: 1.4vw;
 }
 
 .phase,
 .phaseOn {
-  font-size: clamp(14px, 1.6vw, 24px);
-  padding: 0.4vh 1.1vw;
+  flex: 1;
+  text-align: center;
+  font-size: clamp(12px, 3.6vw, 22px);
+  padding: 0.5vh 0;
   border-radius: 999px;
   border: 2px solid #2d3d4f;
   color: #7e8d9c;
@@ -55,68 +80,20 @@
   font-weight: 700;
 }
 
-/* 主役。ここが読めれば他が読めなくても成立する */
-.say {
+/* ── 制限時間 ── */
+
+.timerBand {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-size: clamp(28px, 5.4vw, 92px);
-  line-height: 1.25;
-  font-weight: 700;
-  padding: 0 1vw;
-  word-break: break-word;
-  transition: color 0.2s ease;
-}
-
-.sayFresh {
-  color: #ffd23f;
-}
-
-/*
- * 一言が古くなったら薄くする。
- * 無言の時間は動画の敵なので「いま何分しゃべっていないか」が要る。
- * ただしカンペは録画に映るので、赤字で警告するようなことはしない。
- */
-.sayStale {
-  opacity: 0.42;
-}
-
-.sayAge {
-  text-align: center;
-  font-size: clamp(11px, 1.1vw, 18px);
-  color: #6d8199;
-  letter-spacing: 0.04em;
-  margin-top: -0.4vh;
-}
-
-.panels {
-  display: grid;
-  grid-template-columns: 1fr 1.3fr;
-  gap: 1.6vw;
-}
-
-.panel {
-  border: 2px solid #2d3d4f;
-  border-radius: 12px;
-  background: #1d2a38;
-  padding: 1.4vh 1.4vw;
-  min-height: 22vh;
-}
-
-.panelTitle {
-  margin: 0 0 0.8vh;
-  font-size: clamp(12px, 1.2vw, 18px);
-  font-weight: 400;
-  letter-spacing: 0.1em;
-  color: #7e8d9c;
+  flex-direction: column;
+  gap: 0.8vh;
 }
 
 .clock {
-  font-size: clamp(32px, 4.4vw, 76px);
+  font-size: clamp(28px, min(13vw, 7vh), 84px);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  line-height: 1.1;
+  line-height: 1;
+  text-align: center;
 }
 
 .clockHurry {
@@ -125,12 +102,12 @@
 
 .clockUp {
   color: #ef476f;
-  font-size: clamp(26px, 3.4vw, 58px);
+  font-size: clamp(24px, 9vw, 60px);
 }
 
 .barTrack {
-  margin-top: 1vh;
-  height: 2.2vh;
+  height: 1.8vh;
+  min-height: 10px;
   background: #101820;
   border: 2px solid #2d3d4f;
   border-radius: 4px;
@@ -147,9 +124,79 @@
   background: #ff6b35;
 }
 
+/* ── 一言（主役） ── */
+
+.sayWrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1vh;
+  /* 器が縮んでも中身は縮まないので、はみ出しはここで止める（下の枠に食い込ませない） */
+  overflow: hidden;
+}
+
+.say {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(26px, min(11vw, 6.4vh), 88px);
+  line-height: 1.22;
+  font-weight: 700;
+  word-break: break-word;
+  transition: color 0.2s ease;
+  /*
+   * 長い一言でゲートやログを押し出さない。
+   * 4行だと 640×1040 で下の枠に食い込んだので3行（実測）。
+   * カンペは一目で読む物なので、それ以上は書くほうを短くする
+   */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+.sayFresh {
+  color: #ffd23f;
+}
+
+/*
+ * 一言が古くなったら薄くする。
+ * 無言の時間は動画の敵なので「いま何分しゃべっていないか」が要る。
+ * ただしカンペは録画に映るので、赤字で警告するようなことはしない。
+ */
+.sayStale {
+  opacity: 0.42;
+}
+
+.sayAge {
+  margin: 0;
+  font-size: clamp(11px, 2.6vw, 18px);
+  color: #6d8199;
+  letter-spacing: 0.04em;
+}
+
+/* ── 面白さゲート ── */
+
+.gate {
+  border: 2px solid #2d3d4f;
+  border-radius: 12px;
+  background: #1d2a38;
+  padding: 1.2vh 3vw;
+}
+
+.gateTitle {
+  margin: 0 0 0.6vh;
+  font-size: clamp(10px, 2.6vw, 17px);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: #7e8d9c;
+}
+
 .gatePass,
 .gateFail {
-  font-size: clamp(22px, 2.6vw, 44px);
+  font-size: clamp(18px, min(6.4vw, 4.2vh), 42px);
   font-weight: 700;
   line-height: 1.2;
 }
@@ -162,48 +209,43 @@
   color: #ff6b35;
 }
 
+/* 落ちた項目だけを並べる。縦長では行数が場所を食うので、合格時は出さない */
 .checks {
   list-style: none;
-  margin: 0.8vh 0 0;
+  margin: 0.6vh 0 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.2vh 1vw;
-  font-size: clamp(11px, 1.1vw, 17px);
-}
-
-.checkOk {
-  color: #7e8d9c;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2vh;
+  font-size: clamp(11px, min(3vw, 1.9vh), 19px);
 }
 
 .checkNg {
   color: #e9f1e4;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mark {
   display: inline-block;
   width: 1.4em;
-}
-
-.checkOk .mark {
-  color: #3ddc84;
-}
-
-.checkNg .mark {
   color: #ef476f;
 }
 
 .empty {
   margin: 0;
   color: #7e8d9c;
-  font-size: clamp(11px, 1.1vw, 16px);
-  line-height: 1.9;
+  font-size: clamp(10px, 2.4vw, 16px);
+  line-height: 1.8;
 }
 
 .empty code {
   color: #4cc9f0;
 }
+
+/* ── 直近のできごと ── */
 
 .log {
   list-style: none;
@@ -213,11 +255,18 @@
   display: flex;
   flex-direction: column;
   gap: 0.3vh;
-  font-size: clamp(11px, 1.15vw, 18px);
+  font-size: clamp(11px, 3vw, 19px);
   color: #7e8d9c;
   /* 画面からはみ出させない。多いときは古いものから切れてよい */
-  max-height: 18vh;
+  max-height: 14vh;
   overflow: hidden;
+}
+
+.log li {
+  /* 折り返すと縦を食う。全文はカンペの主役（一言）に出ているので、ここは切ってよい */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .logHead {
@@ -226,19 +275,55 @@
 
 .logTime {
   display: inline-block;
-  min-width: 4.5em;
+  min-width: 3.4em;
   color: #4cc9f0;
   font-variant-numeric: tabular-nums;
 }
 
 .offline {
   position: fixed;
-  right: 1.2vw;
+  right: 2vw;
   bottom: 1.2vh;
   background: #ef476f;
   color: #101820;
-  padding: 0.6vh 1vw;
+  padding: 0.6vh 2vw;
   border-radius: 8px;
-  font-size: clamp(11px, 1vw, 15px);
+  font-size: clamp(10px, 2.2vw, 15px);
   font-weight: 700;
+}
+
+/*
+ * 横長のウィンドウで開いたとき（収録以外での確認や、フルスクリーンで見るとき）。
+ * 縦積みのまま文字だけ大きくすると間延びするので、中身の幅を絞って中央に置く。
+ */
+@media (min-aspect-ratio: 1/1) {
+  .root {
+    padding: 3vh 0;
+    align-items: center;
+  }
+
+  .root > * {
+    width: min(52vh, 100%);
+  }
+
+  .constraint {
+    font-size: clamp(18px, 2.4vh, 32px);
+  }
+
+  .clock {
+    font-size: clamp(32px, 7.4vh, 90px);
+  }
+
+  .say {
+    font-size: clamp(30px, 6.4vh, 92px);
+  }
+
+  .gatePass,
+  .gateFail {
+    font-size: clamp(20px, 3.6vh, 44px);
+  }
+
+  .checks {
+    font-size: clamp(12px, 1.7vh, 20px);
+  }
 }
