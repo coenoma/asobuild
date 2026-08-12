@@ -31,7 +31,6 @@ interface Derived {
   timer: { startedAt: number; seconds: number; label: string } | null;
   gate: { slug: string; pass: boolean; checks: { label: string; pass: boolean }[] } | null;
   log: { t: number; text: string }[];
-  startedAt: number;
 }
 
 function derive(events: LiveEvent[]): Derived {
@@ -42,7 +41,6 @@ function derive(events: LiveEvent[]): Derived {
     timer: null,
     gate: null,
     log: [],
-    startedAt: events[0]?.t ?? Date.now(),
   };
   for (const e of events) {
     if (e.kind === 'phase') {
@@ -72,9 +70,31 @@ function derive(events: LiveEvent[]): Derived {
   return d;
 }
 
-function mmss(sec: number): string {
+/** カウントダウン用。1時間を超えたら h:mm:ss にする（99:00 のような桁あふれを出さない） */
+function clock(sec: number): string {
   const s = Math.max(0, Math.round(sec));
-  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+  const ss = String(s % 60).padStart(2, '0');
+  const h = Math.floor(s / 3600);
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
+/** できごとの時刻。経過ではなく**そのとき何時だったか**を出す（人が読むのはこちら） */
+function hhmm(t: number): string {
+  const d = new Date(t);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+/**
+ * 「どれくらい前か」。数字を読ませずに、ひと目で古さが分かる言い方にする。
+ * ここを mm:ss にしていたため、ログが数日ぶんたまると `1681:55` のような表示になっていた。
+ */
+function agoText(sec: number): string {
+  const s = Math.max(0, Math.round(sec));
+  if (s < 60) return `${s}びょうまえ`;
+  if (s < 3600) return `${Math.floor(s / 60)}ふんまえ`;
+  const h = Math.floor(s / 3600);
+  return h < 24 ? `${h}じかんまえ` : `${Math.floor(h / 24)}にちまえ`;
 }
 
 export function LiveView() {
@@ -111,10 +131,14 @@ export function LiveView() {
 
   const d = useMemo(() => derive(events), [events]);
 
-  const remain = d.timer ? d.timer.seconds - (now - d.timer.startedAt) / 1000 : null;
-  const ratio = d.timer && d.timer.seconds > 0 ? Math.max(0, Math.min(1, (remain ?? 0) / d.timer.seconds)) : 0;
+  // 終わってから30分以上たった計測は、もう表示しない。
+  // 収録が終わってもログは残るので、そのままだと「じかんぎれ」が何時間も出たままになる
+  const timerStale = d.timer !== null && now - d.timer.startedAt > d.timer.seconds * 1000 + 30 * 60 * 1000;
+  const timer = timerStale ? null : d.timer;
+  const remain = timer ? timer.seconds - (now - timer.startedAt) / 1000 : null;
+  const ratio = timer && timer.seconds > 0 ? Math.max(0, Math.min(1, (remain ?? 0) / timer.seconds)) : 0;
   const timeUp = remain !== null && remain <= 0;
-  const hurry = remain !== null && remain > 0 && remain < d.timer!.seconds * 0.2;
+  const hurry = remain !== null && timer !== null && remain > 0 && remain < timer.seconds * 0.2;
 
   // 一言は出たばかりだと目立たせる
   const fresh = d.say && now - d.sayAt < 2500;
@@ -140,16 +164,16 @@ export function LiveView() {
         {d.say || 'じゅんびちゅう…'}
       </div>
       {sayAge !== null && sayAge > 20 && (
-        <p className={styles.sayAge}>{mmss(sayAge)} まえ</p>
+        <p className={styles.sayAge}>{agoText(sayAge)}</p>
       )}
 
       <div className={styles.panels}>
         <section className={styles.panel}>
-          <h2 className={styles.panelTitle}>{d.timer ? d.timer.label : 'のこり時間'}</h2>
-          {d.timer ? (
+          <h2 className={styles.panelTitle}>{timer ? timer.label : 'のこり時間'}</h2>
+          {timer ? (
             <>
               <div className={`${styles.clock} ${timeUp ? styles.clockUp : hurry ? styles.clockHurry : ''}`}>
-                {timeUp ? 'じかんぎれ' : mmss(remain ?? 0)}
+                {timeUp ? 'じかんぎれ' : clock(remain ?? 0)}
               </div>
               <div className={styles.barTrack}>
                 <div
@@ -169,7 +193,7 @@ export function LiveView() {
 
         <section className={styles.panel}>
           <h2 className={styles.panelTitle}>
-            めんどうさゲート{d.gate ? ` — ${d.gate.slug}` : ''}
+            おもしろさゲート{d.gate ? ` — ${d.gate.slug}` : ''}
           </h2>
           {d.gate ? (
             <>
@@ -204,7 +228,7 @@ export function LiveView() {
           .slice(0, 4)
           .map((l, i) => (
             <li key={`${l.t}-${i}`} className={i === 0 ? styles.logHead : undefined}>
-              <span className={styles.logTime}>{mmss((l.t - d.startedAt) / 1000)}</span>
+              <span className={styles.logTime}>{hhmm(l.t)}</span>
               {l.text}
             </li>
           ))}

@@ -132,15 +132,19 @@ switch (cmd) {
       } catch {
         continue;
       }
+      // 台本は動画のタイムラインに合わせたいので、ここは収録開始からの経過。
+      // ただし1時間を超えたら h:mm:ss にする（分に繰り上げ続けると 1681:55 のようになる）
       const sec = Math.max(0, Math.round((e.t - start) / 1000));
-      const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+      const h = Math.floor(sec / 3600);
+      const mm = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
       const ss = String(sec % 60).padStart(2, '0');
-      if (e.kind === 'say') md.push(`- \`${mm}:${ss}\` ${e.text}`);
-      else if (e.kind === 'phase') md.push(`- \`${mm}:${ss}\` **［${e.phase}］**`);
+      const at = h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+      if (e.kind === 'say') md.push(`- \`${at}\` ${e.text}`);
+      else if (e.kind === 'phase') md.push(`- \`${at}\` **［${e.phase}］**`);
       else if (e.kind === 'timer')
-        md.push(`- \`${mm}:${ss}\` ${e.action === 'start' ? `⏱ ${e.label} 開始` : '⏱ 終了'}`);
+        md.push(`- \`${at}\` ${e.action === 'start' ? `⏱ ${e.label} 開始` : '⏱ 終了'}`);
       else if (e.kind === 'gate')
-        md.push(`- \`${mm}:${ss}\` 🧪 ${e.slug}: ${e.pass ? '合格' : `不合格（${e.checks.filter((c) => !c.pass).map((c) => c.label).join('・')}）`}`);
+        md.push(`- \`${at}\` 🧪 ${e.slug}: ${e.pass ? '合格' : `不合格（${e.checks.filter((c) => !c.pass).map((c) => c.label).join('・')}）`}`);
     }
     const out = path.join(outDir, `${stamp}-収録ログ.md`);
     await writeFile(out, `${md.join('\n')}\n`, 'utf8');
