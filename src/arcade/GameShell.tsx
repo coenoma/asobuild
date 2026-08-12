@@ -369,20 +369,30 @@ export function GameShell({ game }: { game: AnyGame }) {
         });
       }
 
-      // 次にやる理由を必ず1行出す
+      // 次にやる理由を必ず出す。
+      //
+      // 称号は「自己ベスト」で判定している（一度取った称号は落ちない）ので、
+      // 「あと◯点」も自己ベストからの差になる。**そのことを画面に書かないと壊れて見える**。
+      // 実際に「毎回100点は取っているのに あと28点 のまま動かない。これは何？」という
+      // 指摘が出た（2026-08-12 / nuimichi）。目標値と自己ベストの両方を並べて出す。
       if (r.nextLabel) {
         const close = r.nextDiff <= Math.max(2, r.best * 0.15);
-        painter.text(`次は「${r.nextLabel}」まで あと${r.nextDiff}${game.meta.unit}`, VIRTUAL_W / 2, 202, {
-          size: 11,
+        painter.text(`次は「${r.nextLabel}」${r.best + r.nextDiff}${game.meta.unit}`, VIRTUAL_W / 2, 198, {
+          size: 12,
           align: 'center',
-          color: close ? 'accent2' : 'dim',
+          color: close ? 'accent2' : 'ink',
         });
-      } else if (!r.allCleared && r.best > r.score) {
-        const diff = r.best - r.score;
-        painter.text(`ベストまで あと${diff}${game.meta.unit}`, VIRTUAL_W / 2, 202, {
+        painter.text(
+          `自己ベスト ${r.best}${game.meta.unit} … あと${r.nextDiff}${game.meta.unit}`,
+          VIRTUAL_W / 2,
+          215,
+          { size: 10, align: 'center', color: 'dim' },
+        );
+      } else if (r.best > 0) {
+        painter.text(`自己ベスト ${r.best}${game.meta.unit}`, VIRTUAL_W / 2, 202, {
           size: 11,
           align: 'center',
-          color: diff <= Math.max(2, r.best * 0.1) ? 'accent2' : 'dim',
+          color: !r.allCleared && r.best - r.score <= Math.max(2, r.best * 0.1) ? 'accent2' : 'dim',
         });
       }
       if (phaseTime > RETRY_LOCK && Math.floor(blink * 2) % 2 === 0) {
