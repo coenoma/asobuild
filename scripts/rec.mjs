@@ -13,7 +13,7 @@
  */
 
 import { spawn } from 'node:child_process';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -21,8 +21,24 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = process.env.PORT || '3020';
 const BASE = `http://localhost:${PORT}`;
 
+const LOG = path.join(ROOT, '.live/status.jsonl');
 await mkdir(path.join(ROOT, '.live'), { recursive: true });
-await writeFile(path.join(ROOT, '.live/status.jsonl'), '', 'utf8');
+
+// 前回のログは、空にする前に必ず退避する。
+// ここで無条件に潰していたため、archive し忘れた収録の台本が消える状態だった
+let carried = '';
+try {
+  const prev = await readFile(LOG, 'utf8');
+  if (prev.trim()) {
+    const first = JSON.parse(prev.split('\n').filter(Boolean)[0]);
+    const stamp = new Date(first.t).toISOString().slice(0, 16).replace('T', '-').replace(':', '');
+    await rename(LOG, `${LOG}.${stamp}.bak`);
+    carried = `\n  ⚠️ 前回のログを .live/status.jsonl.${stamp}.bak に退避しました\n     台本にするなら: npm run live -- archive（退避ファイルを戻してから）\n`;
+  }
+} catch {
+  // ログが無い・壊れている場合はそのまま始める
+}
+await writeFile(LOG, '', 'utf8');
 
 console.log(`
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -53,7 +69,7 @@ console.log(`
     npm run live -- archive      台本を docs/worklog/ に書き出す
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-`);
+${carried}`);
 
 const dev = spawn('npm', ['run', 'dev'], {
   cwd: ROOT,

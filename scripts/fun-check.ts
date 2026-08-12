@@ -159,26 +159,17 @@ function findDrift(rep: GateReport, prev: GateRecord): string[] {
 
 /**
  * 収録カンペ（/live）へ結果を流す。
- * カンペが無くても検定は成立するので、失敗しても黙って進む。
+ * カンペが無くても検定は成立するので、失敗しても黙って進む（live-log 側で握る）。
  */
 async function pushToLive(rep: GateReport): Promise<void> {
-  try {
-    const { appendFile, mkdir } = await import('node:fs/promises');
-    const path = await import('node:path');
-    const dir = path.join(process.cwd(), '.live');
-    await mkdir(dir, { recursive: true });
-    const event = {
-      t: Date.now(),
-      kind: 'gate',
-      slug: rep.slug,
-      pass: rep.pass,
-      checks: rep.checks.map((c) => ({ label: c.label, pass: c.pass })),
-      topReason: rep.topReasons[0]?.reason ?? null,
-    };
-    await appendFile(path.join(dir, 'status.jsonl'), `${JSON.stringify(event)}\n`, 'utf8');
-  } catch {
-    // カンペは無くてよい
-  }
+  const { live } = await import('./live-log.mjs');
+  await live({
+    kind: 'gate',
+    slug: rep.slug,
+    pass: rep.pass,
+    checks: rep.checks.map((c) => ({ label: c.label, pass: c.pass })),
+    topReason: rep.topReasons[0]?.reason ?? null,
+  });
 }
 
 async function main(): Promise<void> {

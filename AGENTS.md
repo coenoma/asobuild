@@ -5,6 +5,10 @@ Claude Code 以外のツール（Cursor / Codex など）を使う場合も、�
 
 内容を二重に持つと必ず片方が腐るので、ここにはリンクだけを置いています。
 
+**この番組は開発している画面そのものが本編です。** 動くものを作るだけでは終わりません。
+長い作業に入る前に `npm run say -- "いま何をしているか"` でカンペへ流してください
+（無言の時間が動画の敵。詳細は下の「収録」）。
+
 | 知りたいこと | 場所 |
 |---|---|
 | 守るべき規範（全体） | [CLAUDE.md](./CLAUDE.md) |
@@ -15,6 +19,7 @@ Claude Code 以外のツール（Cursor / Codex など）を使う場合も、�
 | 効く工夫のカタログ | [docs/design/feel-catalog.md](./docs/design/feel-catalog.md) |
 | 既存作の調査のやり方 | [docs/research/README.md](./docs/research/README.md) |
 | 開発の始め方 | [docs/guides/はじめかた.md](./docs/guides/はじめかた.md) |
+| **収録して YouTube に出す段取り** | [.claude/skills/recording/SKILL.md](./.claude/skills/recording/SKILL.md) |
 
 <!-- BEGIN:nextjs-agent-rules -->
 

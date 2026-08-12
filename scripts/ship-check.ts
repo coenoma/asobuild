@@ -74,11 +74,14 @@ async function main(): Promise<void> {
   }
 
   console.log('');
+  const { say } = await import('./live-log.mjs');
   if (ng > 0) {
     console.log(`${C.red}${ng}本がまだ公開できる状態ではありません。${C.reset}`);
     console.log(`${C.dim}ゲートが緑でも、遊んで確かめるまでは終わりではありません。${C.reset}\n`);
+    await say(`公開前チェック: ${ng}本まだ出せない`);
     process.exit(1);
   }
+  await say('公開前チェック、ぜんぶ通った');
   console.log(`${C.green}公開してよい状態です。${C.reset}\n`);
 }
 

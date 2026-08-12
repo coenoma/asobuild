@@ -82,10 +82,25 @@ npm ci
 npm run dev                  # http://localhost:3020
 npm run new -- <slug>        # ゲームの雛形を作る
 npm run fun -- <slug>        # 面白さゲート
-npm run check                # 型・ゲート・ビルド
+npm run playtest -- <slug>   # 実際に遊んだ記録をつける（人にしかできない）
+npm run status               # やり残しと、これまでに遊んで出た指摘
+npm run ship                 # 公開前の関所
 ```
 
 詳しくは [docs/guides/はじめかた.md](docs/guides/はじめかた.md)。
+
+### 収録しながら作る
+
+この番組は**開発している画面そのものが本編**なので、収録用の道具も入っている。
+
+```bash
+npm run dev:rec              # 収録モード（カンペを開く・映り込みチェック）
+npm run say -- "文言"        # カンペへ一言。長い作業に入る前に流す
+npm run live -- archive      # 収録ログを台本 md にする
+```
+
+カンペは http://localhost:3020/live 。制限時間・面白さゲートの結果・いまの一言が出る。
+段取りは [.claude/skills/recording/SKILL.md](.claude/skills/recording/SKILL.md)。
 
 ## ドキュメント
 
@@ -98,7 +113,8 @@ npm run check                # 型・ゲート・ビルド
 | [docs/design/rights-and-originality.md](docs/design/rights-and-originality.md) | 既存作を扱うときの線引き |
 | [docs/design/retro-style.md](docs/design/retro-style.md) | 2000年代の手触りの出し方 |
 | [docs/research/](docs/research/) | 既存作の調査（何が刺さったのかの特定） |
-| [docs/guides/](docs/guides/) | はじめかた・収録の段取り |
+| [docs/guides/](docs/guides/) | はじめかた・収録レギュレーション |
+| [.claude/skills/](.claude/skills/) | 作業の段取り（ゲームを作る／既存作を調べる／収録する） |
 
 ## 技術
 

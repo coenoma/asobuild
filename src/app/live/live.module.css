@@ -73,6 +73,23 @@
   color: #ffd23f;
 }
 
+/*
+ * 一言が古くなったら薄くする。
+ * 無言の時間は動画の敵なので「いま何分しゃべっていないか」が要る。
+ * ただしカンペは録画に映るので、赤字で警告するようなことはしない。
+ */
+.sayStale {
+  opacity: 0.42;
+}
+
+.sayAge {
+  text-align: center;
+  font-size: clamp(11px, 1.1vw, 18px);
+  color: #6d8199;
+  letter-spacing: 0.04em;
+  margin-top: -0.4vh;
+}
+
 .panels {
   display: grid;
   grid-template-columns: 1fr 1.3fr;

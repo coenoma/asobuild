@@ -203,6 +203,11 @@ registry = registry.replace(
 
 await writeFile(registryPath, registry, 'utf8');
 
+// 収録カンペへ。作業の節目が勝手に出るようにしてある（意識して流すと流れないため）
+const { live, say } = await import('./live-log.mjs');
+await live({ kind: 'phase', phase: 'じっそう' });
+await say(`「${title}」の雛形ができた`);
+
 console.log(`\n作りました:`);
 console.log(`  src/games/${slug}/meta.ts`);
 console.log(`  src/games/${slug}/game.ts`);

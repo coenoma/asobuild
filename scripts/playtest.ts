@@ -78,6 +78,8 @@ async function main(): Promise<void> {
       verdict,
       memo: (opt('memo') ?? '').trim(),
     });
+    const { say } = await import('./live-log.mjs');
+    await say(`${meta.title} を遊んだ: ${verdict === 'pass' ? '出してよい' : `${failed.length}個ひっかかった`}`);
     console.log('');
     for (const a of answers) {
       console.log(`  ${a.yes ? `${C.green}✓${C.reset}` : `${C.red}✗${C.reset}`} ${a.q}`);
@@ -136,6 +138,8 @@ ${C.bold}${meta.title}${C.reset} を遊んだ記録をつけます。
       memo,
     };
     await writeRecord(record);
+    const { say } = await import('./live-log.mjs');
+    await say(`${meta.title} を遊んだ: ${verdict === 'pass' ? '出してよい' : `${failed.length}個ひっかかった`}`);
 
     console.log('');
     if (verdict === 'pass') {

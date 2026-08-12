@@ -119,6 +119,10 @@ export function LiveView() {
   // 一言は出たばかりだと目立たせる
   const fresh = d.say && now - d.sayAt < 2500;
 
+  // 何分しゃべっていないか。無言の時間が動画の敵なので、経過を見えるようにしておく
+  const sayAge = d.say ? (now - d.sayAt) / 1000 : null;
+  const stale = sayAge !== null && sayAge > 90;
+
   return (
     <div className={styles.root}>
       <header className={styles.header}>
@@ -132,9 +136,12 @@ export function LiveView() {
         </ol>
       </header>
 
-      <div className={`${styles.say} ${fresh ? styles.sayFresh : ''}`}>
+      <div className={`${styles.say} ${fresh ? styles.sayFresh : ''} ${stale ? styles.sayStale : ''}`}>
         {d.say || 'じゅんびちゅう…'}
       </div>
+      {sayAge !== null && sayAge > 20 && (
+        <p className={styles.sayAge}>{mmss(sayAge)} まえ</p>
+      )}
 
       <div className={styles.panels}>
         <section className={styles.panel}>

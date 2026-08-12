@@ -89,6 +89,18 @@ switch (cmd) {
 
   case 'clear': {
     await mkdir(DIR, { recursive: true });
+    // 空にする前に退避する。台本にし忘れた収録が消えないように
+    try {
+      const prev = await readFile(FILE, 'utf8');
+      if (prev.trim()) {
+        const first = JSON.parse(prev.split('\n').filter(Boolean)[0]);
+        const stamp = new Date(first.t).toISOString().slice(0, 16).replace('T', '-').replace(':', '');
+        await rename(FILE, `${FILE}.${stamp}.bak`);
+        console.log(`前のログは status.jsonl.${stamp}.bak に退避しました`);
+      }
+    } catch {
+      // ログが無い・壊れている場合はそのまま空にする
+    }
     await writeFile(FILE, '', 'utf8');
     console.log('カンペのログを空にしました');
     break;

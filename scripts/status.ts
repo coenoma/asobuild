@@ -185,14 +185,36 @@ async function tools(): Promise<void> {
       .filter(Boolean) as { kind: string }[];
     const say = events.filter((e) => e.kind === 'say').length;
     const gate = events.filter((e) => e.kind === 'gate').length;
+    // 自動記録に対して一言が少なすぎる＝無言で作業している。動画としてはここがいちばん痛い
     if (say === 0) {
       console.log(`  ${WARN} カンペ: 手で書いた一言が0件（自動記録 ${gate}件のみ）`);
-      console.log(`      ${C.dim}収録するなら npm run say -- "文言" で流す${C.reset}`);
+      console.log(`      ${C.dim}収録するなら npm run say -- "文言"。段取りは .claude/skills/recording/${C.reset}`);
+    } else if (gate > say * 8) {
+      console.log(`  ${WARN} カンペ: 一言 ${say}件 に対して自動記録 ${gate}件（無言の時間が長い）`);
+      console.log(`      ${C.dim}長い作業に入る前に npm run say -- "文言" を挟む${C.reset}`);
     } else {
       console.log(`  ${OK} カンペ: 一言 ${say}件 / ゲートの自動記録 ${gate}件`);
     }
+
+    // 台本にし忘れたログを拾う（次の収録で退避ファイル送りになる）
+    if (events.length > 0) {
+      console.log(`  ${WARN} 台本にしていないログがあります → ${C.yellow}npm run live -- archive${C.reset}`);
+    }
   } catch {
     console.log(`  ${C.dim}−  カンペ: ログなし（収録していなければ正常）${C.reset}`);
+  }
+
+  // 退避されたまま台本になっていないログ
+  try {
+    const { readdir } = await import('node:fs/promises');
+    const path = await import('node:path');
+    const baks = (await readdir(path.join(process.cwd(), '.live'))).filter((f) => f.endsWith('.bak'));
+    if (baks.length > 0) {
+      console.log(`  ${WARN} 退避された収録ログが ${baks.length}件（.live/*.bak）`);
+      console.log(`      ${C.dim}台本にするなら status.jsonl に戻してから npm run live -- archive${C.reset}`);
+    }
+  } catch {
+    // .live が無ければ何もしない
   }
 }
 
