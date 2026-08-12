@@ -15,7 +15,7 @@
 
 import { FUN_GATE_DEFAULT } from '../src/arcade/fun-gate';
 import { metas } from '../src/games/registry';
-import { codeHashOf, readRecord as readPlaytest } from './playtest-record';
+import { codeHashOf, collectFindings, readRecord as readPlaytest } from './playtest-record';
 
 const C = {
   reset: '\x1b[0m',
@@ -196,6 +196,30 @@ async function tools(): Promise<void> {
   }
 }
 
+/**
+ * 遊んで出た指摘。
+ *
+ * 次のゲームを作るときにいちばん効くのは、原則よりも
+ * **前に実際に言われたこと**。ここに出しておけば、同じ指摘を二度もらわずに済む。
+ */
+async function findings(): Promise<void> {
+  const rows = await collectFindings(metas.map((m) => m.slug));
+  console.log(`\n${C.bold}これまでに遊んで出た指摘${C.reset}`);
+  if (rows.length === 0) {
+    console.log(`  ${C.dim}−  まだありません${C.reset}`);
+    return;
+  }
+  for (const r of rows.slice(0, 6)) {
+    console.log(`  ${C.cyan}${r.slug}${C.reset} ${C.dim}${r.testedAt}${C.reset}`);
+    for (const f of r.failed) console.log(`    ${NG} ${f}`);
+    if (r.memo) console.log(`    ${C.dim}「${r.memo}」${C.reset}`);
+  }
+  if (rows.length > 6) console.log(`  ${C.dim}…ほか ${rows.length - 6}件${C.reset}`);
+  console.log(
+    `  ${C.dim}新しく作る前に読む。効くと分かったものは docs/design/feel-catalog.md へ${C.reset}`,
+  );
+}
+
 /** AIには確認できないこと。ここを人に渡さないと完成にならない */
 function limits(): void {
   console.log(`\n${C.bold}AIでは確かめられないこと${C.reset}`);
@@ -209,6 +233,7 @@ async function main(): Promise<void> {
   const p1 = await games();
   const p2 = await repo();
   thresholds();
+  await findings();
   await tools();
   limits();
 

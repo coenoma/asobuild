@@ -338,6 +338,15 @@ export default defineGame<TamatsunagiState>({
         // それより外は針に触れていない。何も起きない
       }
 
+      // 跨いだのに1つも通らなかった＝外した。
+      // ここで何も出さないと「通ったはずなのにスルーされた」と見える（遊んでの指摘）。
+      // どちら側に外したかまで出すと、次に何を直せばいいかが分かる
+      if (hit === 0 && crossed.length > 0 && n.mode === 'up' && s.judgeTimer <= 0) {
+        const near = crossed[0];
+        const off = tamaX(near) - LANE_X;
+        setJudge(Math.abs(off) <= RING_HIT + 14 ? 'おしい！' : off > 0 ? 'まだ右' : 'まだ左', false);
+      }
+
       if (hit > 0) {
         n.combo += hit;
         n.bestCombo = Math.max(n.bestCombo, n.combo);
@@ -398,14 +407,19 @@ export default defineGame<TamatsunagiState>({
   draw(g: Painter, s) {
     const [shakeX] = shakeOffset(s, s.time);
 
-    // 点の刻み。どこで通すと高いのかを画面で分かるようにしておく
-    for (const [y, label] of [
-      [HIGH_Y, '5点'],
-      [MID_Y, '3点'],
+    // 点の刻み。玉の色は「その高さで何点か」を表しているので、
+    // 目盛りと色を並べて置いて、色の意味がその場で分かるようにする
+    // （薄すぎて見えず「色が変わる意味が分からない」と言われたので濃くした）
+    for (const [y, label, col] of [
+      [HIGH_Y, '5てん', 'accent'],
+      [MID_Y, '3てん', 'ink'],
     ] as const) {
       for (let x = 6; x < VIRTUAL_W - 6; x += 8) g.rect(x, y, 4, 1, 'line');
-      g.text(label, VIRTUAL_W - 5, y - 11, { size: 8, align: 'right', color: 'line' });
+      g.circle(10, y - 8, 4, col);
+      g.text(label, 18, y - 13, { size: 9, color: 'dim' });
     }
+    g.circle(10, MID_Y + 16, 4, 'bad');
+    g.text('1てん・きけん', 18, MID_Y + 11, { size: 9, color: 'dim' });
 
     // ねらい線。針が通る道が常に見えていること
     for (let y = REACH_Y; y < REST_Y; y += 7) {

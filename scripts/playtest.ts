@@ -27,6 +27,28 @@ const C = {
   yellow: '\x1b[33m',
 };
 
+function opt(name: string): string | undefined {
+  const argv = process.argv.slice(2);
+  const eq = argv.find((a) => a.startsWith(`--${name}=`));
+  if (eq) return eq.split('=').slice(1).join('=');
+  const i = argv.indexOf(`--${name}`);
+  return i >= 0 ? argv[i + 1] : undefined;
+}
+
+function usage(slug: string): void {
+  console.error(`
+この記録は${C.bold}人が遊んで答えるもの${C.reset}です。対話できる画面がないときは、答えを引数で渡してください。
+
+  ${C.yellow}npm run playtest -- ${slug} --a yyyyyy --memo "ひとこと"${C.reset}
+
+  --a は6文字の y/n。順番はこの問いに対応します:`);
+  QUESTIONS.forEach((q, i) => console.error(`    ${i + 1}. ${q}`));
+  console.error(`
+  ${C.dim}※ この引数は「遊んだ人」が答えを渡すためのものです。
+     遊んでいない人（AIを含む）が埋めてよいものではありません。${C.reset}
+`);
+}
+
 async function main(): Promise<void> {
   const slug = process.argv.slice(2).find((a) => !a.startsWith('--'));
   if (!slug || !metas.some((m) => m.slug === slug)) {
@@ -36,8 +58,43 @@ async function main(): Promise<void> {
   }
   const meta = metas.find((m) => m.slug === slug)!;
 
+  // 答えを引数で受け取る形。Claude Code の `!` 実行のように、
+  // 対話はできないが人が答えを持っている場面のためにある
+  const given = (opt('a') ?? opt('answers'))?.trim().toLowerCase();
+  if (given) {
+    if (!/^[yn]+$/.test(given) || given.length !== QUESTIONS.length) {
+      console.error(`${C.red}--a は y と n を ${QUESTIONS.length}文字ならべてください（例: yyynyy）${C.reset}`);
+      usage(slug);
+      process.exit(1);
+    }
+    const answers = QUESTIONS.map((q, i) => ({ q, yes: given[i] === 'y' }));
+    const failed = answers.filter((a) => !a.yes);
+    const verdict: 'pass' | 'fail' = failed.length === 0 ? 'pass' : 'fail';
+    await writeRecord({
+      slug,
+      testedAt: new Date().toISOString().slice(0, 10),
+      codeHash: await codeHashOf(slug),
+      answers,
+      verdict,
+      memo: (opt('memo') ?? '').trim(),
+    });
+    console.log('');
+    for (const a of answers) {
+      console.log(`  ${a.yes ? `${C.green}✓${C.reset}` : `${C.red}✗${C.reset}`} ${a.q}`);
+    }
+    console.log('');
+    if (verdict === 'pass') {
+      console.log(`  ${C.green}記録しました。公開してよい状態です。${C.reset}`);
+    } else {
+      console.log(`  ${C.red}まだ出せません。${failed.length}個ひっかかっています${C.reset}`);
+      console.log(`  ${C.yellow}直してから、もう一度遊んで記録し直してください。${C.reset}`);
+    }
+    console.log(`  ${C.dim}${recordPath(slug)}${C.reset}\n`);
+    return;
+  }
+
   if (!process.stdin.isTTY) {
-    console.error('この記録は人が答えるものなので、対話できる画面から実行してください。');
+    usage(slug);
     process.exit(1);
   }
 
