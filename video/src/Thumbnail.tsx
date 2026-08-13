@@ -2,35 +2,21 @@ import React, { useEffect, useState } from 'react';
 import {
   AbsoluteFill, OffthreadVideo, cancelRender, continueRender, delayRender, staticFile,
 } from 'remotion';
-import { C, HARD_SHADOW } from './brand';
+import { C } from './brand';
 
 /**
- * サムネイル。
+ * サムネイル。型はシリーズで固定する（毎回同じレイアウト＝「また来た」を作る）。
  *
- * 仕事は「結果を見たくさせる」ことだけ（docs/video/video-doctrine.md §2）。
- *  - **完成品を出さない**。スコアも「できた」かどうかも見せない
- *  - 制約の現物を写す。何が賭けられているか一目で分かるように
- *  - 数字は1つだけ。2つ置くと読まれない
- *  - 顔は入れるが主役にしない
+ * 実物サムネ48枚の調査（docs/video/research-notes/2026-08-13-youtube.md）から採った文法:
+ *  - **AI名はバッジで大きく**（視聴者は「どのAIがやるのか」を配役として見ている）
+ *  - **ゲーム画面はプレイ途中の決定的瞬間**を大きく。結果（最終スコア・成否）は出さない
+ *  - **制約の実物**（カップ＋手）を入れる。物理モノはクリックを作る
+ *  - 文字は1メッセージ。いちばん大きい行は7文字級
  *
- * 文言は props にしてあるので、案を並べて比べられる（Root.tsx に登録してある）。
- *
- *   npx remotion still src/index.ts Thumbnail-A out/thumb-a.png
+ * バッジは文字だけで作る（公式ロゴ画像は使わない。商標の誤認を避ける）。
  */
 
 const FONT = 'NotoSansJPLocal';
-
-/** 文字を置ける横幅 */
-const BOX_W = 810;
-
-/**
- * 1行に収まる大きさを返す。
- * 日本語は 900 の太さでだいたい 1文字 = 文字サイズ × 0.98 の幅になる（半角は半分）。
- */
-function fitSize(text: string, max: number): number {
-  const w = [...text].reduce((a, ch) => a + (/[\x00-\x7F]/.test(ch) ? 0.55 : 1), 0);
-  return Math.min(max, Math.floor(BOX_W / (w * 0.98)));
-}
 
 function useLocalFont(): void {
   const [handle] = useState(() => delayRender('書体の読み込み'));
@@ -52,46 +38,62 @@ function useLocalFont(): void {
  * interface には暗黙のインデックスシグネチャが付かないので型が通らない。
  */
 export type ThumbnailProps = {
-  /** 1行目。大きく出る。8文字くらいまで */
-  line1: string;
-  /** 2行目。1行目より小さい。12文字くらいまで */
-  line2: string;
-  /** 隅に置く一言 */
-  note: string;
+  /** いちばん大きく出す言葉。7文字級（例: 作れるのか） */
+  big: string;
+  /** その上に置く条件・状況（例: ソイラテ1杯で） */
+  cond: string;
+  /** 決定的瞬間に使う素材（public/footage/ のクリップ名） */
+  gameClip: string;
+  /** クリップの何秒目を使うか */
+  gameAt?: number;
+  /** 大きい言葉の色 */
+  bigColor?: 'accent' | 'bad' | 'ink';
 };
 
-export const Thumbnail: React.FC<ThumbnailProps> = ({ line1, line2, note }) => {
+export const Thumbnail: React.FC<ThumbnailProps> = ({ big, cond, gameClip, gameAt = 1, bigColor = 'accent' }) => {
   useLocalFont();
 
   return (
     <AbsoluteFill style={{ background: C.bg, fontFamily: FONT }}>
-      {/* 背景はゲームの盤面と同じ縦じま */}
       <AbsoluteFill
         style={{ backgroundImage: `repeating-linear-gradient(90deg, ${C.bg} 0 34px, ${C.bg2} 34px 36px)` }}
       />
 
-      {/* 右：ゲーム画面。遊んでいる途中で、点数は読めない大きさに置く */}
+      {/* 右: ゲーム画面。プレイ途中の決定的瞬間。結果は見せない */}
       <div
         style={{
-          position: 'absolute', right: 44, top: 60, width: 386, height: 490,
-          overflow: 'hidden', border: `5px solid ${C.line}`, background: C.bg,
+          position: 'absolute', right: 36, top: 36, width: 470, height: 648,
+          overflow: 'hidden', border: `6px solid ${C.line}`, background: C.bg,
         }}
       >
-        {/* 上端の点数バーが入らないところまで寄せる。結果が見えたら押す理由が消える */}
         <OffthreadVideo
-          src={staticFile('footage/hum-play.mp4')}
+          src={staticFile(`footage/${gameClip}.mp4`)}
+          startFrom={Math.round(gameAt * 30)}
           style={{
             width: '100%', height: '100%', objectFit: 'cover',
-            transform: 'scale(1.34)', transformOrigin: '50% 64%',
+            // 上端の点数バーは枠外へ（結果を見せない）
+            transform: 'scale(1.28)', transformOrigin: '50% 62%',
           }}
           muted
         />
       </div>
 
-      {/* 左：制約の現物（カップ）と人。何が賭けられているかを見せる */}
+      {/* 左上: AI名のバッジ（出演者クレジット）。文字だけで作る */}
       <div
         style={{
-          position: 'absolute', left: 40, top: 60, width: 430, height: 242,
+          position: 'absolute', left: 40, top: 40,
+          background: '#ffffff', color: '#1a1a1a',
+          fontWeight: 900, fontSize: 56, padding: '10px 28px',
+          border: `4px solid ${C.line}`,
+        }}
+      >
+        Claude Code
+      </div>
+
+      {/* 左下: 制約の実物（カップ＋手） */}
+      <div
+        style={{
+          position: 'absolute', left: 40, bottom: 40, width: 380, height: 214,
           overflow: 'hidden', border: `5px solid ${C.line}`,
         }}
       >
@@ -102,37 +104,27 @@ export const Thumbnail: React.FC<ThumbnailProps> = ({ line1, line2, note }) => {
         />
       </div>
 
-      {/* 文言。1行に収まる大きさまで自動で縮める（折り返すと下の帯にかぶる） */}
-      <div style={{ position: 'absolute', left: 40, top: 322, width: BOX_W }}>
+      {/* 中央: 条件 → 大きい言葉。1メッセージ */}
+      <div style={{ position: 'absolute', left: 40, top: 210, width: 760 }}>
         <div
           style={{
-            fontWeight: 900, fontSize: fitSize(line1, 132), lineHeight: 1.04, color: C.accent,
-            textShadow: `4px 4px 0 ${C.bg}, 0 0 26px rgba(0,0,0,0.9)`, letterSpacing: '-0.02em',
+            fontWeight: 900, fontSize: 64, color: C.ink,
+            textShadow: `4px 4px 0 ${C.bg}, 0 0 22px rgba(0,0,0,0.9)`,
             whiteSpace: 'nowrap',
           }}
         >
-          {line1}
+          {cond}
         </div>
         <div
           style={{
-            marginTop: 12, fontWeight: 900, fontSize: fitSize(line2, 70), lineHeight: 1.14, color: C.ink,
-            textShadow: `4px 4px 0 ${C.bg}, 0 0 20px rgba(0,0,0,0.9)`,
-            whiteSpace: 'nowrap',
+            marginTop: 8, fontWeight: 900, fontSize: 168, lineHeight: 1.04,
+            color: C[bigColor],
+            textShadow: `6px 6px 0 ${C.bg}, 0 0 30px rgba(0,0,0,0.95)`,
+            letterSpacing: '-0.02em', whiteSpace: 'nowrap',
           }}
         >
-          {line2}
+          {big}
         </div>
-      </div>
-
-      {/* 隅の一言。番組名は入れない（毎回同じものは読まれない） */}
-      <div
-        style={{
-          position: 'absolute', left: 44, bottom: 34,
-          background: C.bad, color: C.ink, fontWeight: 900, fontSize: 40,
-          padding: '10px 22px', textShadow: HARD_SHADOW,
-        }}
-      >
-        {note}
       </div>
     </AbsoluteFill>
   );

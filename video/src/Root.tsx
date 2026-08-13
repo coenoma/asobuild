@@ -48,7 +48,7 @@ export const RemotionRoot: React.FC = () => {
         fps={1}
         width={1280}
         height={720}
-        defaultProps={{ line1: '1杯ぶんで', line2: 'ゲームは作れるか', note: 'コードは1文字も書かない' }}
+        defaultProps={{ big: '作れるのか', cond: 'ソイラテ1杯で', gameClip: 'hum-play', gameAt: 3, bigColor: 'accent' }}
       />
       <Composition
         id="Thumbnail-B"
@@ -57,7 +57,7 @@ export const RemotionRoot: React.FC = () => {
         fps={1}
         width={1280}
         height={720}
-        defaultProps={{ line1: '30分', line2: 'ミニゲームを1本つくって出す', note: 'コードは1文字も書かない' }}
+        defaultProps={{ big: 'こうなった', cond: '雑に頼んだら', gameClip: 'turn-title', gameAt: 6, bigColor: 'accent' }}
       />
       <Composition
         id="Thumbnail-C"
@@ -66,7 +66,7 @@ export const RemotionRoot: React.FC = () => {
         fps={1}
         width={1280}
         height={720}
-        defaultProps={{ line1: '飲み干すまでに', line2: 'どこまで作れるか', note: '作るのは ぜんぶ AI' }}
+        defaultProps={{ big: 'なにこれ', cond: 'AIが14分で', gameClip: 'ugly-play', gameAt: 4, bigColor: 'bad' }}
       />
     </>
   );

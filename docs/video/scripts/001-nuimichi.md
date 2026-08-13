@@ -153,10 +153,48 @@
 
 ### タイトル案
 
-| | 案 |
-|---|---|
-| **A（推し）** | AIに「糸通しみたいなゲーム作って」って雑に頼んでみた |
-| B | コーヒー1杯ぶんの時間で、AIはゲームを作れるのか |
+型は「［制約］で、AIは［題材］を作れるのか」（疑問形は「作ってみた」の7倍伸びた実測がある。
+[research-notes](../research-notes/2026-08-13-youtube.md)）。
+
+| | 案 | 部品 |
+|---|---|---|
+| **A（推し）** | ソイラテ1杯で、AIは"糸通しみたいなゲーム"を作れるのか | 制約＋題材＋疑問形 |
+| B | AIに「糸通しみたいなゲーム作って」って雑に頼んでみた | 引用の生っぽさ。疑問形でないぶん弱い |
+| C | 【記憶だけ】AIに口頭で説明した"あのゲーム"、再現できるのか | 記憶だけ、を制約に昇格 |
+
+### サムネ（シリーズ固定の型）
+
+`Claude Codeバッジ＋決定的瞬間のゲーム画面＋カップの実物＋7文字級の言葉`。
+
+```bash
+cd video
+npx remotion still src/index.ts Thumbnail-A out/thumb-A.png   # 作れるのか（推し）
+npx remotion still src/index.ts Thumbnail-B out/thumb-B.png   # こうなった
+npx remotion still src/index.ts Thumbnail-C out/thumb-C.png   # なにこれ
+```
+
+### ショート（毎回3本）
+
+```bash
+node scripts/shorts.mjs edl/001-nuimichi.json hum-play --from 2 --dur 14 \
+  --top "ソイラテ1杯でAIが作ったゲーム" --bottom "1回当たったら、おわり"
+node scripts/shorts.mjs edl/001-nuimichi.json turn-title --from 4 --dur 8 \
+  --top "デモは無敵だったのに" --bottom "自分でやると即死"
+node scripts/shorts.mjs edl/001-nuimichi.json ugly-play --from 2 --dur 12 \
+  --top "AIが14分で出してきた" --bottom "なにこれ"
+```
+
+概要欄に本編とゲームURLを必ず置く（ショートは入口）。
+
+### 固定コメント（コメント欄の設計）
+
+```
+🎮 今回できた「ぬいみち」はここで遊べます → https://asobuild.coenoma.com/g/nuimichi
+
+コメントで教えてください：
+・あなたの思い出のガラケーゲーム（次の題材にします）
+・ぬいみちの最高記録（ぼくは560点でした）
+```
 
 ### 概要欄
 

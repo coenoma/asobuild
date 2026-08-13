@@ -181,6 +181,7 @@ npx remotion render src/index.ts Episode out/<slug>.mp4
 
 ```bash
 # 1. 原稿を書く（voice/<slug>.json。行ごとに at=章内の秒 を持つ）
+#    声の決まりは voice-and-script.md（ぼく・ですます・1行20字まで・感情は言い切り）
 # 2. 行ごとに合成して、長さを実測（既定はずんだもん）
 node scripts/voice.mjs edl/<slug>.json --synth
 #    → 行が次の行に食い込むと△が出る。原稿を削るか at をずらす
