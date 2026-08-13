@@ -22,6 +22,7 @@
  *  3. 読ませる行のショットが**動いていないか**（zoom があると読めない）
  *  4. 1つのショットが**長すぎないか**（8秒を超えると画が止まって見える）
  *  5. 章の切れ目に**行がまたがっていないか**
+ *  6. **無音が長すぎないか**（合成済みの長さから算出。もったりの原因はほぼこれ）
  */
 
 import { readFileSync, existsSync } from 'node:fs';
@@ -95,6 +96,35 @@ for (const ch of edl.chapters) {
     // 5. 章からはみ出していないか（声の長さは voice.mjs 側で見る）
     if (line.at >= ch.dur) bad.push(`${label} at=${line.at} が章の長さ ${ch.dur}秒を超えています`);
   }
+}
+
+// 6. 無音の穴。--synth が作った layout（行ごとの実測長さ）から見る
+const layoutPath = resolve(ROOT, 'voice', `${basename(edlPath, '.json')}.layout.json`);
+/** これを超える無音は「もったり」に見える（001のFBで実測） */
+const DEAD_MAX = 3.5;
+if (existsSync(layoutPath)) {
+  const layout = JSON.parse(readFileSync(layoutPath, 'utf8')).sort((a, b) => a.abs - b.abs);
+  /** 判子（timeStamp）や黒は、意図して置いた間なので数えない */
+  const intended = [];
+  let t = 0;
+  for (const ch of edl.chapters) {
+    for (const l of ch.layers) if (l.type === 'timeStamp' || l.type === 'titleCard') intended.push([t + l.at, t + l.at + l.dur]);
+    t += ch.dur;
+  }
+  let prev = null;
+  for (const l of layout) {
+    if (prev !== null) {
+      const gap = l.abs - prev;
+      const covered = intended.some(([a, b]) => a < l.abs && b > prev);
+      if (gap >= DEAD_MAX && !covered) {
+        const mm = Math.floor(prev / 60);
+        warn.push(`${mm}:${(prev % 60).toFixed(1).padStart(4, '0')} から ${gap.toFixed(1)}秒の無音（次は ${l.ch}#${l.i}）`);
+      }
+    }
+    prev = l.abs + l.dur;
+  }
+} else {
+  warn.push('声の長さが未計測。先に node scripts/voice.mjs <edl> --synth');
 }
 
 for (const m of bad) console.log(`✗ ${m}`);

@@ -10,6 +10,8 @@ import { Checklist } from './components/Checklist';
 import { Diagram } from './components/Diagram';
 import { Loading } from './components/Loading';
 import { TimeStamp } from './components/TimeStamp';
+import { Spot } from './components/Spot';
+import { Scrim } from './components/Scrim';
 import { ProgramBar } from './components/ProgramBar';
 import { secToFrames } from './components/common';
 
@@ -76,10 +78,24 @@ const LayerView: React.FC<{ layer: Layer; durFrames: number }> = ({ layer, durFr
           note={layer.note}
           sub={layer.sub}
           color={layer.color}
+          variant={layer.variant}
           durFrames={durFrames}
           fontFamily={fontFamily}
         />
       );
+    case 'spot':
+      return (
+        <Spot
+          box={layer.box}
+          label={layer.label}
+          from={layer.from}
+          color={layer.color}
+          durFrames={durFrames}
+          fontFamily={fontFamily}
+        />
+      );
+    case 'scrim':
+      return <Scrim amount={layer.amount ?? 0.72} />;
     case 'number':
       return (
         <BigNumber

@@ -23,9 +23,16 @@ export const TimeStamp: React.FC<{
   /** 値の下。その場面がなんなのか。例: 「なんか、できてる」 */
   sub?: string;
   color?: 'accent' | 'good' | 'bad' | 'cool';
+  /**
+   * stamp = 画を止めて大きく出す（場面の切れ目）
+   * chip  = 画を止めずに隅へ添える（喋りが時刻に触れるとき）
+   * 小さい時刻表示をその場しのぎのテロップで作らない。**必ずこの部品を使う**
+   * （001のFB:「謎の小さい22分表示が残って変。ここも共通パーツにしようよ」）
+   */
+  variant?: 'stamp' | 'chip';
   durFrames: number;
   fontFamily: string;
-}> = ({ value, note = '経過', sub, color = 'accent', durFrames, fontFamily }) => {
+}> = ({ value, note = '経過', sub, color = 'accent', variant = 'stamp', durFrames, fontFamily }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const o = fade(f, durFrames, fps);
@@ -40,31 +47,63 @@ export const TimeStamp: React.FC<{
     extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
   });
 
+  if (variant === 'chip') {
+    return (
+      <AbsoluteFill style={{ opacity: o }}>
+        <div
+          style={{
+            position: 'absolute', left: 40, top: 86,
+            display: 'flex', alignItems: 'baseline', gap: 12,
+            background: 'rgba(0,0,0,0.95)', border: `4px solid ${C[color]}`, padding: '10px 22px',
+          }}
+        >
+          <span style={{ fontFamily, fontWeight: 700, fontSize: 26, color: C.dim, letterSpacing: '0.2em' }}>{note}</span>
+          <span style={{ fontFamily, fontWeight: 900, fontSize: 54, color: C[color], textShadow: HARD_SHADOW }}>{value}</span>
+        </div>
+      </AbsoluteFill>
+    );
+  }
+
   return (
     <AbsoluteFill style={{ opacity: o, justifyContent: 'center', alignItems: 'center' }}>
       {/* 下の映像を消す。場面が変わったことを、まず黒で伝える */}
       <AbsoluteFill style={{ background: 'rgba(0,0,0,0.92)' }} />
-      {/* 走る帯 */}
-      <div style={{ position: 'absolute', top: '38%', left: 0, width: `${band}%`, height: 10, background: C[color] }} />
-      <div style={{ position: 'absolute', bottom: '38%', right: 0, width: `${band}%`, height: 10, background: C[color] }} />
 
-      <div style={{ position: 'relative', textAlign: 'center', opacity: numO, transform: `scale(${numS})` }}>
-        <div style={{ fontFamily, fontWeight: 700, fontSize: 44, color: C.dim, letterSpacing: '0.3em', marginBottom: 8 }}>
-          {note}
-        </div>
-        <div
-          style={{
-            fontFamily, fontWeight: 900, fontSize: 210, lineHeight: 1,
-            color: C[color], textShadow: HARD_SHADOW, letterSpacing: '-0.02em',
-          }}
-        >
-          {value}
-        </div>
-        {sub ? (
-          <div style={{ marginTop: 18, fontFamily, fontWeight: 900, fontSize: 62, color: C.ink, textShadow: HARD_SHADOW }}>
-            {sub}
+      {/*
+        帯は**文字の外側**に置く。
+        位置を % で決め打ちすると、文字数や sub の有無で高さが変わったときに
+        数字の上を線が横切る（001のFBで実際に起きた）。
+        だから縦に積んで、帯・文字・帯 の順に流す。
+      */}
+      <div
+        style={{
+          position: 'relative', width: '100%',
+          display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 26,
+        }}
+      >
+        <div style={{ width: `${band}%`, height: 10, background: C[color] }} />
+
+        <div style={{ textAlign: 'center', opacity: numO, transform: `scale(${numS})`, padding: '0 60px' }}>
+          <div style={{ fontFamily, fontWeight: 700, fontSize: 44, color: C.dim, letterSpacing: '0.3em' }}>
+            {note}
           </div>
-        ) : null}
+          <div
+            style={{
+              marginTop: 4,
+              fontFamily, fontWeight: 900, fontSize: 210, lineHeight: 1.05,
+              color: C[color], textShadow: HARD_SHADOW, letterSpacing: '-0.02em',
+            }}
+          >
+            {value}
+          </div>
+          {sub ? (
+            <div style={{ marginTop: 14, fontFamily, fontWeight: 900, fontSize: 62, color: C.ink, textShadow: HARD_SHADOW }}>
+              {sub}
+            </div>
+          ) : null}
+        </div>
+
+        <div style={{ width: `${band}%`, height: 10, background: C[color], marginLeft: 'auto' }} />
       </div>
     </AbsoluteFill>
   );

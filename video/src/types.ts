@@ -76,7 +76,11 @@ export type Layer =
   /** 数字の強調（スコアなど） */
   | { type: 'number'; at: number; dur: number; value: string; unit?: string; label?: string; color?: 'accent' | 'good' | 'bad'; place?: 'center' | 'right' }
   /** 経過時間の判子。場面が変わったことと、いま何分かを、まとめてバシッと出す */
-  | { type: 'timeStamp'; at: number; dur: number; value: string; note?: string; sub?: string; color?: 'accent' | 'good' | 'bad' | 'cool' }
+  | { type: 'timeStamp'; at: number; dur: number; value: string; note?: string; sub?: string; color?: 'accent' | 'good' | 'bad' | 'cool'; variant?: 'stamp' | 'chip' }
+  /** 画面のここを見て、と指す（枠＋跳ねる矢印） */
+  | { type: 'spot'; at: number; dur: number; box: Box; label?: string; from?: 'left' | 'right' | 'top' | 'bottom'; color?: 'accent' | 'good' | 'bad' | 'cool' }
+  /** 下の映像を暗くする。映像を残したまま文字を主役にしたいとき */
+  | { type: 'scrim'; at: number; dur: number; amount?: number }
   /** 章タイトル */
   | { type: 'chapterCard'; at: number; dur: number; no: string; title: string }
   /** 確かめた／確かめていない。毎回ここで終わるので使い回せる形にしてある */
