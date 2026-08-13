@@ -21,7 +21,7 @@ const PLACE: Record<Place, React.CSSProperties> = {
  */
 export const Telop: React.FC<{
   text: string;
-  style?: 'main' | 'note' | 'chapter' | 'credit';
+  style?: 'main' | 'sub' | 'note' | 'chapter' | 'credit';
   place?: Place;
   color?: keyof typeof C;
   durFrames: number;
@@ -32,8 +32,14 @@ export const Telop: React.FC<{
   const o = fade(f, durFrames, fps);
   const dy = rise(f, fps);
 
-  const size = style === 'chapter' ? SIZE.chapter : style === 'note' ? SIZE.note : style === 'credit' ? SIZE.credit : SIZE.main;
-  const weight = style === 'note' || style === 'credit' ? 700 : 900;
+  // sub = ナレーションの字幕。演出テロップ（main）よりひとまわり小さく、常に脇役
+  const size =
+    style === 'chapter' ? SIZE.chapter
+    : style === 'sub' ? SIZE.sub
+    : style === 'note' ? SIZE.note
+    : style === 'credit' ? SIZE.credit
+    : SIZE.main;
+  const weight = style === 'note' || style === 'credit' || style === 'sub' ? 700 : 900;
 
   return (
     <AbsoluteFill style={{ ...PLACE[place], display: 'flex', opacity: o }}>
@@ -42,7 +48,7 @@ export const Telop: React.FC<{
           transform: `translateY(${dy}px)`,
           background: style === 'credit' ? 'transparent' : PANEL_BG,
           border: style === 'credit' ? 'none' : BORDER,
-          padding: style === 'credit' ? 0 : style === 'note' ? '10px 20px' : '18px 34px',
+          padding: style === 'credit' ? 0 : style === 'note' ? '10px 20px' : style === 'sub' ? '12px 26px' : '18px 34px',
           color: C[color],
           fontFamily,
           fontWeight: weight,

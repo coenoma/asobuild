@@ -64,7 +64,9 @@ export type Layer =
       at: number;
       dur: number;
       text: string;
-      style?: 'main' | 'note' | 'chapter' | 'credit';
+      style?: 'main' | 'sub' | 'note' | 'chapter' | 'credit';
+      /** voice.mjs --apply が生成した字幕の印。手で書かない（apply のたびに入れ替わる） */
+      gen?: boolean;
       /** 画面のどこに置くか。既定は下 */
       place?: 'bottom' | 'top' | 'center' | 'lower-left';
       color?: keyof typeof import('./brand').C;

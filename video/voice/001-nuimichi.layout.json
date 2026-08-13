@@ -1,0 +1,618 @@
+[
+ {
+  "ch": "hook",
+  "i": 0,
+  "at": 0.5,
+  "abs": 0.5,
+  "dur": 2.250667,
+  "file": "hook-00.wav"
+ },
+ {
+  "ch": "hook",
+  "i": 1,
+  "at": 4.9,
+  "abs": 4.9,
+  "dur": 3.050667,
+  "file": "hook-01.wav"
+ },
+ {
+  "ch": "hook",
+  "i": 2,
+  "at": 8.1,
+  "abs": 8.1,
+  "dur": 2.421333,
+  "file": "hook-02.wav"
+ },
+ {
+  "ch": "throw",
+  "i": 0,
+  "at": 0.4,
+  "abs": 13.4,
+  "dur": 3.669333,
+  "file": "throw-00.wav"
+ },
+ {
+  "ch": "throw",
+  "i": 1,
+  "at": 4.2,
+  "abs": 17.2,
+  "dur": 2.698667,
+  "file": "throw-01.wav"
+ },
+ {
+  "ch": "throw",
+  "i": 2,
+  "at": 7.3,
+  "abs": 20.3,
+  "dur": 2.976,
+  "file": "throw-02.wav"
+ },
+ {
+  "ch": "throw",
+  "i": 3,
+  "at": 11.7,
+  "abs": 24.7,
+  "dur": 1.525333,
+  "file": "throw-03.wav"
+ },
+ {
+  "ch": "throw",
+  "i": 4,
+  "at": 16.9,
+  "abs": 29.9,
+  "dur": 0.693333,
+  "file": "throw-04.wav"
+ },
+ {
+  "ch": "throw",
+  "i": 5,
+  "at": 18.9,
+  "abs": 31.9,
+  "dur": 2.229333,
+  "file": "throw-05.wav"
+ },
+ {
+  "ch": "throw",
+  "i": 6,
+  "at": 22.1,
+  "abs": 35.1,
+  "dur": 2.645333,
+  "file": "throw-06.wav"
+ },
+ {
+  "ch": "throw",
+  "i": 7,
+  "at": 25.8,
+  "abs": 38.8,
+  "dur": 1.418667,
+  "file": "throw-07.wav"
+ },
+ {
+  "ch": "recall",
+  "i": 0,
+  "at": 0.3,
+  "abs": 43.3,
+  "dur": 2.485333,
+  "file": "recall-00.wav"
+ },
+ {
+  "ch": "recall",
+  "i": 1,
+  "at": 3.4,
+  "abs": 46.4,
+  "dur": 1.898667,
+  "file": "recall-01.wav"
+ },
+ {
+  "ch": "recall",
+  "i": 2,
+  "at": 6.4,
+  "abs": 49.4,
+  "dur": 3.061333,
+  "file": "recall-02.wav"
+ },
+ {
+  "ch": "recall",
+  "i": 3,
+  "at": 10.4,
+  "abs": 53.4,
+  "dur": 1.557333,
+  "file": "recall-03.wav"
+ },
+ {
+  "ch": "recall",
+  "i": 4,
+  "at": 14.7,
+  "abs": 57.7,
+  "dur": 2.24,
+  "file": "recall-04.wav"
+ },
+ {
+  "ch": "recall",
+  "i": 5,
+  "at": 17.6,
+  "abs": 60.6,
+  "dur": 3.253333,
+  "file": "recall-05.wav"
+ },
+ {
+  "ch": "recall",
+  "i": 6,
+  "at": 21.1,
+  "abs": 64.1,
+  "dur": 2.538667,
+  "file": "recall-06.wav"
+ },
+ {
+  "ch": "recall",
+  "i": 7,
+  "at": 24.6,
+  "abs": 67.6,
+  "dur": 2.656,
+  "file": "recall-07.wav"
+ },
+ {
+  "ch": "more",
+  "i": 0,
+  "at": 0.3,
+  "abs": 73.3,
+  "dur": 2.24,
+  "file": "more-00.wav"
+ },
+ {
+  "ch": "more",
+  "i": 1,
+  "at": 2.9,
+  "abs": 75.9,
+  "dur": 2.528,
+  "file": "more-01.wav"
+ },
+ {
+  "ch": "more",
+  "i": 2,
+  "at": 5.8,
+  "abs": 78.8,
+  "dur": 3.221333,
+  "file": "more-02.wav"
+ },
+ {
+  "ch": "more",
+  "i": 3,
+  "at": 11.4,
+  "abs": 84.4,
+  "dur": 2.261333,
+  "file": "more-03.wav"
+ },
+ {
+  "ch": "more",
+  "i": 4,
+  "at": 14.7,
+  "abs": 87.7,
+  "dur": 2.058667,
+  "file": "more-04.wav"
+ },
+ {
+  "ch": "more",
+  "i": 5,
+  "at": 19.3,
+  "abs": 92.3,
+  "dur": 1.728,
+  "file": "more-05.wav"
+ },
+ {
+  "ch": "appeared",
+  "i": 0,
+  "at": 0.4,
+  "abs": 99.4,
+  "dur": 1.909333,
+  "file": "appeared-00.wav"
+ },
+ {
+  "ch": "appeared",
+  "i": 1,
+  "at": 4,
+  "abs": 103,
+  "dur": 2.069333,
+  "file": "appeared-01.wav"
+ },
+ {
+  "ch": "appeared",
+  "i": 2,
+  "at": 6.8,
+  "abs": 105.8,
+  "dur": 2.453333,
+  "file": "appeared-02.wav"
+ },
+ {
+  "ch": "appeared",
+  "i": 3,
+  "at": 9.6,
+  "abs": 108.6,
+  "dur": 1.632,
+  "file": "appeared-03.wav"
+ },
+ {
+  "ch": "appeared",
+  "i": 4,
+  "at": 12.4,
+  "abs": 111.4,
+  "dur": 0.554667,
+  "file": "appeared-04.wav"
+ },
+ {
+  "ch": "appeared",
+  "i": 5,
+  "at": 14.4,
+  "abs": 113.4,
+  "dur": 2.325333,
+  "file": "appeared-05.wav"
+ },
+ {
+  "ch": "appeared",
+  "i": 6,
+  "at": 17.6,
+  "abs": 116.6,
+  "dur": 2.666667,
+  "file": "appeared-06.wav"
+ },
+ {
+  "ch": "appeared",
+  "i": 7,
+  "at": 22.4,
+  "abs": 121.4,
+  "dur": 2.336,
+  "file": "appeared-07.wav"
+ },
+ {
+  "ch": "itsuppoi",
+  "i": 0,
+  "at": 0.3,
+  "abs": 125.3,
+  "dur": 2.496,
+  "file": "itsuppoi-00.wav"
+ },
+ {
+  "ch": "itsuppoi",
+  "i": 1,
+  "at": 3.2,
+  "abs": 128.2,
+  "dur": 1.557333,
+  "file": "itsuppoi-01.wav"
+ },
+ {
+  "ch": "itsuppoi",
+  "i": 2,
+  "at": 5.9,
+  "abs": 130.9,
+  "dur": 2.272,
+  "file": "itsuppoi-02.wav"
+ },
+ {
+  "ch": "itsuppoi",
+  "i": 3,
+  "at": 10.5,
+  "abs": 135.5,
+  "dur": 1.653333,
+  "file": "itsuppoi-03.wav"
+ },
+ {
+  "ch": "itsuppoi",
+  "i": 4,
+  "at": 13.4,
+  "abs": 138.4,
+  "dur": 1.706667,
+  "file": "itsuppoi-04.wav"
+ },
+ {
+  "ch": "itsuppoi",
+  "i": 5,
+  "at": 16.1,
+  "abs": 141.1,
+  "dur": 2.688,
+  "file": "itsuppoi-05.wav"
+ },
+ {
+  "ch": "timeup",
+  "i": 0,
+  "at": 0.4,
+  "abs": 145.4,
+  "dur": 1.952,
+  "file": "timeup-00.wav"
+ },
+ {
+  "ch": "timeup",
+  "i": 1,
+  "at": 3,
+  "abs": 148,
+  "dur": 2.037333,
+  "file": "timeup-01.wav"
+ },
+ {
+  "ch": "timeup",
+  "i": 2,
+  "at": 11.2,
+  "abs": 156.2,
+  "dur": 1.248,
+  "file": "timeup-02.wav"
+ },
+ {
+  "ch": "timeup",
+  "i": 3,
+  "at": 13.4,
+  "abs": 158.4,
+  "dur": 1.973333,
+  "file": "timeup-03.wav"
+ },
+ {
+  "ch": "timeup",
+  "i": 4,
+  "at": 16,
+  "abs": 161,
+  "dur": 2.570667,
+  "file": "timeup-04.wav"
+ },
+ {
+  "ch": "timeup",
+  "i": 5,
+  "at": 18.9,
+  "abs": 163.9,
+  "dur": 2.325333,
+  "file": "timeup-05.wav"
+ },
+ {
+  "ch": "timeup",
+  "i": 6,
+  "at": 21.8,
+  "abs": 166.8,
+  "dur": 1.653333,
+  "file": "timeup-06.wav"
+ },
+ {
+  "ch": "timeup",
+  "i": 7,
+  "at": 24.3,
+  "abs": 169.3,
+  "dur": 3.392,
+  "file": "timeup-07.wav"
+ },
+ {
+  "ch": "brushup",
+  "i": 0,
+  "at": 2.1,
+  "abs": 175.1,
+  "dur": 2.336,
+  "file": "brushup-00.wav"
+ },
+ {
+  "ch": "brushup",
+  "i": 1,
+  "at": 5.1,
+  "abs": 178.1,
+  "dur": 1.888,
+  "file": "brushup-01.wav"
+ },
+ {
+  "ch": "brushup",
+  "i": 2,
+  "at": 7.6,
+  "abs": 180.6,
+  "dur": 3.008,
+  "file": "brushup-02.wav"
+ },
+ {
+  "ch": "brushup",
+  "i": 3,
+  "at": 10.8,
+  "abs": 183.8,
+  "dur": 0.757333,
+  "file": "brushup-03.wav"
+ },
+ {
+  "ch": "brushup",
+  "i": 4,
+  "at": 11.8,
+  "abs": 184.8,
+  "dur": 2.944,
+  "file": "brushup-04.wav"
+ },
+ {
+  "ch": "brushup",
+  "i": 5,
+  "at": 14.8,
+  "abs": 187.8,
+  "dur": 1.941333,
+  "file": "brushup-05.wav"
+ },
+ {
+  "ch": "brushup",
+  "i": 6,
+  "at": 17.3,
+  "abs": 190.3,
+  "dur": 2.688,
+  "file": "brushup-06.wav"
+ },
+ {
+  "ch": "brushup",
+  "i": 7,
+  "at": 20.4,
+  "abs": 193.4,
+  "dur": 4.224,
+  "file": "brushup-07.wav"
+ },
+ {
+  "ch": "brushup",
+  "i": 8,
+  "at": 24.8,
+  "abs": 197.8,
+  "dur": 2.293333,
+  "file": "brushup-08.wav"
+ },
+ {
+  "ch": "brushup",
+  "i": 9,
+  "at": 27.1,
+  "abs": 200.1,
+  "dur": 2.869333,
+  "file": "brushup-09.wav"
+ },
+ {
+  "ch": "brushup",
+  "i": 10,
+  "at": 30.7,
+  "abs": 203.7,
+  "dur": 1.344,
+  "file": "brushup-10.wav"
+ },
+ {
+  "ch": "brushup",
+  "i": 11,
+  "at": 33.3,
+  "abs": 206.3,
+  "dur": 1.706667,
+  "file": "brushup-11.wav"
+ },
+ {
+  "ch": "best",
+  "i": 0,
+  "at": 0.4,
+  "abs": 211.4,
+  "dur": 3.050667,
+  "file": "best-00.wav"
+ },
+ {
+  "ch": "best",
+  "i": 1,
+  "at": 4.9,
+  "abs": 215.9,
+  "dur": 2.421333,
+  "file": "best-01.wav"
+ },
+ {
+  "ch": "best",
+  "i": 2,
+  "at": 9.9,
+  "abs": 220.9,
+  "dur": 2.026667,
+  "file": "best-02.wav"
+ },
+ {
+  "ch": "best",
+  "i": 3,
+  "at": 12.5,
+  "abs": 223.5,
+  "dur": 2.314667,
+  "file": "best-03.wav"
+ },
+ {
+  "ch": "best",
+  "i": 4,
+  "at": 16,
+  "abs": 227,
+  "dur": 1.546667,
+  "file": "best-04.wav"
+ },
+ {
+  "ch": "best",
+  "i": 5,
+  "at": 18.9,
+  "abs": 229.9,
+  "dur": 1.152,
+  "file": "best-05.wav"
+ },
+ {
+  "ch": "best",
+  "i": 6,
+  "at": 25.3,
+  "abs": 236.3,
+  "dur": 2.506667,
+  "file": "best-06.wav"
+ },
+ {
+  "ch": "best",
+  "i": 7,
+  "at": 29.3,
+  "abs": 240.3,
+  "dur": 1.792,
+  "file": "best-07.wav"
+ },
+ {
+  "ch": "scary",
+  "i": 0,
+  "at": 0.3,
+  "abs": 244.3,
+  "dur": 1.781333,
+  "file": "scary-00.wav"
+ },
+ {
+  "ch": "scary",
+  "i": 1,
+  "at": 4.7,
+  "abs": 248.7,
+  "dur": 2.069333,
+  "file": "scary-01.wav"
+ },
+ {
+  "ch": "scary",
+  "i": 2,
+  "at": 7.7,
+  "abs": 251.7,
+  "dur": 2.773333,
+  "file": "scary-02.wav"
+ },
+ {
+  "ch": "scary",
+  "i": 3,
+  "at": 11.3,
+  "abs": 255.3,
+  "dur": 1.962667,
+  "file": "scary-03.wav"
+ },
+ {
+  "ch": "scary",
+  "i": 4,
+  "at": 15.4,
+  "abs": 259.4,
+  "dur": 2.08,
+  "file": "scary-04.wav"
+ },
+ {
+  "ch": "scary",
+  "i": 5,
+  "at": 18.8,
+  "abs": 262.8,
+  "dur": 2.293333,
+  "file": "scary-05.wav"
+ },
+ {
+  "ch": "scary",
+  "i": 6,
+  "at": 22.3,
+  "abs": 266.3,
+  "dur": 0.96,
+  "file": "scary-06.wav"
+ },
+ {
+  "ch": "end",
+  "i": 0,
+  "at": 0.6,
+  "abs": 270.6,
+  "dur": 4.693333,
+  "file": "end-00.wav"
+ },
+ {
+  "ch": "end",
+  "i": 1,
+  "at": 5.6,
+  "abs": 275.6,
+  "dur": 3.168,
+  "file": "end-01.wav"
+ },
+ {
+  "ch": "end",
+  "i": 2,
+  "at": 9.6,
+  "abs": 279.6,
+  "dur": 3.424,
+  "file": "end-02.wav"
+ }
+]

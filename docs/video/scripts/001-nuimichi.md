@@ -1,24 +1,14 @@
 # ＃1 アテレコ用メモ（ぬいみち回）
 
-**これは原稿ではありません。** 「ここで何を思っていたか」と「どれくらいの長さか」だけを置いたものです。
+**台本の実体は [`video/voice/001-nuimichi.json`](../../../video/voice/001-nuimichi.json) です。**
+あの原稿が、確認用の合成音声（ずんだもん）と字幕の両方を作っています。
+**本命はあれを読み上げてください**（一字一句でなくてOK。ただし行の順番と長さ感は近いほうが、字幕がきれいに付きます）。
 
-- 言い回しは変えてよい。箇条書きから離れて構いません
-- **テンポは速め。** 動画側が2〜3秒刻みで進むので、短い言い切りの連続が合います
-- テロップと同じ文を読み上げない（テロップ「長い」に「長いですね」ではなく「……なにこれ」のほうがいい）
-- 尺が合わなくても大丈夫です。**映像側の章の長さを声に合わせて調整します**
+- 録り方: **章ごとに1ファイル**。`video/voice/001-nuimichi/human/<章ID>.wav` に置く
+- 乗せ方: `node scripts/voice.mjs edl/001-nuimichi.json --mux`（human があれば自動で優先）
+- 間が変わったら、原稿の `at` を直して `--apply` → 再描画で字幕が追従します
 
-## 確認用の声（仮ボイス）が付いています
-
-尺とテンポを確かめるために、**VOICEVOX の合成音声を仮で乗せた版**を作れます。
-
-```bash
-cd video
-node scripts/voice.mjs edl/001-nuimichi.json --synth   # 原稿 voice/001-nuimichi.json → 章ごとのwav
-node scripts/voice.mjs edl/001-nuimichi.json --mux     # → out/001-nuimichi-voiced.mp4
-```
-
-**本命（ぼくの声）も同じ仕組みに乗ります。**
-録った wav を `video/voice/001-nuimichi/<章ID>.wav` に置き換えて、同じ `--mux` を打つだけです。
+このファイルは「各章で何を思っていたか」の背景メモです。読み物として下に残します。
 
 ---
 
@@ -26,7 +16,7 @@ node scripts/voice.mjs edl/001-nuimichi.json --mux     # → out/001-nuimichi-vo
 
 | 章 | ID | 開始 | 尺 | そのとき思っていたこと | 喋る量 |
 |---|---|---|---|---|---|
-| ① | `hook` | 0:00 | 0:13 | — | **喋らない** |
+| ① | `hook` | 0:00 | 0:13 | 何を頼んだか | 30字前後 |
 | ② | `throw` | 0:13 | 0:30 | まずはぶっこむ／なんか考えてる？／長い | 60〜75字 |
 | ③ | `recall` | 0:43 | 0:30 | 糸通しどんなだっけ／あーこんなだったな | 60〜75字 |
 | ④ | `more` | 1:13 | 0:26 | もっとぶっこむ／時間切れじゃない？ | 55〜65字 |
@@ -42,9 +32,13 @@ node scripts/voice.mjs edl/001-nuimichi.json --mux     # → out/001-nuimichi-vo
 
 ---
 
-## ① フック 0:00 – 0:13（喋らない）
+## ① フック 0:00 – 0:13（30字前後）
 
 画: カップを手に持っている → 依頼文 → タイトル
+
+- 「糸通しみたいなゲーム作って」
+- って、AIに雑に頼んでみました
+- ぼくはコードを1文字も書きません
 
 ## ② なげる 0:13 – 0:43（60〜75字）
 
@@ -148,9 +142,9 @@ node scripts/voice.mjs edl/001-nuimichi.json --mux     # → out/001-nuimichi-vo
 
 ## 収録のお願い
 
-- **章ごとに区切って録音**。ファイル名は章IDで（`throw.wav` `recall.wav` … `end.wav`。`hook` は無し）
-- 置き場所: `video/voice/001-nuimichi/`（仮ボイスの上書きでOK）
-- 乗せるコマンドは仮ボイスと同じ: `node scripts/voice.mjs edl/001-nuimichi.json --mux`
+- **原稿（`video/voice/001-nuimichi.json`）を読み上げる**。一字一句でなくてOK
+- **章ごとに1ファイル**で録音。ファイル名は章IDで（`hook.wav` `throw.wav` … `end.wav`）
+- 置き場所: `video/voice/001-nuimichi/human/`（ここに置くと --mux が合成音声より優先）
 - 1本で録るなら章の切れ目で3秒黙る。言い直しはそのままでOK
 
 ---

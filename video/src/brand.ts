@@ -25,6 +25,8 @@ export const C = {
 export const SIZE = {
   chapter: 96,
   main: 64,
+  /** ナレーションの字幕。喋りの全文を出すので、演出（main）より小さく */
+  sub: 46,
   number: 160,
   note: 34,
   bar: 30,
