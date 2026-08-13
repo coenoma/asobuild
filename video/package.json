@@ -1,0 +1,29 @@
+{
+  "name": "asobuild-video",
+  "version": "0.1.0",
+  "private": true,
+  "description": "アソビルドの動画を組み立てる器（Remotion）。編集はコードではなく edl/*.json で決める",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render src/index.ts Episode out/episode.mp4",
+    "timeline": "node scripts/timeline.mjs",
+    "extract": "node scripts/extract.mjs",
+    "sfx": "node scripts/sfx.mjs",
+    "scan": "node scripts/scan-risk.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.452",
+    "@remotion/google-fonts": "4.0.452",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.452"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "typescript": "5.9.3"
+  }
+}

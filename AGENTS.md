@@ -17,9 +17,14 @@ Claude Code 以外のツール（Cursor / Codex など）を使う場合も、�
 | サイト側の規約 | [.claude/rules/web.md](./.claude/rules/web.md) |
 | 面白さの原則（作る前に読む） | [docs/design/fun-doctrine.md](./docs/design/fun-doctrine.md) |
 | 効く工夫のカタログ | [docs/design/feel-catalog.md](./docs/design/feel-catalog.md) |
+| **既存作を題材にするときの型（記憶から作る）** | [docs/design/memory-first.md](./docs/design/memory-first.md) |
+| 権利の線引き | [docs/design/rights-and-originality.md](./docs/design/rights-and-originality.md) |
 | 既存作の調査のやり方 | [docs/research/README.md](./docs/research/README.md) |
 | 開発の始め方 | [docs/guides/はじめかた.md](./docs/guides/はじめかた.md) |
 | **収録して YouTube に出す段取り** | [.claude/skills/recording/SKILL.md](./.claude/skills/recording/SKILL.md) |
+| **撮った素材を1本の動画に組み立てる** | [docs/video/README.md](./docs/video/README.md) |
+| 動画の原則（誰に・どう見せるか） | [docs/video/video-doctrine.md](./docs/video/video-doctrine.md) |
+| 映り込みと権利（出す前に必ず通す） | [docs/video/safety-checklist.md](./docs/video/safety-checklist.md) |
 
 <!-- BEGIN:nextjs-agent-rules -->
 

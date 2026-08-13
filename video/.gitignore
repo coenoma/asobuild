@@ -1,0 +1,11 @@
+node_modules/
+out/
+
+# 元素材と切り出した素材は置かない（PUBLIC リポジトリ／サイズも大きい）
+public/footage/
+
+# 効果音は scripts/sfx.mjs で作れるので持たない
+public/sfx/
+
+# 書体は node scripts/fonts.mjs で取ってくる
+public/fonts/
