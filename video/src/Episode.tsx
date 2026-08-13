@@ -9,6 +9,7 @@ import { Gate } from './components/Gate';
 import { Checklist } from './components/Checklist';
 import { Diagram } from './components/Diagram';
 import { Loading } from './components/Loading';
+import { TimeStamp } from './components/TimeStamp';
 import { ProgramBar } from './components/ProgramBar';
 import { secToFrames } from './components/common';
 
@@ -68,6 +69,17 @@ const LayerView: React.FC<{ layer: Layer; durFrames: number }> = ({ layer, durFr
           fontFamily={fontFamily}
         />
       );
+    case 'timeStamp':
+      return (
+        <TimeStamp
+          value={layer.value}
+          note={layer.note}
+          sub={layer.sub}
+          color={layer.color}
+          durFrames={durFrames}
+          fontFamily={fontFamily}
+        />
+      );
     case 'number':
       return (
         <BigNumber
@@ -75,6 +87,7 @@ const LayerView: React.FC<{ layer: Layer; durFrames: number }> = ({ layer, durFr
           unit={layer.unit}
           label={layer.label}
           color={layer.color}
+          place={layer.place}
           durFrames={durFrames}
           fontFamily={fontFamily}
         />

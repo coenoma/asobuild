@@ -1,6 +1,6 @@
 import React from 'react';
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate } from 'remotion';
-import { C, SIZE, HARD_SHADOW } from '../brand';
+import { C, SIZE, HARD_SHADOW, SUB_BG, CARD_SHADOW } from '../brand';
 import { fade } from './common';
 import { Scrim } from './Scrim';
 
@@ -32,26 +32,50 @@ export const ChapterCard: React.FC<{ no: string; title: string; durFrames: numbe
   );
 };
 
-/** 数字の強調。スコアが確定した瞬間に出す */
+/**
+ * 数字の強調。スコアが確定した瞬間に出す。
+ *
+ * **盤面の真ん中に重ねない**（001のFB1）。ゲーム自身がすでに点数を出しているので、
+ * 同じ位置に同じ数字を重ねると「動画が点数を足している」ように見えて紛らわしい。
+ * 盤面に重なる場面では `place: 'right'` にして、**盤面の外に判子として置く**。
+ */
 export const BigNumber: React.FC<{
-  value: string; unit?: string; label?: string; color?: 'accent' | 'good' | 'bad'; durFrames: number; fontFamily: string;
-}> = ({ value, unit, label, color = 'accent', durFrames, fontFamily }) => {
+  value: string; unit?: string; label?: string; color?: 'accent' | 'good' | 'bad';
+  place?: 'center' | 'right'; durFrames: number; fontFamily: string;
+}> = ({ value, unit, label, color = 'accent', place = 'center', durFrames, fontFamily }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const o = fade(f, durFrames, fps);
   // 出た瞬間だけ 1.06 → 1.0。0.12秒で戻す（やりすぎない）
   const s = interpolate(f, [0, Math.round(fps * 0.12)], [1.06, 1], { extrapolateRight: 'clamp' });
+  const right = place === 'right';
   return (
-    <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', opacity: o }}>
-      <Scrim amount={0.55} />
-      <div style={{ position: 'relative', transform: `scale(${s})`, textAlign: 'center' }}>
+    <AbsoluteFill
+      style={{
+        justifyContent: 'center',
+        alignItems: right ? 'flex-end' : 'center',
+        paddingRight: right ? 60 : 0,
+        opacity: o,
+      }}
+    >
+      {right ? null : <Scrim amount={0.55} />}
+      <div
+        style={{
+          position: 'relative', transform: `scale(${s})`, textAlign: 'center',
+          // 盤面の外に置くときは、動画側の札だと分かる見た目にする
+          background: right ? SUB_BG : undefined,
+          border: right ? `5px solid ${C[color]}` : undefined,
+          boxShadow: right ? CARD_SHADOW : undefined,
+          padding: right ? '18px 30px' : undefined,
+        }}
+      >
         {label ? (
-          <div style={{ fontFamily, fontWeight: 700, fontSize: SIZE.note, color: C.dim, textShadow: HARD_SHADOW, marginBottom: 6 }}>
+          <div style={{ fontFamily, fontWeight: 700, fontSize: SIZE.note, color: right ? C.ink : C.dim, textShadow: HARD_SHADOW, marginBottom: 6 }}>
             {label}
           </div>
         ) : null}
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 10 }}>
-          <span style={{ fontFamily, fontWeight: 900, fontSize: SIZE.number, color: C[color], textShadow: HARD_SHADOW, lineHeight: 1 }}>
+          <span style={{ fontFamily, fontWeight: 900, fontSize: right ? 118 : SIZE.number, color: C[color], textShadow: HARD_SHADOW, lineHeight: 1 }}>
             {value}
           </span>
           {unit ? (
@@ -91,7 +115,7 @@ export const TitleCard: React.FC<{ title: string; sub: string; durFrames: number
  * 見出し → URL → お願いを1行ずつ、と順番に出す。**毎回そのまま使い回す部品**なので、
  * ここを直すと次回以降ぜんぶ良くなる。
  */
-export const EndCard: React.FC<{ url: string; lines: string[]; durFrames: number; fontFamily: string }> = ({
+export const EndCard: React.FC<{ url: string; lines?: string[]; durFrames: number; fontFamily: string }> = ({
   url, lines, durFrames, fontFamily,
 }) => {
   const f = useCurrentFrame();
@@ -140,8 +164,13 @@ export const EndCard: React.FC<{ url: string; lines: string[]; durFrames: number
           {url}
         </div>
       ) : null}
-      <div style={{ marginTop: 60, display: 'flex', flexDirection: 'column', gap: 22, alignItems: 'center' }}>
-        {lines.map((l, i) => {
+      {/*
+        お願いの文はここに書かない（001のFB2）。
+        字幕と二重になるうえ、声とタイミングが合わない。
+        文はナレーション原稿から演出テロップとして出す（＝声と必ず同期する）。
+      */}
+      <div style={{ marginTop: 54, display: 'flex', flexDirection: 'column', gap: 22, alignItems: 'center' }}>
+        {(lines ?? []).map((l, i) => {
           const st = pop(AT_LINES + i * GAP);
           if (!st) return null;
           return (

@@ -55,6 +55,8 @@ export type Layer =
       zoom?: number | [number, number];
       /** 寄る中心（0〜1）。既定は中央 */
       origin?: [number, number];
+      /** ワイプ（自撮りの小窓）。主役のショットではない、という印 */
+      wipe?: boolean;
       /** 枠線をつける（ワイプに使う） */
       frame?: boolean;
     }
@@ -72,7 +74,9 @@ export type Layer =
       color?: keyof typeof import('./brand').C;
     }
   /** 数字の強調（スコアなど） */
-  | { type: 'number'; at: number; dur: number; value: string; unit?: string; label?: string; color?: 'accent' | 'good' | 'bad' }
+  | { type: 'number'; at: number; dur: number; value: string; unit?: string; label?: string; color?: 'accent' | 'good' | 'bad'; place?: 'center' | 'right' }
+  /** 経過時間の判子。場面が変わったことと、いま何分かを、まとめてバシッと出す */
+  | { type: 'timeStamp'; at: number; dur: number; value: string; note?: string; sub?: string; color?: 'accent' | 'good' | 'bad' | 'cool' }
   /** 章タイトル */
   | { type: 'chapterCard'; at: number; dur: number; no: string; title: string }
   /** 確かめた／確かめていない。毎回ここで終わるので使い回せる形にしてある */
@@ -88,7 +92,7 @@ export type Layer =
   /** タイトルカード */
   | { type: 'titleCard'; at: number; dur: number; title: string; sub: string }
   /** 締めのカード */
-  | { type: 'endCard'; at: number; dur: number; url: string; lines: string[] }
+  | { type: 'endCard'; at: number; dur: number; url: string; lines?: string[] }
   /** 効果音 */
   | { type: 'sfx'; at: number; name: string; volume?: number };
 

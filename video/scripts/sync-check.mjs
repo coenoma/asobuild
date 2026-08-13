@@ -55,8 +55,8 @@ const warn = [];
 
 for (const ch of edl.chapters) {
   const lines = voice.chapters?.[ch.id] ?? [];
-  const shots = ch.layers.filter((l) => l.type === 'shot' && !l.box).sort((a, b) => a.at - b.at);
-  /** その時刻に映っている主役のショット（ワイプ＝box付きは除く） */
+  const shots = ch.layers.filter((l) => l.type === 'shot' && !l.wipe).sort((a, b) => a.at - b.at);
+  /** その時刻に映っている主役のショット（ワイプは除く） */
   const shotAt = (t) => shots.filter((s) => s.at <= t && t < s.at + s.dur).pop();
 
   for (const s of shots) {
