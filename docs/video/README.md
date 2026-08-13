@@ -13,9 +13,10 @@
 | | 何が書いてあるか | いつ読むか |
 |---|---|---|
 | [video-doctrine.md](./video-doctrine.md) | 誰に、どんな気持ちで見てもらうか。売っているものは何か | **企画の前に必ず** |
-| [structure.md](./structure.md) | 7分の型（11章）。素材をここに流し込む | 編集を始めるとき |
+| [structure.md](./structure.md) | 章立ては固定しない。心情の流れが構成になる | 編集を始めるとき |
 | [telop-rules.md](./telop-rules.md) | 色・書体・大きさ・言い回し・効果音 | テロップを書くとき |
 | [safety-checklist.md](./safety-checklist.md) | 映り込みと権利。**出す前に必ず通す** | 書き出す前 |
+| [storyboards/](./storyboards/) | **回ごとの絵コンテ（構成表）。EDLから生成** | **構成を相談するとき** |
 | [scripts/](./scripts/) | 回ごとのアテレコ用メモ | 収録を頼むとき |
 
 撮るときの段取りは [recording スキル](../../.claude/skills/recording/SKILL.md)、
@@ -43,10 +44,13 @@ node scripts/timeline.mjs --rec-start "2026-08-12T16:32:09+09:00"
 # ④ 必要な区間だけ切り出す（尺の検査もここで通る）
 node scripts/extract.mjs edl/<slug>.json
 
-# ⑤ 見ながら直す
+# ⑤ 絵コンテを出して、構成を相談する
+node scripts/storyboard.mjs edl/<slug>.json > ../docs/video/storyboards/<slug>.md
+
+# ⑥ 見ながら直す
 npx remotion studio
 
-# ⑥ 書き出す
+# ⑦ 書き出す
 npx remotion render src/index.ts Episode out/<slug>.mp4
 ```
 
@@ -71,6 +75,20 @@ ffprobe -v error -show_format 自撮り.MOV | grep creationdate
 ---
 
 ## 設計の考え方（なぜこの形か）
+
+### 構成の相談は、絵コンテでやる
+
+映像を見て相談すると、書き出しに20〜30分かかるので往復が重い。
+**EDL から絵コンテ（マークダウンの表）を生成**して、まずそこで詰める。
+
+```bash
+node scripts/storyboard.mjs edl/<slug>.json > ../docs/video/storyboards/<slug>.md
+```
+
+各行に `[章-番号]` がつくので、**「3-2 の言い回しを変えたい」と番号で指せる**。
+
+**手で書き写さない。** 構成表を別に持つと、EDL を直したときに必ずズレる。
+ズレた構成表は、無いより悪い（それを見て相談してしまうので）。
 
 ### 編集はデータに置く
 
@@ -112,6 +130,6 @@ ffprobe -v error -show_format 自撮り.MOV | grep creationdate
 
 ## これまでの回
 
-| # | 回 | 尺 | 制約 | アテレコ用メモ |
-|---|---|---|---|---|
-| 001 | ぬいみち | 7:00 | ソイラテ1杯 | [001-nuimichi.md](./scripts/001-nuimichi.md) |
+| # | 回 | 尺 | 制約 | 絵コンテ | アテレコ用メモ |
+|---|---|---|---|---|---|
+| 001 | ぬいみち | 7:00 | ソイラテ1杯 | [001-nuimichi.md](./storyboards/001-nuimichi.md) | [001-nuimichi.md](./scripts/001-nuimichi.md) |

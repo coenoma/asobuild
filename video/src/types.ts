@@ -92,6 +92,11 @@ export interface Chapter {
   id: string;
   /** 番組バーに出す章名。空なら出さない */
   label?: string;
+  /**
+   * この章の心情。**章は出来事ではなく心情で切る**（docs/video/structure.md）。
+   * 絵コンテ（scripts/storyboard.mjs）にそのまま出るので、撮った人の言葉で書く。
+   */
+  mood?: string;
   dur: number;
   /**
    * この章が開発の何分ごろにあたるか（秒）。番組バーの経過とカップの残量に使う。

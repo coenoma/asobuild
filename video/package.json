@@ -13,7 +13,8 @@
     "extract": "node scripts/extract.mjs",
     "sfx": "node scripts/sfx.mjs",
     "scan": "node scripts/scan-risk.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "storyboard": "node scripts/storyboard.mjs"
   },
   "dependencies": {
     "@remotion/cli": "4.0.452",

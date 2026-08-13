@@ -49,6 +49,9 @@
 **編集する側（AIを含む）がこれを代筆しない。** 素材から推測もしない。
 無いなら聞く。聞けないなら作らない。
 
+**書き出した心情は EDL の `chapters[].mood` に入れる。**
+絵コンテにそのまま出るので、あとから「この章は何の気持ちだったか」を見失わない。
+
 ### 2. 隣り合う心情をまとめて章にする
 
 上の例なら、こうなる（001回の実際）。
@@ -123,7 +126,10 @@ node scripts/timeline.mjs --rec-start "2026-08-12T16:32:09+09:00"
 # 4. 必要な区間だけ切り出す（先に EDL の検査が走る）
 node scripts/extract.mjs edl/<slug>.json
 
-# 5. 確認して書き出す
+# 5. 絵コンテを出して、構成を相談する（映像を待たずに詰められる）
+node scripts/storyboard.mjs edl/<slug>.json > ../docs/video/storyboards/<slug>.md
+
+# 6. 確認して書き出す
 npx remotion studio
 npx remotion render src/index.ts Episode out/<slug>.mp4
 ```

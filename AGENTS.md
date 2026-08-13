@@ -24,6 +24,7 @@ Claude Code 以外のツール（Cursor / Codex など）を使う場合も、�
 | **収録して YouTube に出す段取り** | [.claude/skills/recording/SKILL.md](./.claude/skills/recording/SKILL.md) |
 | **撮った素材を1本の動画に組み立てる** | [docs/video/README.md](./docs/video/README.md) |
 | 動画の原則（誰に・どう見せるか） | [docs/video/video-doctrine.md](./docs/video/video-doctrine.md) |
+| **構成を相談する（絵コンテ）** | [docs/video/storyboards/](./docs/video/storyboards/) |
 | 映り込みと権利（出す前に必ず通す） | [docs/video/safety-checklist.md](./docs/video/safety-checklist.md) |
 
 <!-- BEGIN:nextjs-agent-rules -->

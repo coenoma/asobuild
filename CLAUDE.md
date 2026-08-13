@@ -297,6 +297,7 @@ cd video
 node scripts/scan-risk.mjs <画面収録.mov> --contact   # 映り込みを機械で洗い出す
 node scripts/timeline.mjs --rec-start "<ISO8601>"     # 開発ログを動画の時刻へ
 node scripts/extract.mjs edl/<slug>.json              # 必要な区間だけ切り出す（尺の検査つき）
+node scripts/storyboard.mjs edl/<slug>.json           # 絵コンテを出して構成を相談する
 npx remotion render src/index.ts Episode out/<slug>.mp4
 ```
 
