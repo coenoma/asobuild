@@ -52,8 +52,12 @@ npx remotion render src/index.ts Episode out/<slug>.mp4      # 書き出す
 | `scripts/timeline.mjs` | `.live/status.jsonl` → 画面収録の時刻 |
 | `scripts/extract.mjs` | EDL の検査＋素材の切り出し |
 | `scripts/scan-risk.mjs` | 映り込みの候補出し |
+| `scripts/reactions.mjs` | ゲームオーバーの瞬間 → 同じ瞬間の自撮り時刻 |
+| `scripts/storyboard.mjs` | EDL → 絵コンテ |
 | `scripts/sfx.mjs` | 効果音の生成（[sfx.ts](../src/arcade/sfx.ts) と同じ音） |
 | `scripts/fonts.mjs` | 書体の取得 |
+| `scripts/voice.mjs` | **声を乗せる**。--synth で確認用（VOICEVOX）、--mux で動画へ（人の声も同じ） |
+| `voice/<slug>.json` | 確認用ナレーションの原稿（章ID → 文） |
 
 ---
 

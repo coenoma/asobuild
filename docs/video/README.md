@@ -53,6 +53,11 @@ npx remotion studio
 
 # ⑦ 書き出す
 npx remotion render src/index.ts Episode out/<slug>.mp4
+
+# ⑧ 確認用の声（VOICEVOX）を乗せる。本命の声も同じコマンド
+docker run -d --rm --name voicevox -p 50021:50021 voicevox/voicevox_engine:cpu-latest
+node scripts/voice.mjs edl/<slug>.json --synth
+node scripts/voice.mjs edl/<slug>.json --mux     # → out/<slug>-voiced.mp4
 ```
 
 ### 素材の開始時刻を実測する

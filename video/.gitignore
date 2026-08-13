@@ -9,3 +9,7 @@ public/sfx/
 
 # 書体は node scripts/fonts.mjs で取ってくる
 public/fonts/
+
+# 声のwavは持たない（確認用は voice.mjs --synth で作れる。本命の人の声も置き場所は同じ）
+# 原稿（voice/*.json）は持つ
+voice/*/
