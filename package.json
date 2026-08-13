@@ -23,7 +23,8 @@
     "playtest": "tsx scripts/playtest.ts",
     "ship": "npm run check && tsx scripts/ship-check.ts",
     "status": "tsx scripts/status.ts",
-    "check": "npm run typecheck && npm run fun:all && npm run build"
+    "check": "npm run typecheck && npm run fun:all && npm run build",
+    "snap": "tsx scripts/snap.ts"
   },
   "dependencies": {
     "next": "16.3.0",

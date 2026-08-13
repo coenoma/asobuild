@@ -9,6 +9,7 @@
  */
 
 import { runFunGate, type GateReport } from '../src/arcade/fun-gate';
+import { trySnap } from './snap';
 import { loaders, metas } from '../src/games/registry';
 
 const args = process.argv.slice(2);
@@ -190,6 +191,8 @@ async function main(): Promise<void> {
     }
     const mod = await load();
     const rep = runFunGate(mod.default, { runs, seedOffset });
+    // いまの見た目を1枚残す（.live/shots/。動画の素材になる。撮れなくてもゲートは止めない）
+    await trySnap(slug);
     printReport(rep);
     await pushToLive(rep);
     // ボツ棚のものは「基準に届かなかった記録」なので、合否では止めない

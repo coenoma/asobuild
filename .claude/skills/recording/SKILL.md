@@ -83,6 +83,10 @@ npm run dev:rec
 （`npm run fun` / `npm run new` / `npm run playtest` / `npm run ship`）。
 手で流すのは、その**あいだにある考えごと**のほう。
 
+さらに `npm run fun` のたびに、**いまのゲームの見た目が1枚 `.live/shots/` に貯まる**（時刻つき）。
+「白い四角 → 針と糸」のような見た目の変遷が、動画の素材として勝手に残る。
+手で撮りたいときは `npm run snap -- <slug>`。
+
 ### 何を言えばいいか迷ったら
 
 - 詰まったとき — 「ここで落ちてる。◯◯を疑ってる」

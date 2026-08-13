@@ -79,6 +79,8 @@ export type Layer =
   | { type: 'gate'; at: number; dur: number; pass: boolean; failed?: string[]; total?: number }
   /** 自作の図解（原作の画は使えないので、仕組みだけ自分で描く） */
   | { type: 'diagram'; at: number; dur: number; kind: 'thread' | 'shift' }
+  /** 場面転換のローディング（ゲームの「よみこみ中…」と同じ様式）。連発しない */
+  | { type: 'loading'; at: number; dur: number; text?: string; note?: string }
   /** 黒コマ */
   | { type: 'black'; at: number; dur: number }
   /** タイトルカード */

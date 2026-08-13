@@ -17,6 +17,7 @@
 | [telop-rules.md](./telop-rules.md) | 色・書体・大きさ・言い回し・効果音 | テロップを書くとき |
 | [safety-checklist.md](./safety-checklist.md) | 映り込みと権利。**出す前に必ず通す** | 書き出す前 |
 | [storyboards/](./storyboards/) | **回ごとの絵コンテ（構成表）。EDLから生成** | **構成を相談するとき** |
+| [footage-notes/](./footage-notes/) | **回ごとの素材の見どころ。「ここ使いたい」を貯める** | **編集を始める前に必ず** |
 | [scripts/](./scripts/) | 回ごとのアテレコ用メモ | 収録を頼むとき |
 
 撮るときの段取りは [recording スキル](../../.claude/skills/recording/SKILL.md)、
@@ -76,6 +77,32 @@ ffprobe -v error -show_format 自撮り.MOV | grep creationdate
 
 ## 設計の考え方（なぜこの形か）
 
+### 見た目の変遷は `.live/shots/` に貯まっている
+
+収録中に `npm run fun` が走るたび、**そのときのゲームの見た目が1枚**保存されている
+（`scripts/snap.ts`。ファイル名とindex.jsonl に時刻入り）。
+「白い四角 → 針と糸」のような変遷を画面収録から探さなくても、ここから並べられる。
+
+```bash
+ls .live/shots/            # 時刻順に並ぶ
+cat .live/shots/index.jsonl  # t（エポックms）と slug と score
+```
+
+時刻から `t/1000 - 画面収録の開始エポック秒 = 動画の時刻`。git管理外なので、動画を作ったら消してよい。
+
+### 「ここ使いたい」は、その場で消える
+
+撮った本人が言う「あそこ良かった」「この自撮り入れたい」は、
+**チャットで言われたら、そこで消える。** 編集は何度も直すし、別のセッションが続きをやることもある。
+
+だから [footage-notes/](./footage-notes/) に時刻つきで貯める。
+
+- **使う／使わないは EDL 側で決める。** こちらは在庫であって編集台本ではない
+- **使ったものも消さない。** 切り抜きや次のブラッシュアップで効く
+- 使わないと決めたもの（映り込み・権利）も理由つきで書く
+
+**編集を始める前に必ず読む。** 無いまま始めると、同じ発見を毎回やり直すことになる。
+
 ### 構成の相談は、絵コンテでやる
 
 映像を見て相談すると、書き出しに20〜30分かかるので往復が重い。
@@ -130,6 +157,6 @@ node scripts/storyboard.mjs edl/<slug>.json > ../docs/video/storyboards/<slug>.m
 
 ## これまでの回
 
-| # | 回 | 尺 | 制約 | 絵コンテ | アテレコ用メモ |
+| # | 回 | 尺 | 制約 | 構成 | アテレコ用メモ |
 |---|---|---|---|---|---|
-| 001 | ぬいみち | 7:00 | ソイラテ1杯 | [001-nuimichi.md](./storyboards/001-nuimichi.md) | [001-nuimichi.md](./scripts/001-nuimichi.md) |
+| 001 | ぬいみち | 7:00 | ソイラテ1杯 | [絵コンテ](./storyboards/001-nuimichi.md) ／ [見どころ](./footage-notes/001-nuimichi.md) | [001-nuimichi.md](./scripts/001-nuimichi.md) |

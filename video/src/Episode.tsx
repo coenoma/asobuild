@@ -8,6 +8,7 @@ import { BigNumber, ChapterCard, EndCard, TitleCard } from './components/Cards';
 import { Gate } from './components/Gate';
 import { Checklist } from './components/Checklist';
 import { Diagram } from './components/Diagram';
+import { Loading } from './components/Loading';
 import { ProgramBar } from './components/ProgramBar';
 import { secToFrames } from './components/common';
 
@@ -39,8 +40,8 @@ function useLocalFont(): void {
   }, [handle]);
 }
 
-/** 制約が尽きる開発時刻（秒）。カップの残量メーターがここで 0 になる */
-const DRAIN_AT = 24 * 60 + 17;
+/** 制約が尽きる開発時刻（秒）。実測: ソイラテを飲み干したのは 自撮り29:53 = 画面22:50 */
+const DRAIN_AT = 22 * 60 + 50;
 
 const LayerView: React.FC<{ layer: Layer; durFrames: number }> = ({ layer, durFrames }) => {
   switch (layer.type) {
@@ -86,6 +87,8 @@ const LayerView: React.FC<{ layer: Layer; durFrames: number }> = ({ layer, durFr
       return <Gate pass={layer.pass} failed={layer.failed} total={layer.total} durFrames={durFrames} fontFamily={fontFamily} />;
     case 'diagram':
       return <Diagram kind={layer.kind} durFrames={durFrames} fontFamily={fontFamily} />;
+    case 'loading':
+      return <Loading text={layer.text} note={layer.note} durFrames={durFrames} fontFamily={fontFamily} />;
     case 'black':
       return <Black />;
     case 'titleCard':

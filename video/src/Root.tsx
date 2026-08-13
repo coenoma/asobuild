@@ -2,6 +2,7 @@ import React from 'react';
 import { Composition } from 'remotion';
 import { Episode, totalFrames } from './Episode';
 import { Thumbnail } from './Thumbnail';
+import { LoadingPreview } from './LoadingPreview';
 import type { Edl } from './types';
 import edl from '../edl/001-nuimichi.json';
 
@@ -29,6 +30,17 @@ export const RemotionRoot: React.FC = () => {
         サムネは案を並べて比べる（1つに決め打ちしない）。
         どれも完成品とスコアを出していない ＝ 結果が見えたら押す理由が消えるため。
       */}
+      {/* 場面転換パーツの見本。動画へは EDL の layer type "loading" で入れる */}
+      <Composition
+        id="Loading"
+        component={LoadingPreview}
+        durationInFrames={36}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{}}
+      />
+
       <Composition
         id="Thumbnail-A"
         component={Thumbnail}

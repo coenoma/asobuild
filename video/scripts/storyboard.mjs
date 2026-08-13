@@ -33,7 +33,7 @@ const NAME = { hook: 'フック', end: 'しめ' };
 const clean = (t) => String(t ?? '').replace(/\n/g, ' ／ ').replace(/\|/g, '｜');
 
 /** 制約が尽きる開発時刻（Episode.tsx の DRAIN_AT と合わせる） */
-const DRAIN_AT = 24 * 60 + 17;
+const DRAIN_AT = 22 * 60 + 50;
 
 /** その章で、素材が元のどこから来ているか */
 function clipLabel(id) {
@@ -109,6 +109,7 @@ edl.chapters.forEach((ch, ci) => {
       if (l.type === 'shot') {
         pic = clipLabel(l.clip) + (l.box ? '（枠に収める）' : '');
       } else if (l.type === 'black') pic = '**黒**';
+      else if (l.type === 'loading') pic = `**ローディング**「${clean(l.text ?? 'よみこみ中')}…」${l.note ? `（${clean(l.note)}）` : ''}`;
       else if (l.type === 'diagram') {
         pic = l.kind === 'thread' ? '**自作の図解**（うねる糸と針のめど）' : '**自作の図解**（面白さの肝をずらす）';
       } else if (l.type === 'telop') texts.push(quote(clean(l.text)));
