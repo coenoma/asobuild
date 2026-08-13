@@ -298,6 +298,7 @@ node scripts/scan-risk.mjs <画面収録.mov> --contact   # 映り込みを機�
 node scripts/timeline.mjs --rec-start "<ISO8601>"     # 開発ログを動画の時刻へ
 node scripts/extract.mjs edl/<slug>.json              # 必要な区間だけ切り出す（尺の検査つき）
 node scripts/storyboard.mjs edl/<slug>.json           # 絵コンテを出して構成を相談する
+node scripts/sync-check.mjs edl/<slug>.json           # 言っていることと映っているもののズレを機械で見る
 npx remotion render src/index.ts Episode out/<slug>.mp4
 ```
 
@@ -322,6 +323,9 @@ npx remotion render src/index.ts Episode out/<slug>.mp4
 **🔴 既存作を下敷きにした回は、調べているときの画面に原作のスクショが必ず映る。**
 そのまま出すと「公式の画像を持ち込まない」という自分たちのルールに反する。
 ターミナル側と自作の図解に差し替えること。
+
+**出す前に必ず: [docs/video/edit-checklist.md](docs/video/edit-checklist.md)**（編集の関所）
+／ 台本の声: [docs/video/voice-and-script.md](docs/video/voice-and-script.md)
 
 原則: [docs/video/video-doctrine.md](docs/video/video-doctrine.md)
 ／ 構成の型: [docs/video/structure.md](docs/video/structure.md)

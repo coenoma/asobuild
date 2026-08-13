@@ -16,6 +16,7 @@
 | [structure.md](./structure.md) | 章立ては固定しない。心情の流れが構成になる | 編集を始めるとき |
 | [telop-rules.md](./telop-rules.md) | 色・書体・大きさ・言い回し・効果音 | テロップを書くとき |
 | [voice-and-script.md](./voice-and-script.md) | **台本の声（ゆとの喋りかた）。原稿を書く前に** | ナレーション原稿を書くとき |
+| [edit-checklist.md](./edit-checklist.md) | **編集の関所。出す前に必ず通す**（タイミング・可読性・テロップ・ワイプ・締め） | 書き出す前 |
 | [research-notes/](./research-notes/) | 外部調査の精査記録（何を採り、何を外れ値と判断したか） | 企画・型を見直すとき |
 | [safety-checklist.md](./safety-checklist.md) | 映り込みと権利。**出す前に必ず通す** | 書き出す前 |
 | [storyboards/](./storyboards/) | **回ごとの絵コンテ（構成表）。EDLから生成** | **構成を相談するとき** |

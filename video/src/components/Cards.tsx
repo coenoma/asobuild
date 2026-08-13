@@ -83,28 +83,74 @@ export const TitleCard: React.FC<{ title: string; sub: string; durFrames: number
   );
 };
 
-/** 締め。読み上げに頼らず、画面に文字で出す（video-doctrine.md §6） */
+/**
+ * 締め。読み上げに頼らず、画面に文字で出す（video-doctrine.md §6）。
+ *
+ * **全部いっぺんに出さない。** 固定の1枚絵にすると、17秒間まったく動かない画になり、
+ * いちばん離脱してほしくないところで離脱される（001のFB 16）。
+ * 見出し → URL → お願いを1行ずつ、と順番に出す。**毎回そのまま使い回す部品**なので、
+ * ここを直すと次回以降ぜんぶ良くなる。
+ */
 export const EndCard: React.FC<{ url: string; lines: string[]; durFrames: number; fontFamily: string }> = ({
   url, lines, durFrames, fontFamily,
 }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const o = fade(f, durFrames, fps);
+
+  // 出てくる順番（秒）。行はあとから1本ずつ足される
+  const AT_LABEL = 0.15;
+  const AT_URL = 0.5;
+  const AT_LINES = 1.6;
+  const GAP = 1.25;
+
+  /** 出はじめに一度だけ跳ねる。0.18秒で戻す（やりすぎない） */
+  const pop = (atSec: number) => {
+    const s0 = Math.round(fps * atSec);
+    if (f < s0) return null;
+    const t = f - s0;
+    return {
+      opacity: interpolate(t, [0, Math.round(fps * 0.12)], [0, 1], { extrapolateRight: 'clamp' }),
+      transform: `translateY(${interpolate(t, [0, Math.round(fps * 0.18)], [14, 0], { extrapolateRight: 'clamp' })}px)`,
+    } as React.CSSProperties;
+  };
+
+  // URLの枠は1秒周期でゆっくり点滅させる（止め画にしない）
+  const blink = 0.72 + 0.28 * Math.abs(Math.sin((f / fps) * Math.PI));
+
+  const label = pop(AT_LABEL);
+  const urlStyle = pop(AT_URL);
+
   return (
     <AbsoluteFill style={{ background: C.bg, justifyContent: 'center', alignItems: 'center', opacity: o, padding: 80 }}>
-      <div style={{ fontFamily, fontWeight: 700, fontSize: 40, color: C.dim, marginBottom: 20 }}>あそべます</div>
-      <div
-        style={{
-          fontFamily, fontWeight: 900, fontSize: 84, color: C.accent,
-          border: `4px solid ${C.accent}`, padding: '22px 54px', textShadow: HARD_SHADOW,
-        }}
-      >
-        {url}
-      </div>
+      {label ? (
+        <div style={{ ...label, fontFamily, fontWeight: 700, fontSize: 40, color: C.dim, marginBottom: 20 }}>
+          あそべます
+        </div>
+      ) : null}
+      {urlStyle ? (
+        <div
+          style={{
+            ...urlStyle,
+            fontFamily, fontWeight: 900, fontSize: 84, color: C.accent,
+            border: `4px solid ${C.accent}`, padding: '22px 54px', textShadow: HARD_SHADOW,
+            opacity: (urlStyle.opacity as number) * blink,
+          }}
+        >
+          {url}
+        </div>
+      ) : null}
       <div style={{ marginTop: 60, display: 'flex', flexDirection: 'column', gap: 22, alignItems: 'center' }}>
-        {lines.map((l, i) => (
-          <div key={i} style={{ fontFamily, fontWeight: 700, fontSize: 44, color: C.ink }}>{l}</div>
-        ))}
+        {lines.map((l, i) => {
+          const st = pop(AT_LINES + i * GAP);
+          if (!st) return null;
+          return (
+            <div key={i} style={{ ...st, display: 'flex', alignItems: 'center', gap: 18 }}>
+              <span style={{ width: 14, height: 14, background: C.accent, flexShrink: 0 }} />
+              <span style={{ fontFamily, fontWeight: 700, fontSize: 44, color: C.ink }}>{l}</span>
+            </div>
+          );
+        })}
       </div>
     </AbsoluteFill>
   );
