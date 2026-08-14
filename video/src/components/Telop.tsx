@@ -1,6 +1,6 @@
 import React from 'react';
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from 'remotion';
-import { C, SIZE, PANEL_BG, BORDER, HARD_SHADOW, SUB_BG, SUB_EDGE, CARD_SHADOW } from '../brand';
+import { C, SIZE, PANEL_BG, BORDER, HARD_SHADOW, SUB_BG, SUB_INK, SUB_EDGE, CARD_SHADOW } from '../brand';
 import { fade, rise } from './common';
 
 type Place = 'bottom' | 'top' | 'center' | 'lower-left';
@@ -45,7 +45,7 @@ export const Telop: React.FC<{
     : style === 'credit' ? SIZE.credit
     : SIZE.main;
 
-  // 字幕＝全幅の帯。読ませるものなので、下の映像がゲームでも負けない
+  // 字幕＝全幅の帯。**明るい地に黒い文字**にして、盤面と明暗を逆にする
   if (style === 'sub') {
     return (
       <AbsoluteFill style={{ ...PLACE[place], display: 'flex', opacity: o }}>
@@ -53,10 +53,11 @@ export const Telop: React.FC<{
           style={{
             width: '100%',
             background: SUB_BG,
-            borderTop: `3px solid ${SUB_EDGE}`,
-            borderBottom: `3px solid ${SUB_EDGE}`,
-            padding: '20px 60px',
-            color: C[color],
+            borderTop: `6px solid ${SUB_EDGE}`,
+            borderBottom: `6px solid ${SUB_EDGE}`,
+            padding: '18px 60px',
+            // 色の指定があっても、地が明るいので暗い文字に寄せる（ink は黒）
+            color: color === 'ink' ? SUB_INK : C[color],
             fontFamily,
             fontWeight: 800,
             fontSize: size,
@@ -77,18 +78,24 @@ export const Telop: React.FC<{
       <div
         style={{
           transform: `translateY(${dy}px)`,
-          background: style === 'credit' ? 'transparent' : style === 'main' ? SUB_BG : PANEL_BG,
-          border: style === 'credit' ? 'none' : style === 'main' ? `5px solid ${C[color]}` : BORDER,
+          // 演出＝明るい札に太い色枠。外側に黒線を回して、盤面から完全に切り離す
+          background: style === 'credit' ? 'transparent' : style === 'main' || style === 'note' ? SUB_BG : PANEL_BG,
+          border:
+            style === 'credit' ? 'none'
+            : style === 'main' ? `8px solid ${C[color]}`
+            : style === 'note' ? `4px solid ${C[color]}`
+            : BORDER,
+          outline: style === 'main' ? `5px solid ${SUB_EDGE}` : style === 'note' ? `3px solid ${SUB_EDGE}` : undefined,
           boxShadow: style === 'main' ? CARD_SHADOW : undefined,
-          padding: style === 'credit' ? 0 : style === 'note' ? '10px 22px' : '20px 40px',
-          color: C[color],
+          padding: style === 'credit' ? 0 : style === 'note' ? '10px 22px' : '18px 40px',
+          color: style === 'main' || style === 'note' ? SUB_INK : C[color],
           fontFamily,
-          fontWeight: style === 'note' || style === 'credit' ? 700 : 900,
+          fontWeight: style === 'credit' ? 700 : style === 'note' ? 800 : 900,
           fontSize: size,
           lineHeight: 1.24,
           letterSpacing: '0.01em',
           textAlign: place === 'lower-left' ? 'left' : 'center',
-          textShadow: HARD_SHADOW,
+          textShadow: style === 'main' || style === 'note' ? undefined : HARD_SHADOW,
           whiteSpace: 'pre-wrap',
           maxWidth: '86%',
         }}

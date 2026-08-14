@@ -24,6 +24,7 @@
  *  5. 章の切れ目に**行がまたがっていないか**
  *  6. **無音が長すぎないか**（合成済みの長さから算出。もったりの原因はほぼこれ）
  *  7. **開発の時計が戻っていないか**（素材を話の都合で並べ替えると戻る）
+ *  8. **字幕が点滅していないか**（隣り合う字幕のすきまが一瞬だと、読めない札が出たように見える）
  */
 
 import { readFileSync, existsSync } from 'node:fs';
@@ -98,6 +99,25 @@ for (const ch of edl.chapters) {
 
     // 5. 章からはみ出していないか（声の長さは voice.mjs 側で見る）
     if (line.at >= ch.dur) bad.push(`${label} at=${line.at} が章の長さ ${ch.dur}秒を超えています`);
+  }
+}
+
+// 8. 字幕の点滅。0.05〜0.6秒だけ消えると、帯が一瞬またたいて「謎のテロップ」に見える
+{
+  let t = 0;
+  for (const ch of edl.chapters) {
+    const tl = ch.layers.filter((l) => l.type === 'telop').sort((a, b) => a.at - b.at);
+    for (let i = 0; i < tl.length - 1; i++) {
+      const gap = tl[i + 1].at - (tl[i].at + tl[i].dur);
+      if (gap > 0.05 && gap < 0.6) {
+        const at = t + tl[i].at + tl[i].dur;
+        bad.push(
+          `${Math.floor(at / 60)}:${(at % 60).toFixed(1).padStart(4, '0')} 字幕が ${gap.toFixed(2)}秒だけ消える` +
+          `（「${tl[i].text.slice(0, 12)}」のあと）。すきまを詰めるか 0.6秒以上あける`,
+        );
+      }
+    }
+    t += ch.dur;
   }
 }
 

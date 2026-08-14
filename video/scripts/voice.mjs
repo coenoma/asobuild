@@ -148,10 +148,18 @@ if (process.argv.includes('--apply')) {
     lines.forEach((line, i) => {
       const voiceDur = durOf[`${ch.id}#${i}`] ?? 2.0;
       const next = lines[i + 1];
-      // 声より少しだけ長く出す。ただし次の行と章の終わりは越えない
-      let dur = voiceDur + 0.5;
-      if (next) dur = Math.min(dur, next.at - line.at - 0.1);
-      dur = Math.min(dur, ch.dur - line.at - 0.05);
+      // 声より少しだけ長く出す
+      let end = line.at + voiceDur + 0.5;
+      if (next) {
+        // **次の行とのすきまを作らない。**
+        // 0.1秒でも空けると、帯が消えてすぐ出るので点滅して見え、
+        // 「読めない謎のテロップが一瞬出る」と受け取られる（001のFB）。
+        // 間を置きたいときは、原稿の at を離して書く（0.6秒以上あければ間として残る）
+        if (next.at - end < 0.6) end = next.at;
+        end = Math.min(end, next.at);
+      }
+      end = Math.min(end, ch.dur - 0.05);
+      const dur = end - line.at;
       ch.layers.push({
         type: 'telop',
         at: line.at,

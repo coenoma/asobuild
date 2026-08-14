@@ -596,7 +596,7 @@
         {
           "type": "telop",
           "at": 0.4,
-          "dur": 2.1,
+          "dur": 2.2,
           "text": "ソイラテ、1杯",
           "style": "sub",
           "place": "bottom",
@@ -614,7 +614,7 @@
         {
           "type": "telop",
           "at": 5.4,
-          "dur": 3.9,
+          "dur": 4,
           "text": "AIだけで、糸通しみたいなゲームが作れるのか",
           "style": "sub",
           "place": "bottom",
@@ -775,7 +775,7 @@
         {
           "type": "telop",
           "at": 0.4,
-          "dur": 3.8,
+          "dur": 3.9,
           "text": "とりあえず、覚えてることを、ぜんぶ投げます",
           "style": "sub",
           "place": "bottom",
@@ -784,7 +784,7 @@
         {
           "type": "telop",
           "at": 4.3,
-          "dur": 2.9,
+          "dur": 3,
           "text": "ルールも、手ざわりも、ぜんぶ",
           "style": "sub",
           "place": "bottom",
@@ -793,7 +793,7 @@
         {
           "type": "telop",
           "at": 7.3,
-          "dur": 4.2,
+          "dur": 4.3,
           "text": "作るのはAIで、ぼくは見てるだけなんですよね",
           "style": "sub",
           "place": "bottom",
@@ -802,7 +802,7 @@
         {
           "type": "telop",
           "at": 11.6,
-          "dur": 2,
+          "dur": 2.1,
           "text": "……なんか、考えてる？",
           "style": "sub",
           "place": "bottom",
@@ -811,7 +811,7 @@
         {
           "type": "telop",
           "at": 13.7,
-          "dur": 2.6,
+          "dur": 2.7,
           "text": "数字が、ずっと増えていきます",
           "style": "sub",
           "place": "bottom",
@@ -820,7 +820,7 @@
         {
           "type": "telop",
           "at": 16.4,
-          "dur": 3.97,
+          "dur": 4.2,
           "text": "待ちきれないので、思い出したことを足していきます",
           "style": "sub",
           "place": "bottom",
@@ -829,7 +829,7 @@
         {
           "type": "telop",
           "at": 20.6,
-          "dur": 2.7,
+          "dur": 2.8,
           "text": "そのあいだも、ずっと考えてます",
           "style": "sub",
           "place": "bottom",
@@ -838,7 +838,7 @@
         {
           "type": "telop",
           "at": 23.4,
-          "dur": 1.5,
+          "dur": 1.6,
           "text": "7分半",
           "style": "main",
           "place": "bottom",
@@ -848,7 +848,7 @@
         {
           "type": "telop",
           "at": 25,
-          "dur": 2.7,
+          "dur": 2.8,
           "text": "投げたのは、こういう文章です",
           "style": "sub",
           "place": "bottom",
@@ -959,7 +959,7 @@
         {
           "type": "telop",
           "at": 0.3,
-          "dur": 2.93,
+          "dur": 3.1,
           "text": "糸通しって、覚えてます？",
           "style": "sub",
           "place": "bottom",
@@ -977,7 +977,7 @@
         {
           "type": "telop",
           "at": 6.4,
-          "dur": 3.56,
+          "dur": 4,
           "text": "押してるあいだだけ上がって、離すと落ちる",
           "style": "sub",
           "place": "bottom",
@@ -995,7 +995,7 @@
         {
           "type": "telop",
           "at": 14.7,
-          "dur": 3.2,
+          "dur": 3.3,
           "text": "当時の口コミも、そのまま貼っときました",
           "style": "sub",
           "place": "bottom",
@@ -1004,7 +1004,7 @@
         {
           "type": "telop",
           "at": 18,
-          "dur": 4.1,
+          "dur": 4.2,
           "text": "不満は、判定がシビアなのと、単調なこと",
           "style": "sub",
           "place": "bottom",
@@ -1013,7 +1013,7 @@
         {
           "type": "telop",
           "at": 22.2,
-          "dur": 3.5,
+          "dur": 3.6,
           "text": "そしたら、AIのほうから提案がきました",
           "style": "sub",
           "place": "bottom",
@@ -1140,7 +1140,7 @@
         {
           "type": "telop",
           "at": 0.4,
-          "dur": 2.1,
+          "dur": 2.2,
           "text": "まだ、考えてます",
           "style": "sub",
           "place": "bottom",
@@ -1158,7 +1158,7 @@
         {
           "type": "telop",
           "at": 7.6,
-          "dur": 2.7,
+          "dur": 2.8,
           "text": "ラテ、減ってきたんですけど",
           "style": "sub",
           "place": "bottom",
@@ -1167,7 +1167,7 @@
         {
           "type": "telop",
           "at": 10.4,
-          "dur": 2.9,
+          "dur": 3,
           "text": "これ、時間切れじゃないですか？",
           "style": "sub",
           "place": "bottom",
@@ -1176,7 +1176,7 @@
         {
           "type": "telop",
           "at": 13.4,
-          "dur": 3.3,
+          "dur": 3.4,
           "text": "そのあいだも、思い出したことを送りつけてます",
           "style": "sub",
           "place": "bottom",
@@ -1185,7 +1185,7 @@
         {
           "type": "telop",
           "at": 16.8,
-          "dur": 3.7,
+          "dur": 3.8,
           "text": "「失敗したときも、シュールに静かに終わる」とか",
           "style": "sub",
           "place": "bottom",
@@ -1338,7 +1338,7 @@
         {
           "type": "telop",
           "at": 7.2,
-          "dur": 2.3,
+          "dur": 2.4,
           "text": "あ、なんかできてる！",
           "style": "main",
           "place": "top",
@@ -1348,7 +1348,7 @@
         {
           "type": "telop",
           "at": 9.6,
-          "dur": 2.06,
+          "dur": 2.2,
           "text": "一覧に並んでます",
           "style": "sub",
           "place": "bottom",
@@ -1375,7 +1375,7 @@
         {
           "type": "telop",
           "at": 16.6,
-          "dur": 1.7,
+          "dur": 1.8,
           "text": "四角と、丸",
           "style": "sub",
           "place": "bottom",
@@ -1384,7 +1384,7 @@
         {
           "type": "telop",
           "at": 18.4,
-          "dur": 1.5,
+          "dur": 2,
           "text": "シュールだな……",
           "style": "sub",
           "place": "bottom",
@@ -1393,7 +1393,7 @@
         {
           "type": "telop",
           "at": 20.4,
-          "dur": 3.68,
+          "dur": 3.8,
           "text": "でも、なんか、それっぽくないですか？",
           "style": "sub",
           "place": "bottom",
@@ -1402,7 +1402,7 @@
         {
           "type": "telop",
           "at": 24.2,
-          "dur": 3.7,
+          "dur": 3.8,
           "text": "20点。取り逃がしが多すぎた、って",
           "style": "sub",
           "place": "bottom",
@@ -1540,7 +1540,7 @@
         {
           "type": "telop",
           "at": 0.4,
-          "dur": 2.9,
+          "dur": 3,
           "text": "押してるあいだ上がって、離すと落ちる",
           "style": "sub",
           "place": "bottom",
@@ -1549,7 +1549,7 @@
         {
           "type": "telop",
           "at": 3.4,
-          "dur": 2.5,
+          "dur": 2.6,
           "text": "あ、操作はわかりますね",
           "style": "sub",
           "place": "bottom",
@@ -1558,7 +1558,7 @@
         {
           "type": "telop",
           "at": 6,
-          "dur": 1.5,
+          "dur": 1.6,
           "text": "36点",
           "style": "sub",
           "place": "bottom",
@@ -1567,7 +1567,7 @@
         {
           "type": "telop",
           "at": 7.6,
-          "dur": 2.3,
+          "dur": 2.4,
           "text": "四角と丸だけなんですけど",
           "style": "sub",
           "place": "bottom",
@@ -1585,7 +1585,7 @@
         {
           "type": "telop",
           "at": 13.4,
-          "dur": 3.76,
+          "dur": 4.2,
           "text": "なんだかんだ、もう一回やっちゃうんですよね",
           "style": "sub",
           "place": "bottom",
@@ -1682,7 +1682,7 @@
         {
           "type": "telop",
           "at": 0.4,
-          "dur": 2.45,
+          "dur": 2.6,
           "text": "開発、22分",
           "style": "sub",
           "place": "bottom",
@@ -1709,7 +1709,7 @@
         {
           "type": "telop",
           "at": 14,
-          "dur": 2.47,
+          "dur": 2.6,
           "text": "はい、時間切れです",
           "style": "main",
           "place": "center",
@@ -1719,7 +1719,7 @@
         {
           "type": "telop",
           "at": 16.6,
-          "dur": 2.7,
+          "dur": 2.8,
           "text": "できたのは、謎の四角と丸で",
           "style": "main",
           "place": "center",
@@ -1728,7 +1728,7 @@
         {
           "type": "telop",
           "at": 19.4,
-          "dur": 2.7,
+          "dur": 2.8,
           "text": "やれと言われれば、楽しめる",
           "style": "main",
           "place": "center",
@@ -1863,7 +1863,7 @@
         {
           "type": "telop",
           "at": 2.4,
-          "dur": 2.7,
+          "dur": 2.8,
           "text": "企画としては、ここまでなんですけど",
           "style": "sub",
           "place": "bottom",
@@ -1872,7 +1872,7 @@
         {
           "type": "telop",
           "at": 5.2,
-          "dur": 3.3,
+          "dur": 3.4,
           "text": "まだまだ面白くできそうなので、続けます",
           "style": "sub",
           "place": "bottom",
@@ -1881,7 +1881,7 @@
         {
           "type": "telop",
           "at": 8.6,
-          "dur": 3.1,
+          "dur": 3.2,
           "text": "「懐かしい」が足りない、って書きました",
           "style": "sub",
           "place": "bottom",
@@ -1890,7 +1890,7 @@
         {
           "type": "telop",
           "at": 11.8,
-          "dur": 2.7,
+          "dur": 2.8,
           "text": "そしたら、針と糸になってる！",
           "style": "main",
           "place": "bottom",
@@ -1900,7 +1900,7 @@
         {
           "type": "telop",
           "at": 14.6,
-          "dur": 2.39,
+          "dur": 2.8,
           "text": "めちゃいい。めちゃいい",
           "style": "sub",
           "place": "bottom",
@@ -1909,7 +1909,7 @@
         {
           "type": "telop",
           "at": 17.4,
-          "dur": 3.33,
+          "dur": 3.6,
           "text": "あれ、これ、当たっても死なない？",
           "style": "sub",
           "place": "bottom",
@@ -1936,7 +1936,7 @@
         {
           "type": "telop",
           "at": 28.6,
-          "dur": 1.7,
+          "dur": 1.8,
           "text": "あ、終わった",
           "style": "sub",
           "place": "bottom",
@@ -2178,7 +2178,7 @@
         {
           "type": "telop",
           "at": 2.4,
-          "dur": 2.5,
+          "dur": 2.6,
           "text": "通すほど倍率が上がって",
           "style": "sub",
           "place": "bottom",
@@ -2187,7 +2187,7 @@
         {
           "type": "telop",
           "at": 5,
-          "dur": 2.81,
+          "dur": 3,
           "text": "1回でも当たったら、おわり",
           "style": "sub",
           "place": "bottom",
@@ -2224,7 +2224,7 @@
         {
           "type": "telop",
           "at": 19.9,
-          "dur": 2.6,
+          "dur": 2.7,
           "text": "遊んだ感想も、そのまま投げます",
           "style": "sub",
           "place": "bottom",
@@ -2233,7 +2233,7 @@
         {
           "type": "telop",
           "at": 22.6,
-          "dur": 4.9,
+          "dur": 5,
           "text": "4、5回やって232点。難しいかも、って",
           "style": "sub",
           "place": "bottom",
@@ -2242,7 +2242,7 @@
         {
           "type": "telop",
           "at": 27.6,
-          "dur": 2.5,
+          "dur": 2.6,
           "text": "そしたら、針の穴を広げて",
           "style": "sub",
           "place": "bottom",
@@ -2251,7 +2251,7 @@
         {
           "type": "telop",
           "at": 30.2,
-          "dur": 3.5,
+          "dur": 3.6,
           "text": "だんだん速くなるのと、穴が小さくなるのを",
           "style": "sub",
           "place": "bottom",
@@ -2443,7 +2443,7 @@
         {
           "type": "telop",
           "at": 10.6,
-          "dur": 3.9,
+          "dur": 4,
           "text": "14分の姿と、49分の姿です",
           "style": "sub",
           "place": "bottom",
@@ -2462,7 +2462,7 @@
         {
           "type": "telop",
           "at": 21.4,
-          "dur": 2.17,
+          "dur": 2.6,
           "text": "さて、結論です",
           "style": "main",
           "place": "center",
@@ -2472,7 +2472,7 @@
         {
           "type": "telop",
           "at": 24,
-          "dur": 3.5,
+          "dur": 3.6,
           "text": "作れるのか、でいうと──作れちゃいました",
           "style": "main",
           "place": "center",
@@ -2482,7 +2482,7 @@
         {
           "type": "telop",
           "at": 27.6,
-          "dur": 2.58,
+          "dur": 3,
           "text": "雑に投げただけなんですけど",
           "style": "sub",
           "place": "center",
@@ -2491,7 +2491,7 @@
         {
           "type": "telop",
           "at": 30.6,
-          "dur": 2.79,
+          "dur": 3.2,
           "text": "元のより面白いかもしれない",
           "style": "main",
           "place": "center",
@@ -2531,7 +2531,7 @@
         {
           "type": "telop",
           "at": 0.6,
-          "dur": 2.72,
+          "dur": 3,
           "text": "ぬいみち、いま遊べます",
           "style": "main",
           "place": "bottom",
@@ -2550,7 +2550,7 @@
         {
           "type": "telop",
           "at": 7.2,
-          "dur": 3.67,
+          "dur": 4.2,
           "text": "高評価とチャンネル登録、うれしいです",
           "style": "main",
           "place": "bottom",

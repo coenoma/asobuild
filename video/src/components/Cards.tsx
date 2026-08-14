@@ -1,6 +1,6 @@
 import React from 'react';
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate } from 'remotion';
-import { C, SIZE, HARD_SHADOW, SUB_BG, CARD_SHADOW } from '../brand';
+import { C, SIZE, HARD_SHADOW, SUB_BG, SUB_INK, SUB_EDGE, CARD_SHADOW } from '../brand';
 import { fade } from './common';
 import { Scrim } from './Scrim';
 
@@ -63,23 +63,26 @@ export const BigNumber: React.FC<{
         style={{
           position: 'relative', transform: `scale(${s})`, textAlign: 'center',
           // 盤面の外に置くときは、動画側の札だと分かる見た目にする
+          // 盤面の外に置くときは、字幕と同じ**明るい札**にする。
+          // 暗い札に色の数字だと、盤面の点数表示とそっくりで見分けがつかない
           background: right ? SUB_BG : undefined,
-          border: right ? `5px solid ${C[color]}` : undefined,
+          border: right ? `8px solid ${C[color]}` : undefined,
+          outline: right ? `5px solid ${SUB_EDGE}` : undefined,
           boxShadow: right ? CARD_SHADOW : undefined,
-          padding: right ? '18px 30px' : undefined,
+          padding: right ? '16px 28px' : undefined,
         }}
       >
         {label ? (
-          <div style={{ fontFamily, fontWeight: 700, fontSize: SIZE.note, color: right ? C.ink : C.dim, textShadow: HARD_SHADOW, marginBottom: 6 }}>
+          <div style={{ fontFamily, fontWeight: 800, fontSize: SIZE.note, color: right ? SUB_INK : C.dim, textShadow: right ? undefined : HARD_SHADOW, marginBottom: 4 }}>
             {label}
           </div>
         ) : null}
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 10 }}>
-          <span style={{ fontFamily, fontWeight: 900, fontSize: right ? 118 : SIZE.number, color: C[color], textShadow: HARD_SHADOW, lineHeight: 1 }}>
+          <span style={{ fontFamily, fontWeight: 900, fontSize: right ? 118 : SIZE.number, color: right ? SUB_INK : C[color], textShadow: right ? undefined : HARD_SHADOW, lineHeight: 1 }}>
             {value}
           </span>
           {unit ? (
-            <span style={{ fontFamily, fontWeight: 900, fontSize: 52, color: C[color], textShadow: HARD_SHADOW }}>{unit}</span>
+            <span style={{ fontFamily, fontWeight: 900, fontSize: 52, color: right ? SUB_INK : C[color], textShadow: right ? undefined : HARD_SHADOW }}>{unit}</span>
           ) : null}
         </div>
       </div>
