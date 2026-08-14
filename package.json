@@ -24,7 +24,8 @@
     "ship": "npm run check && tsx scripts/ship-check.ts",
     "status": "tsx scripts/status.ts",
     "selftest": "tsx scripts/selftest.ts",
-    "check": "npm run typecheck && npm run lint && npm run selftest && npm run fun:all && npm run build",
+    "links": "tsx scripts/check-links.ts",
+    "check": "npm run typecheck && npm run lint && npm run links && npm run selftest && npm run fun:all && npm run build",
     "snap": "tsx scripts/snap.ts"
   },
   "dependencies": {

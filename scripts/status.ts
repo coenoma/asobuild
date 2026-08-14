@@ -64,9 +64,11 @@ async function readJson<T>(rel: string): Promise<T | null> {
 }
 
 /** 各ゲームの仕上がり具合 */
-async function games(): Promise<number> {
+async function games(): Promise<{ problems: number; latestPlaytest: string }> {
   console.log(`\n${C.bold}ゲーム${C.reset}`);
   let problems = 0;
+  // 「最後に人が遊んだ日」。ランタイムの変更がこれより新しければ、人の確認が要る
+  let latestPlaytest = '';
 
   for (const meta of metas) {
     const botsu = meta.status === 'botsu';
@@ -97,6 +99,7 @@ async function games(): Promise<number> {
     } else {
       marks.push(`${OK} 遊んで確認済み（${play.testedAt}）`);
     }
+    if (play && play.testedAt > latestPlaytest) latestPlaytest = play.testedAt;
 
     if (!ogp) {
       marks.push(`${WARN} OGP未生成`);
@@ -109,13 +112,29 @@ async function games(): Promise<number> {
     console.log(`  ${C.bold}${meta.title}${C.reset} ${C.dim}(${meta.slug})${C.reset}`);
     for (const m of marks) console.log(`    ${m}`);
   }
-  return problems;
+  return { problems, latestPlaytest };
 }
 
 /** git の状態。置き去りになっている成果物を見つける */
-async function repo(): Promise<number> {
+async function repo(latestPlaytest: string): Promise<number> {
   console.log(`\n${C.bold}リポジトリ${C.reset}`);
   let problems = 0;
+
+  // playtest の指紋は src/games/ の2ファイルだけで、**ランタイムを含まない**（設計上の割り切り。
+  // 含めるとランタイムを触るたび全ゲーム遊び直しになる）。
+  // つまりゲートの数字が動かない範囲の手触りの変化（入力・シェル）は指紋では捕まらないので、
+  // 「ランタイムが最後の playtest より新しいか」をここで見張る。
+  // どれか1本を遊んで npm run playtest を通せば消える。
+  const runtimeDate = await sh('git', ['log', '-1', '--format=%cs', '--', 'src/arcade', 'src/app']);
+  if (latestPlaytest && runtimeDate && runtimeDate > latestPlaytest) {
+    console.log(
+      `  ${WARN} ${C.yellow}ランタイム（src/arcade・src/app）が最後の playtest より新しい（${runtimeDate} > ${latestPlaytest}）${C.reset}`,
+    );
+    console.log(
+      `      ${C.dim}指紋はランタイムを含まない。数字が緑でも、どれか1本遊んで npm run playtest まで通すこと${C.reset}`,
+    );
+    problems++;
+  }
 
   const dirty = await sh('git', ['status', '--porcelain']);
   const lines = dirty.split('\n').filter(Boolean);
@@ -252,8 +271,9 @@ function limits(): void {
 
 async function main(): Promise<void> {
   console.log(`${C.bold}アソビルドの状態${C.reset}`);
-  const p1 = await games();
-  const p2 = await repo();
+  const g = await games();
+  const p1 = g.problems;
+  const p2 = await repo(g.latestPlaytest);
   thresholds();
   await findings();
   await tools();
