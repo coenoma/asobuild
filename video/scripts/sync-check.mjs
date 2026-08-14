@@ -23,6 +23,7 @@
  *  4. 1つのショットが**長すぎないか**（8秒を超えると画が止まって見える）
  *  5. 章の切れ目に**行がまたがっていないか**
  *  6. **無音が長すぎないか**（合成済みの長さから算出。もったりの原因はほぼこれ）
+ *  7. **開発の時計が戻っていないか**（素材を話の都合で並べ替えると戻る）
  */
 
 import { readFileSync, existsSync } from 'node:fs';
@@ -53,6 +54,8 @@ const SHOT_MAX = 8.5;
 
 const bad = [];
 const warn = [];
+
+const fmt = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 
 for (const ch of edl.chapters) {
   const lines = voice.chapters?.[ch.id] ?? [];
@@ -95,6 +98,36 @@ for (const ch of edl.chapters) {
 
     // 5. 章からはみ出していないか（声の長さは voice.mjs 側で見る）
     if (line.at >= ch.dur) bad.push(`${label} at=${line.at} が章の長さ ${ch.dur}秒を超えています`);
+  }
+}
+
+// 7. 上端の帯に出る「開発の経過」が戻っていないか。
+//    戻るのは、素材を時系列でなく話の都合で並べたサイン。並びのほうを直す。
+//    もう一度見せる画には recap:true を書く（帯は「ふりかえり」と出るので数に入れない）。
+{
+  const off = edl.meta?.devOffset ?? 0;
+  const SELF_TO_SCREEN = 423;
+  let t = 0;
+  let prev = null;
+  for (const ch of edl.chapters) {
+    if (ch.noBar) { t += ch.dur; continue; }
+    const shots = ch.layers
+      .filter((l) => l.type === 'shot' && !l.wipe && !l.recap)
+      .sort((a, b) => a.at - b.at);
+    for (const l of shots) {
+      const clip = edl.clips[l.clip];
+      if (!clip) continue;
+      const dev = (clip.src === 'self' ? clip.in - SELF_TO_SCREEN : clip.in) + off;
+      if (prev !== null && dev < prev) {
+        const mm = Math.floor((t + l.at) / 60);
+        bad.push(
+          `${mm}:${((t + l.at) % 60).toFixed(1).padStart(4, '0')} ${ch.id}/${l.clip} で時計が戻る` +
+          `（${fmt(dev)} ← ${fmt(prev)}）。素材の順を直すか、recap:true を書く`,
+        );
+      }
+      prev = Math.max(prev ?? 0, dev + l.dur);
+    }
+    t += ch.dur;
   }
 }
 

@@ -143,7 +143,7 @@ const LayerView: React.FC<{ layer: Layer; durFrames: number }> = ({ layer, durFr
  * 上端のバーに出す「開発の経過」の目盛りを、章の素材から組み立てる。
  * 手で書いた章ごとの devFrom/devTo は使わない（画面と食い違う原因になっていた）。
  */
-function devMarks(chapter: Chapter, edl: Edl): { at: number; dur: number; dev: number }[] {
+function devMarks(chapter: Chapter, edl: Edl): { at: number; dur: number; dev: number; recap?: boolean }[] {
   const off = edl.meta.devOffset ?? 0;
   return chapter.layers
     .filter((l): l is Extract<Layer, { type: 'shot' }> => l.type === 'shot' && !l.wipe)
@@ -152,9 +152,9 @@ function devMarks(chapter: Chapter, edl: Edl): { at: number; dur: number; dev: n
       if (!clip) return null;
       // 自撮りの時刻は画面収録の時刻に直してから使う
       const screenIn = clip.src === 'self' ? clip.in - SELF_TO_SCREEN : clip.in;
-      return { at: l.at, dur: l.dur, dev: screenIn + off };
+      return { at: l.at, dur: l.dur, dev: screenIn + off, recap: l.recap };
     })
-    .filter((m): m is { at: number; dur: number; dev: number } => m !== null)
+    .filter((m): m is { at: number; dur: number; dev: number; recap: boolean | undefined } => m !== null)
     .sort((a, b) => a.at - b.at);
 }
 

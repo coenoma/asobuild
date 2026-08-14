@@ -23,7 +23,7 @@ export const ProgramBar: React.FC<{
    * 「7分半 考えている」と言っている画面の脇で 5:45 と出る、といった食い違いが起きた（001のFB）。
    * だから**いま映っている素材の時刻をそのまま出す**。
    */
-  marks?: { at: number; dur: number; dev: number }[];
+  marks?: { at: number; dur: number; dev: number; recap?: boolean }[];
   devFrom: number;
   devTo: number;
   /** 制約が尽きる開発時刻（秒）。ここで残量が 0 になる */
@@ -35,14 +35,14 @@ export const ProgramBar: React.FC<{
   const { fps } = useVideoConfig();
 
   const t = f / fps;
+  const active = marks?.filter((m) => m.at <= t).pop();
+  /** ふりかえりの画。時計を進めても戻しても嘘になるので、そう書く */
+  const isRecap = Boolean(active?.recap);
   let dev: number;
   if (marks && marks.length) {
     // いま映っている素材の時刻。無ければ直前の素材の終わりで止める
-    const cur = marks.filter((m) => m.at <= t).pop();
-    dev = cur ? cur.dev + Math.min(t - cur.at, cur.dur) : marks[0].dev;
-    // 目盛りは戻さない。編集で前後を入れ替えても、見ている人には進んで見える
-    const maxSoFar = marks.filter((m) => m.at <= t).reduce((a, m) => Math.max(a, m.dev), marks[0].dev);
-    dev = Math.max(dev, maxSoFar);
+    const live = marks.filter((m) => m.at <= t && !m.recap).pop();
+    dev = live ? live.dev + Math.min(t - live.at, live.dur) : marks[0].dev;
   } else {
     dev = interpolate(f, [0, durFrames], [devFrom, devTo], {
       extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
@@ -53,6 +53,7 @@ export const ProgramBar: React.FC<{
 
   const mm = String(Math.floor(dev / 60)).padStart(2, '0');
   const ss = String(Math.floor(dev % 60)).padStart(2, '0');
+  const clock = isRecap ? 'ふりかえり' : `${mm}:${ss}`;
 
   const cell: React.CSSProperties = {
     fontFamily, fontWeight: 700, fontSize: SIZE.bar, color: C.ink,
@@ -89,7 +90,7 @@ export const ProgramBar: React.FC<{
       {chapterLabel ? <span style={{ ...cell, color: C.dim }}>{chapterLabel}</span> : null}
       <span style={{ width: 2, height: 26, background: C.line }} />
       <span style={{ ...cell, fontWeight: 900, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>
-        {mm}:{ss}
+        {clock}
       </span>
       <span style={{ ...cell, color: C.dim, fontSize: 24 }}>けいか</span>
     </div>
