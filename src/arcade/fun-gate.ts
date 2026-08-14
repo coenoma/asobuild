@@ -351,7 +351,12 @@ function buildReport<S extends BaseState>(
       pass: random.stats.score.p50 >= 1,
       actual: `でたらめ操作の中央値 ${r1(random.stats.score.p50)}点`,
       expected: '1点以上',
-      fix: '最初の1点が遠すぎる。開始直後は成功しやすくして、最初の3秒以内に必ず1点入るようにする。',
+      // type の共通でたらめボットは文字を打たないので、直すべきはゲームではなく novice() の不在。
+      // ここで普通の直し方を出すと、難度を無意味に下げる方向へ誘導してしまう
+      fix:
+        game.meta.control === 'type' && !game.novice
+          ? 'control:"type" の共通でたらめボットは文字を打たないので、この項目は novice()（「何も分かっていない人」役）を書かないと通りません。.claude/rules/games.md の「novice()」の節を読むこと。'
+          : '最初の1点が遠すぎる。開始直後は成功しやすくして、最初の3秒以内に必ず1点入るようにする。',
     },
     {
       id: 'not-instant-death',

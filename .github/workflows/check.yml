@@ -29,6 +29,9 @@ jobs:
       - name: 規約（ゲームの絶対ルールを含む）
         run: npm run lint
 
+      - name: ランタイムの自己検査（機種・操作・リプレイの配管）
+        run: npm run selftest
+
       - name: 面白さゲート（記録との比較つき）
         run: npm run fun:all
 
