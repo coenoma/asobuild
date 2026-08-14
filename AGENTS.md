@@ -12,6 +12,8 @@ Claude Code 以外のツール（Cursor / Codex など）を使う場合も、�
 | 知りたいこと | 場所 |
 |---|---|
 | 守るべき規範（全体） | [CLAUDE.md](./CLAUDE.md) |
+| どの型で作るか（面白さゲートの見る項目が変わる） | [docs/design/genre-map.md](./docs/design/genre-map.md) |
+| **どの機種で作るか**（ケータイ／PCブラウザ／ゲーセン。寸法・入力が変わる） | [docs/design/platforms.md](./docs/design/platforms.md) |
 | ゲーム実装の規約 | [.claude/rules/games.md](./.claude/rules/games.md) |
 | 共通ランタイムを触るときの注意 | [.claude/rules/arcade.md](./.claude/rules/arcade.md) |
 | サイト側の規約 | [.claude/rules/web.md](./.claude/rules/web.md) |

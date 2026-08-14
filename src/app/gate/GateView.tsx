@@ -171,6 +171,13 @@ export function GateView({ metas }: { metas: GameMeta[] }) {
               </li>
             ))}
           </ul>
+          {/* でたらめ役の差し替えは必ず見えるようにする（CLI と同じ透明性を画面にも） */}
+          {report.customNovice && (
+            <p className={styles.reasons}>
+              「でたらめ」役はゲーム側の novice() が担っています。
+              共通のでたらめボットより甘くなりえます。
+            </p>
+          )}
           {report.topReasons.length > 0 && (
             <p className={styles.reasons}>
               上手いボットの死因:{' '}
