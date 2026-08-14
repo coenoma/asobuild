@@ -163,6 +163,10 @@ export interface Edl {
      * （依頼を投げたのは収録開始の48秒前だった）。
      */
     devOffset?: number;
+    /** 下に敷く曲。リポジトリには置かず、手元の video/bgm/ を書き出しのときだけ読む */
+    bgm?: { file: string; peakDb?: number; note?: string };
+    /** 締めの曲。既定では最後の章の頭から鳴る */
+    endingBgm?: { file: string; peakDb?: number; at?: number; note?: string };
   };
   sources: Record<string, Source>;
   /** 使ってはいけない区間。extract.mjs がここと clips を突き合わせる */

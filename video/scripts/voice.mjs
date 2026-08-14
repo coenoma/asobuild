@@ -26,7 +26,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -211,12 +211,68 @@ if (process.argv.includes('--mux')) {
   const total = edl.chapters.reduce((a, c) => a + c.dur, 0);
   const inputs = ['-i', video];
   for (const t of tracks) inputs.push('-i', t.path);
+
+  /**
+   * BGM は**リポジトリに置かない**（PUBLIC なので音源の再配布になる）。
+   * 手元の video/bgm/ を、書き出しのときだけ読む。無ければ黙って鳴らさない。
+   * 大きさは「頂点を何dBにするか」で指定する（元の音量に左右されないように、
+   * その場で測ってから差を当てる）。決まりは docs/video/sound-design.md
+   */
+  const measurePeak = (file) => {
+    const r = spawnSync('ffmpeg', ['-hide_banner', '-v', 'info', '-i', file, '-af', 'volumedetect', '-f', 'null', '-'],
+      { encoding: 'utf8' });
+    const m = /max_volume:\s*(-?[\d.]+) dB/.exec(r.stderr ?? '');
+    return m ? Number(m[1]) : 0;
+  };
+
+  const bgmParts = [];
+  const bgmLabels = [];
+  let nextIdx = tracks.length + 1;
+
+  const bgmConf = edl.meta?.bgm;
+  const bgmFile = bgmConf ? resolve(ROOT, bgmConf.file) : null;
+  // 締めの曲が始まる時刻（既定は最後の章の頭）
+  const endChapter = edl.chapters[edl.chapters.length - 1];
+  const endAt = total - endChapter.dur;
+
+  if (bgmFile && existsSync(bgmFile)) {
+    const gain = (bgmConf.peakDb ?? -32) - measurePeak(bgmFile);
+    const i = nextIdx++;
+    // ループさせて全体を覆い、締めの曲に入る手前で消える
+    inputs.push('-stream_loop', '-1', '-i', bgmFile);
+    const outStart = Math.max(0, endAt - 2.5);
+    bgmParts.push(
+      `[${i}:a]volume=${gain.toFixed(1)}dB,atrim=0:${endAt.toFixed(2)},` +
+      `afade=t=in:st=0:d=2,afade=t=out:st=${outStart.toFixed(2)}:d=2.5,apad[bgm]`,
+    );
+    bgmLabels.push('[bgm]');
+    console.log(`BGM: ${bgmConf.file} を 頂点${bgmConf.peakDb ?? -32}dB で敷きました`);
+  } else if (bgmConf) {
+    console.log(`BGM: ${bgmConf.file} が無いので鳴らしません（手元に置くと入ります）`);
+  }
+
+  const endConf = edl.meta?.endingBgm;
+  const endFile = endConf ? resolve(ROOT, endConf.file) : null;
+  if (endFile && existsSync(endFile)) {
+    const gain = (endConf.peakDb ?? -8) - measurePeak(endFile);
+    const i = nextIdx++;
+    const at = Math.round((endConf.at ?? endAt) * 1000);
+    inputs.push('-i', endFile);
+    bgmParts.push(`[${i}:a]volume=${gain.toFixed(1)}dB,adelay=${at}|${at},apad[endbgm]`);
+    bgmLabels.push('[endbgm]');
+    console.log(`締めの曲: ${endConf.file} を 頂点${endConf.peakDb ?? -8}dB で置きました`);
+  } else if (endConf) {
+    console.log(`締めの曲: ${endConf.file} が無いので鳴らしません`);
+  }
+
   const delays = tracks
     .map((t, i) => `[${i + 1}:a]adelay=${Math.round(t.abs * 1000)}|${Math.round(t.abs * 1000)},apad[v${i}]`)
     .join(';');
-  const mixIn = ['[0:a]', ...tracks.map((_, i) => `[v${i}]`)].join('');
-  // 効果音は声のうしろで少し下げる
-  const filter = `${delays};${mixIn}amix=inputs=${tracks.length + 1}:duration=first:normalize=0:weights=0.5 ${tracks.map(() => '1').join(' ')}[out]`;
+  const mixIn = ['[0:a]', ...tracks.map((_, i) => `[v${i}]`), ...bgmLabels].join('');
+  const nMix = tracks.length + 1 + bgmLabels.length;
+  // 効果音は声のうしろで少し下げる。BGM はすでに小さくしてあるので等倍
+  const weights = ['0.5', ...tracks.map(() => '1'), ...bgmLabels.map(() => '1')].join(' ');
+  const filter = `${[delays, ...bgmParts].filter(Boolean).join(';')};${mixIn}amix=inputs=${nMix}:duration=first:normalize=0:weights=${weights}[out]`;
 
   execFileSync('ffmpeg', [
     '-hide_banner', '-v', 'error', '-y',

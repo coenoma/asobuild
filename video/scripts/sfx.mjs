@@ -175,31 +175,31 @@ const SOUNDS = {
    */
   title: () => {
     const buf = new Float64Array(Math.ceil(2.6 * SR));
-    // 土台。低い音を伸ばすと、上の音が軽く聞こえない
-    renderNote(buf, 0.0, { freq: N.C3, dur: 2.3, type: 'triangle', vol: 0.10, hold: 1.5, detune: 0.004 });
-    // 駆け上がり
+    // 土台。低い音を伸ばして、上の音が軽く聞こえないようにする
+    renderNote(buf, 0.0, { freq: N.C3, dur: 2.2, type: 'triangle', vol: 0.10, hold: 1.4, detune: 0.004 });
+    // 駆け上がり。1音ずつ、重ならないように
     const run = [N.G4, N.C5, N.E5, N.G5];
-    run.forEach((f, i) => renderNote(buf, 0.06 + i * 0.085, { freq: f, dur: 0.11, vol: 0.09 }));
-    // 着地の和音。ここが「アソビルド」のところ
-    [N.C6, N.E6, N.G6].forEach((f) =>
-      renderNote(buf, 0.42, { freq: f, dur: 1.5, vol: 0.055, hold: 0.85, detune: 0.003 }));
-    // 上のきらめき（余韻）
-    [[N.E6, 1.02], [N.G6, 1.12], [N.C7, 1.22]].forEach(([f, at]) =>
-      renderNote(buf, at, { freq: f, dur: 0.5, type: 'triangle', vol: 0.05 }));
+    run.forEach((f, i) => renderNote(buf, 0.08 + i * 0.10, { freq: f, dur: 0.10, vol: 0.09 }));
+    // 着地。ここが「アソビルド」。**2音だけ**にする
+    // （土台と合わせて同時に鳴るのは3つまで。矩形波は重ねるほど濁る）
+    [N.C6, N.G6].forEach((f) =>
+      renderNote(buf, 0.50, { freq: f, dur: 1.6, vol: 0.06, hold: 0.9, detune: 0.003 }));
     return buf;
   },
-  // 場面が変わる直前の風切り。判子の直前に置く
+  /**
+   * 場面が変わる直前の風切り。**判子の音が鳴りきる前に終わらせる**。
+   * 重ねると何の音か分からなくなる（001のFB「いくつか重なって気持ち悪い」）。
+   */
   swipe: () => {
-    const buf = new Float64Array(Math.ceil(0.5 * SR));
-    renderNoise(buf, 0, { dur: 0.34, from: 0.9, to: 0.03, vol: 0.13 });
+    const buf = new Float64Array(Math.ceil(0.4 * SR));
+    renderNoise(buf, 0, { dur: 0.26, from: 0.9, to: 0.03, vol: 0.12 });
     return buf;
   },
-  // 判子が出た瞬間の一撃
+  /** 判子が出た瞬間の一撃。低い一発だけにして、余計なものを重ねない */
   stampHit: () => {
     const buf = new Float64Array(Math.ceil(0.9 * SR));
-    renderNote(buf, 0, { freq: N.C3, dur: 0.55, type: 'triangle', vol: 0.14, hold: 0.1 });
-    renderNote(buf, 0, { freq: N.C6, dur: 0.22, vol: 0.08 });
-    renderNoise(buf, 0, { dur: 0.12, from: 0.9, to: 0.2, vol: 0.08 });
+    renderNote(buf, 0, { freq: N.C3, dur: 0.6, type: 'triangle', vol: 0.15, hold: 0.08 });
+    renderNoise(buf, 0, { dur: 0.09, from: 0.9, to: 0.25, vol: 0.06 });
     return buf;
   },
   // 打鍵。依頼文を送るところ
