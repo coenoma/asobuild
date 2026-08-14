@@ -22,9 +22,11 @@ const SR = 48000;
 
 /** sfx.ts の N と同じ */
 const N = {
-  C4: 261.63, E4: 329.63, G4: 392.0, B4: 493.88,
-  C5: 523.25, E5: 659.25, G5: 783.99,
-  C6: 1046.5, E6: 1318.51, G6: 1567.98,
+  C3: 130.81, G3: 196.0,
+  C4: 261.63, E4: 329.63, G4: 392.0, A4: 440.0, B4: 493.88,
+  C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.0,
+  C6: 1046.5, D6: 1174.66, E6: 1318.51, G6: 1567.98, A6: 1760.0,
+  C7: 2093.0,
 };
 
 /** 波形1周期ぶんの値。position は 0〜1 */
@@ -41,20 +43,60 @@ function wave(type, p) {
  * 1音を書き込む。WebAudio の exponentialRampToValueAtTime と同じ曲線にする
  * （線形フェードだと当時のピコピコに聞こえない。減衰が速いのが特徴）
  */
-function renderNote(buf, startSec, { freq, to, dur, type = 'square', vol = 0.12 }) {
+function renderNote(buf, startSec, { freq, to, dur, type = 'square', vol = 0.12, hold = 0, detune = 0 }) {
   const n = Math.floor(dur * SR);
   const start = Math.floor(startSec * SR);
+  const holdN = Math.floor(Math.min(hold, dur) * SR);
   let phase = 0;
+  let phase2 = 0;
   for (let i = 0; i < n; i++) {
     const x = i / n;
     // 周波数の滑らせ（指数）
     const f = to ? freq * Math.pow(Math.max(1, to) / freq, x) : freq;
-    // 音量の減衰（指数）。0.0001 まで落とすのは sfx.ts と同じ
-    const g = vol * Math.pow(0.0001 / vol, x);
+    // 音量。hold のあいだは保ち、そのあと指数で落とす。
+    // ジングルは伸びが要るので保つ時間を持たせた（効果音は hold=0 で従来どおり）
+    let g;
+    if (i < holdN) {
+      // 立ち上がりの 5ms だけ滑らかにする（ぶつっと切れる音を防ぐ）
+      g = vol * Math.min(1, i / (SR * 0.005));
+    } else {
+      const y = (i - holdN) / Math.max(1, n - holdN);
+      g = vol * Math.pow(0.0001 / vol, y);
+    }
     phase += f / SR;
     if (phase >= 1) phase -= Math.floor(phase);
+    let v = wave(type, phase);
+    // わずかにずらした同じ音を重ねると厚みが出る（当時の重ね方）
+    if (detune) {
+      phase2 += (f * (1 + detune)) / SR;
+      if (phase2 >= 1) phase2 -= Math.floor(phase2);
+      v = (v + wave(type, phase2)) * 0.5;
+    }
     const idx = start + i;
-    if (idx < buf.length) buf[idx] += wave(type, phase) * g;
+    if (idx < buf.length) buf[idx] += v * g;
+  }
+}
+
+/**
+ * 風切り音。矩形波では作れないので雑音を1本足す。
+ * 高い雑音から低い雑音へ落とすと「シュッ」、逆だと「シュワッ」になる。
+ */
+function renderNoise(buf, startSec, { dur, from = 1.0, to = 0.05, vol = 0.1 }) {
+  const n = Math.floor(dur * SR);
+  const start = Math.floor(startSec * SR);
+  let lp = 0;
+  let seed = 12345;
+  for (let i = 0; i < n; i++) {
+    const x = i / n;
+    // 決まった並びの疑似乱数（毎回同じ音になるように）
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    const white = (seed / 0x3fffffff) - 1;
+    // 一次ローパスの係数を動かして、明るさを滑らせる
+    const k = from * Math.pow(to / from, x);
+    lp += (white - lp) * k;
+    const g = vol * Math.sin(Math.PI * x); // 山なりに出して山なりに消す
+    const idx = start + i;
+    if (idx < buf.length) buf[idx] += lp * g;
   }
 }
 
@@ -126,6 +168,67 @@ const SOUNDS = {
   hit: () => renderBeep({ freq: 220, to: 90, dur: 0.16, type: 'sawtooth', vol: 0.12 }),
   // ゲームオーバー
   over: () => renderBeep({ freq: 330, to: 70, dur: 0.5, type: 'triangle', vol: 0.14 }),
+  /**
+   * タイトルコール。**この番組の名刺**なので、毎回まったく同じものを使う。
+   * 型: 低い土台 → 駆け上がり4音 → 大きな和音 → 上のきらめき。
+   * ケータイの3和音でできる範囲に収めてある（同時発音は3つまで）。
+   */
+  title: () => {
+    const buf = new Float64Array(Math.ceil(2.6 * SR));
+    // 土台。低い音を伸ばすと、上の音が軽く聞こえない
+    renderNote(buf, 0.0, { freq: N.C3, dur: 2.3, type: 'triangle', vol: 0.10, hold: 1.5, detune: 0.004 });
+    // 駆け上がり
+    const run = [N.G4, N.C5, N.E5, N.G5];
+    run.forEach((f, i) => renderNote(buf, 0.06 + i * 0.085, { freq: f, dur: 0.11, vol: 0.09 }));
+    // 着地の和音。ここが「アソビルド」のところ
+    [N.C6, N.E6, N.G6].forEach((f) =>
+      renderNote(buf, 0.42, { freq: f, dur: 1.5, vol: 0.055, hold: 0.85, detune: 0.003 }));
+    // 上のきらめき（余韻）
+    [[N.E6, 1.02], [N.G6, 1.12], [N.C7, 1.22]].forEach(([f, at]) =>
+      renderNote(buf, at, { freq: f, dur: 0.5, type: 'triangle', vol: 0.05 }));
+    return buf;
+  },
+  // 場面が変わる直前の風切り。判子の直前に置く
+  swipe: () => {
+    const buf = new Float64Array(Math.ceil(0.5 * SR));
+    renderNoise(buf, 0, { dur: 0.34, from: 0.9, to: 0.03, vol: 0.13 });
+    return buf;
+  },
+  // 判子が出た瞬間の一撃
+  stampHit: () => {
+    const buf = new Float64Array(Math.ceil(0.9 * SR));
+    renderNote(buf, 0, { freq: N.C3, dur: 0.55, type: 'triangle', vol: 0.14, hold: 0.1 });
+    renderNote(buf, 0, { freq: N.C6, dur: 0.22, vol: 0.08 });
+    renderNoise(buf, 0, { dur: 0.12, from: 0.9, to: 0.2, vol: 0.08 });
+    return buf;
+  },
+  // 打鍵。依頼文を送るところ
+  type: () => renderBeep({ freq: 1200, to: 900, dur: 0.03, vol: 0.06 }),
+  // 「ここを見て」の枠が締まる音
+  reveal: () => {
+    const buf = new Float64Array(Math.ceil(0.4 * SR));
+    renderNote(buf, 0, { freq: N.A5, dur: 0.07, vol: 0.07 });
+    renderNote(buf, 0.07, { freq: N.E6, dur: 0.16, vol: 0.08 });
+    return buf;
+  },
+  // 結論に入る一撃。ここだけ音を止めてから鳴らす
+  sting: () => {
+    const buf = new Float64Array(Math.ceil(1.6 * SR));
+    renderNote(buf, 0, { freq: N.C3, dur: 1.3, type: 'triangle', vol: 0.13, hold: 0.5, detune: 0.005 });
+    [N.C5, N.G5].forEach((f) => renderNote(buf, 0, { freq: f, dur: 1.1, vol: 0.06, hold: 0.35 }));
+    renderNoise(buf, 0, { dur: 0.2, from: 0.95, to: 0.3, vol: 0.09 });
+    return buf;
+  },
+  // 締め。タイトルコールの終わり方を裏返して、終わった感じを出す
+  outro: () => {
+    const buf = new Float64Array(Math.ceil(2.8 * SR));
+    renderNote(buf, 0, { freq: N.C3, dur: 2.5, type: 'triangle', vol: 0.09, hold: 1.7, detune: 0.004 });
+    const run = [N.C5, N.E5, N.G5, N.C6];
+    run.forEach((f, i) => renderNote(buf, 0.05 + i * 0.14, { freq: f, dur: 0.16, vol: 0.07 }));
+    [N.C6, N.E6, N.G6].forEach((f) =>
+      renderNote(buf, 0.62, { freq: f, dur: 1.7, vol: 0.05, hold: 1.0, detune: 0.003 }));
+    return buf;
+  },
   // 章の切り替え
   jingleStart: () => renderSequence([{ f: N.G5, d: 0.07 }, { f: [N.C6, N.E6], d: 0.16 }]),
   // 記録更新
