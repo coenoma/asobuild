@@ -31,7 +31,16 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja">
-      <body>{children}</body>
+      <body>
+        {children}
+        {/*
+          Vercel Web Analytics（2026-08-14 オーナー決定で導入）。
+          Cookie なし・個人情報なしのページ集計だけ。動画からの流入は UTM で見分ける
+          （docs/video/description-template.md）。サーバーを持たない方針とは両立する。
+          Vercel ダッシュボード側で Web Analytics を有効化しないと数字は貯まらない。
+        */}
+        <script defer src="/_vercel/insights/script.js" />
+      </body>
     </html>
   );
 }

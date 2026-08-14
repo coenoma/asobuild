@@ -5,6 +5,13 @@ paths:
 
 # サイト側の規約
 
+## 計測は Vercel Web Analytics のタグ1つだけ
+
+layout.tsx のスクリプトタグが唯一の計測。Cookie を置かず、個人を特定する情報を集めない。
+**これ以外の計測・トラッキングを足さない**（PUBLIC リポジトリであり、
+「登録なしで遊べる」が番組の約束だから）。何をどう見るかは
+[docs/plans/007-first-season/design.md](../../docs/plans/007-first-season/design.md)。
+
 ## ゲーム本体を直接 import しない
 
 一覧ページやメタデータ生成から `games/<slug>/game` を読むと、

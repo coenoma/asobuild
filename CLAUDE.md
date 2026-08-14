@@ -321,6 +321,9 @@ npx remotion render src/index.ts Episode out/<slug>.mp4
 - タイトルは「［制約］で、AIは［題材みたいなゲーム］を作れるのか」（疑問形。実測7倍の差）
 - サムネの型は固定: AI名バッジ＋決定的瞬間＋制約の実物＋7文字級の言葉。結果は見せない
 - ショートを毎回3本切る（`video/scripts/shorts.mjs`）。外部調査の精査は [docs/video/research-notes/](docs/video/research-notes/)
+- **公開ボタンを押す日は [docs/video/publish-checklist.md](docs/video/publish-checklist.md) を必ず通す**
+  （概要欄・固定コメント・`meta.video` の逆リンク——ここが視聴→プレイ→コメントのループを作る）
+- シーズン全体の計画・成功の定義・週次レビューは [docs/plans/007-first-season/](docs/plans/007-first-season/design.md)
 
 **🔴 リポジトリの工夫（面白さゲート・共通シェル・公開前チェック等）は、動画に一切出さない。**
 道具であって番組の中身ではない。名前を出した瞬間に内輪の解説になる。
