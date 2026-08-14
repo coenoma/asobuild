@@ -18,6 +18,8 @@ export interface InputOptions {
   steer?: boolean;
   /** 打った文字を拾う（control:'type'）。スペースも「文字」になり、押下には使われなくなる */
   text?: boolean;
+  /** 機種の論理解像度。ポインタ座標をこの座標系に変換する。省略時は keitai */
+  dims?: { w: number; h: number };
 }
 
 export class InputSource {
@@ -45,32 +47,74 @@ export class InputSource {
   private keys = new Set<string>();
   private arrows = new Set<string>();
   private opts: InputOptions = {};
+  private dims = { w: VIRTUAL_W, h: VIRTUAL_H };
+  /** ゲームパッドの状態（pollGamepad が毎フレーム入れ替える） */
+  private padPress = false;
+  private padSteer = 0;
 
   /**
    * 左右の傾き。-1（左）／0（まっすぐ）／+1（右）の3値。
    *
-   * 矢印キーが優先。押していなければ、指が画面のどちら側にあるかで決める。
+   * 矢印キー → ゲームパッド → 画面のどちら側を押しているか、の順で見る。
    * 中央には不感帯を置いてある（まっすぐ走りたいときに勝手に曲がらないように）。
    */
   get steer(): number {
     const left = this.arrows.has('ArrowLeft');
     const right = this.arrows.has('ArrowRight');
     if (left !== right) return left ? -1 : 1;
+    if (this.padSteer !== 0) return this.padSteer;
     if (!this.opts.steer || this.pointers.size === 0) return 0;
-    const half = VIRTUAL_W / 2;
-    const dead = VIRTUAL_W * 0.08;
+    const half = this.dims.w / 2;
+    const dead = this.dims.w * 0.08;
     if (this.px < half - dead) return -1;
     if (this.px > half + dead) return 1;
     return 0;
   }
 
+  /**
+   * ゲームパッドを読む。ループ側が毎フレーム呼ぶ（イベントが来ない入力なので）。
+   *
+   * 十字キーとスティックは steer に、面ボタンのどれかは「押す」に写すだけ。
+   * ボタンごとの意味づけはしない——増やすなら docs/design/platforms.md の
+   * 「複数ボタン」の手順から（黙って軸を増やすと「入力は1つ」が崩れる）。
+   */
+  pollGamepad(): void {
+    if (typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function') return;
+    let press = false;
+    let steer = 0;
+    for (const pad of navigator.getGamepads()) {
+      if (!pad) continue;
+      // 十字キー（標準マッピングの 14=左 / 15=右）優先、無ければ左スティックをデジタル化
+      if (pad.buttons[14]?.pressed) steer = -1;
+      else if (pad.buttons[15]?.pressed) steer = 1;
+      else {
+        const x = pad.axes[0] ?? 0;
+        if (x < -0.5) steer = -1;
+        else if (x > 0.5) steer = 1;
+      }
+      // 面ボタン（A/B/X/Y）はどれも「押す」。押し分けはさせない
+      if ([0, 1, 2, 3].some((i) => pad.buttons[i]?.pressed)) press = true;
+    }
+    this.padSteer = steer;
+    if (press || steer !== 0) this.touched = true;
+    if (press !== this.padPress) {
+      this.padPress = press;
+      this.sync();
+    }
+  }
+
   attach(el: HTMLElement, opts: InputOptions = {}): () => void {
     this.opts = opts;
+    if (opts.dims) {
+      this.dims = opts.dims;
+      this.px = opts.dims.w / 2;
+      this.py = opts.dims.h / 2;
+    }
     const rectToVirtual = (clientX: number, clientY: number) => {
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) return;
-      this.px = ((clientX - r.left) / r.width) * VIRTUAL_W;
-      this.py = ((clientY - r.top) / r.height) * VIRTUAL_H;
+      this.px = ((clientX - r.left) / r.width) * this.dims.w;
+      this.py = ((clientY - r.top) / r.height) * this.dims.h;
     };
 
     const down = (e: PointerEvent) => {
@@ -151,7 +195,7 @@ export class InputSource {
   }
 
   private sync() {
-    const next = this.pointers.size > 0 || this.keys.size > 0;
+    const next = this.pointers.size > 0 || this.keys.size > 0 || this.padPress;
     if (next && !this.press) {
       this.justPressed = true;
       this.touched = true;

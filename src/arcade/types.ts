@@ -14,9 +14,15 @@
 import type { Painter } from './painter';
 import type { Rng } from './rng';
 
-/** 仮想解像度の幅（ガラケーの QVGA 縦持ちに合わせている） */
+/**
+ * keitai 機種の仮想解像度（ガラケーの QVGA 縦持ち）。
+ *
+ * 歴史的にこの定数名のまま各ゲームが import しているので残してある。
+ * 機種ごとの解像度は platforms.ts が持つ。keitai 以外の機種で作るときは
+ * この定数ではなく `PLATFORMS.<機種>.w / .h` を使うこと。
+ */
 export const VIRTUAL_W = 240;
-/** 仮想解像度の高さ */
+/** keitai 機種の仮想解像度の高さ */
 export const VIRTUAL_H = 320;
 /** 固定タイムステップ（秒）。可変 dt は非決定論になるので使わない */
 export const FIXED_DT = 1 / 60;
@@ -127,7 +133,22 @@ export type Control =
   | 'type';
 
 /** 見た目のテーマ。増やすときは palette.ts と対で */
-export type ThemeName = 'keitai' | 'mono' | 'flash';
+export type ThemeName = 'keitai' | 'mono' | 'flash' | 'arcade';
+
+/**
+ * 機種。どの時代の・どの画面で遊ばれていたか、の単位。
+ *
+ * 遊びの型（Genre）が「面白さゲートの見る項目」を決めるのに対し、
+ * 機種は「画面の寸法・向き・描画の質感・入力の想定」を決める。
+ * 実物の値は platforms.ts、選び方と増やし方は docs/design/platforms.md。
+ */
+export type PlatformName =
+  /** 2000年代なかばのカラーケータイ。240×320 縦・ドット。既定 */
+  | 'keitai'
+  /** 2000年前後〜の個人サイトの Flash ゲーム。550×400 横・なめらか。PC想定 */
+  | 'flash'
+  /** 90年代末〜2000年前後のゲームセンター。384×224 横・ドット。パッド想定 */
+  | 'arcade';
 
 /**
  * 遊びの型。当時のケータイゲームを、作り方が変わる単位で5つに分けたもの。
@@ -227,7 +248,15 @@ export interface GameMeta {
   released: string;
   /** 収録企画の制約（例: 「マックのポテトM」）。一覧に出る */
   constraint?: string;
-  /** 見た目テーマ。既定は keitai */
+  /**
+   * 機種。省略すると 'keitai'。
+   *
+   * 画面の寸法・向き・描画の質感・入力の想定がここで決まる。
+   * **その機種でゲームが1本でも公開されたら、機種側の寸法は変えられない**
+   * （既存ゲームの座標が全部ずれるため。詳細は .claude/rules/arcade.md）。
+   */
+  platform?: PlatformName;
+  /** 見た目テーマ。既定は機種ごとの既定テーマ（platforms.ts） */
   theme?: ThemeName;
   /** スコアの単位（例: 「点」「m」「個」） */
   unit: string;

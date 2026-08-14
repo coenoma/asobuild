@@ -24,8 +24,11 @@ YouTube「アソビルド」で、制限時間のなかで作ったミニゲー�
 
 | | 何をするか | 入口の強さ |
 |---|---|---|
-| ① **再現の実験** | 有名なガラケーゲームを題材に「AIだけで、記憶だけで作れる？」を試す | 当時を知っている人に一発で届く |
+| ① **再現の実験** | 当時の有名なゲーム（ガラケー・PCブラウザ・ゲーセン）を題材に「AIだけで、記憶だけで作れる？」を試す | 当時を知っている人に一発で届く |
 | ② **架空の新作** | 「2006年にあったら流行ったのでは」を、当時の文法だけから新しく作る | 権利の心配がほぼ無く、①の分析がそのまま材料になる |
+
+射程は**2000年前後〜2000年代なかばの遊び文化ぜんぶ**。ガラケーはその本流だが、それだけではない。
+どの画面の遊びとして作るかは `meta.platform`（機種）で選ぶ。→ [docs/design/platforms.md](docs/design/platforms.md)
 
 ②は「昔っぽい見た目にする」ことではない。
 **「なぜあれは単純なのにハマったのか」を分解し、その原理から作る**こと。
@@ -56,8 +59,9 @@ npm run dev                  # http://localhost:3020/g/<slug>
 npm run fun -- <slug>        # 面白さゲート。落ちた項目の指示どおりに直す
 ```
 
-0. **遊びの型を決める**（`action` / `puzzle` / `nurture` / `chance` / `oneshot`）
-   型によって面白さゲートが見る項目が変わる。→ [docs/design/genre-map.md](docs/design/genre-map.md)
+0. **遊びの型と機種を決める**
+   - 型（`action` / `puzzle` / `nurture` / `chance` / `oneshot`）で面白さゲートが見る項目が変わる。→ [docs/design/genre-map.md](docs/design/genre-map.md)
+   - 機種（`keitai` / `flash` / `arcade`）で画面の寸法・向き・質感・入力の想定が変わる。迷ったら keitai。→ [docs/design/platforms.md](docs/design/platforms.md)
 1. **雛形を出す**（手でファイルを作らない。登録簿への追記まで自動でやる）
 2. **`step` と `draw` を書く**。ここだけがゲーム固有の仕事
 3. **`npm run fun` が全部緑になるまで直す**
@@ -204,6 +208,7 @@ npm run status
 | 場所 | 中身 |
 |---|---|
 | `src/arcade/` | 共通ランタイム。ここを厚くするほど1本あたりが速くなる |
+| `src/arcade/platforms.ts` | 機種の登録簿（ケータイ・PCブラウザ・ゲーセン）。地図は [docs/design/platforms.md](docs/design/platforms.md) |
 | `src/arcade/feel.ts` | 手触りの道具（先行入力・猶予・ヒットストップ・ゆれ・弾み） |
 | `src/games/<slug>/` | ゲーム本体（`meta.ts` と `game.ts` の2つだけ） |
 | `src/games/registry.ts` | 登録簿。`npm run new` が自動で追記する |

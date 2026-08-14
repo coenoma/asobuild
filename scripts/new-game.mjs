@@ -24,8 +24,9 @@ function opt(name, fallback) {
 }
 
 if (!slug || !/^[a-z][a-z0-9-]*$/.test(slug)) {
-  console.error('使い方: npm run new -- <slug> [--title タイトル] [--howto あそびかた] [--control tap|hold|tap-hold|aim|steer|type] [--genre action|puzzle|nurture|chance|oneshot] [--constraint 制約] [--unit 点]');
+  console.error('使い方: npm run new -- <slug> [--title タイトル] [--howto あそびかた] [--control tap|hold|tap-hold|aim|steer|type] [--genre action|puzzle|nurture|chance|oneshot] [--platform keitai|flash|arcade] [--constraint 制約] [--unit 点]');
   console.error('  ※ steer / type は「その操作をすること自体が題材」のときだけ（docs/design/fun-doctrine.md ①）');
+  console.error('  ※ 機種の選び方は docs/design/platforms.md（既定はケータイ 240×320 縦）');
   console.error('slug は半角英小文字・数字・ハイフンのみ（例: potato-nobashi）');
   process.exit(1);
 }
@@ -34,11 +35,25 @@ const title = opt('title', slug);
 const howto = opt('howto', 'タップでうごかす');
 const control = opt('control', 'tap');
 const genre = opt('genre', 'action');
+const platform = opt('platform', 'keitai');
 const unit = opt('unit', '点');
 const constraint = opt('constraint', '');
 const today = new Date().toISOString().slice(0, 10);
 const camel = slug.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
 const dir = path.join(ROOT, 'src/games', slug);
+
+// 機種の寸法（src/arcade/platforms.ts と対。ここは雛形の座標計算にだけ使う）
+const PLATFORM_DIMS = {
+  keitai: { w: 240, h: 320 },
+  flash: { w: 550, h: 400 },
+  arcade: { w: 384, h: 224 },
+};
+if (!PLATFORM_DIMS[platform]) {
+  console.error(`--platform は ${Object.keys(PLATFORM_DIMS).join(' / ')} のどれかです`);
+  process.exit(1);
+}
+// 地面の高さは画面の高さから割り出す（keitai でこれまでの 260 と一致する比率）
+const groundY = Math.round(PLATFORM_DIMS[platform].h * 0.8125);
 
 if (existsSync(dir)) {
   console.error(`すでに存在します: src/games/${slug}`);
@@ -53,10 +68,9 @@ export const meta: GameMeta = {
   // 20文字以内。読まなくても分かる一行にする
   howto: '${howto}',
   control: '${control}',
-  genre: '${genre}',
+  genre: '${genre}',${platform !== 'keitai' ? `\n  platform: '${platform}',` : ''}
   released: '${today}',
-  unit: '${unit}',
-  theme: 'keitai',${constraint ? `\n  constraint: '${constraint}',` : ''}
+  unit: '${unit}',${platform === 'keitai' ? `\n  theme: 'keitai',` : ''}${constraint ? `\n  constraint: '${constraint}',` : ''}
 };
 `;
 
@@ -70,12 +84,16 @@ const gameTs = `/**
  * 落ちた項目を1つずつ潰していく作業が、そのままゲーム作りになる。
  */
 
-import { defineGame, VIRTUAL_H, VIRTUAL_W, type BaseState } from '@/arcade/types';
+import { defineGame, type BaseState } from '@/arcade/types';
+import { PLATFORMS } from '@/arcade/platforms';
 import type { Painter } from '@/arcade/painter';
 import { meta } from './meta';
 
+/** この機種の画面寸法。座標はすべてこれが基準 */
+const { w: W, h: H } = PLATFORMS.${platform};
+
 /** プレイヤーの初期位置など、調整する数値は名前をつけて上にまとめる */
-const GROUND_Y = 260;
+const GROUND_Y = ${groundY};
 const LIVES = 3;
 
 export interface ${camel[0].toUpperCase()}${camel.slice(1)}State extends BaseState {
@@ -126,7 +144,7 @@ export default defineGame<${camel[0].toUpperCase()}${camel.slice(1)}State>({
     const targets = s.targets.map((t) => ({ ...t, x: t.x - n.speed * dt })).filter((t) => t.x > -20);
     if (n.spawnTimer <= 0) {
       n.spawnTimer += Math.max(0.35, 1.1 - s.time * 0.02) * rng.range(0.8, 1.2);
-      targets.push({ x: VIRTUAL_W + 20, y: GROUND_Y - rng.range(20, 70), hit: false });
+      targets.push({ x: W + 20, y: GROUND_Y - rng.range(20, 70), hit: false });
     }
 
     // 4) 当たり判定と得点。取り逃がしに代償があるから緊張が生まれる
@@ -150,8 +168,8 @@ export default defineGame<${camel[0].toUpperCase()}${camel.slice(1)}State>({
   },
 
   draw(g: Painter, s) {
-    g.rect(0, GROUND_Y + 12, VIRTUAL_W, VIRTUAL_H, 'bg2');
-    g.line(0, GROUND_Y + 12, VIRTUAL_W, GROUND_Y + 12, 'line');
+    g.rect(0, GROUND_Y + 12, W, H, 'bg2');
+    g.line(0, GROUND_Y + 12, W, GROUND_Y + 12, 'line');
 
     for (const t of s.targets) {
       if (t.hit) continue;
@@ -221,6 +239,12 @@ if (genre !== 'action') {
   console.log(`\n⚠️ 雛形の中身は action（反射）用です。`);
   console.log(`   ${genre} の作りは docs/design/genre-map.md を読んでから step/draw/bot を書き換えてください。`);
   console.log(`   型が変わると、面白さゲートが見る項目も変わります。`);
+}
+if (platform !== 'keitai') {
+  const d = PLATFORM_DIMS[platform];
+  console.log(`\n📺 機種: ${platform}（${d.w}×${d.h} 横長）`);
+  console.log(`   雛形の座標は寸法から割り出してありますが、レイアウトは縦持ち前提の並びです。`);
+  console.log(`   docs/design/platforms.md を読んでから draw を組み直してください。`);
 }
 // 例外の操作方式は、代償と追加の作業を打った直後に伝える（あとで気づくと作り直しになる）
 if (control === 'steer' || control === 'type') {

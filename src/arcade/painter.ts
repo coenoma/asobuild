@@ -28,8 +28,10 @@ export interface SpriteOptions {
 }
 
 export class Painter {
-  readonly w = VIRTUAL_W;
-  readonly h = VIRTUAL_H;
+  /** 画面の幅（機種の論理解像度）。共通の描き物はこれを基準にする */
+  readonly w: number;
+  /** 画面の高さ */
+  readonly h: number;
   readonly p: Palette;
   /** Canvas の font 指定に使うフォントファミリ */
   fontFamily = '"DotGothic16", monospace';
@@ -37,8 +39,12 @@ export class Painter {
   constructor(
     private ctx: CanvasRenderingContext2D,
     theme: ThemeName = 'keitai',
+    // 機種の寸法。省略時は keitai（既存の呼び出しを壊さないため）
+    dims: { w: number; h: number } = { w: VIRTUAL_W, h: VIRTUAL_H },
   ) {
     this.p = getPalette(theme);
+    this.w = dims.w;
+    this.h = dims.h;
   }
 
   /** 色キーを実際の色文字列へ。生の hex を渡されても一応通すが、規約では禁止 */

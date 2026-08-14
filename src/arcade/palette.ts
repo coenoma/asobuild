@@ -73,7 +73,28 @@ const flash: Palette = {
   cool: '#00a0e9',
 };
 
-const THEMES: Record<ThemeName, Palette> = { keitai, mono, flash };
+/**
+ * 90年代末〜2000年前後のゲーセンの basement。暗い店内で光る彩度の高い色。
+ *
+ * キー数はまだ他テーマと同じ10。「アーケードだから32色」に増やすのは、
+ * 最初のアーケード企画で実際に足りなくなったとき（キー名を増やす形で。
+ * 用途の無い色を先に並べても読む量が増えるだけ——.claude/rules/arcade.md の
+ * 「必要になってから」に従う）。
+ */
+const arcade: Palette = {
+  bg: '#0a0a12',
+  bg2: '#1a1a2e',
+  ink: '#f4f4f0',
+  dim: '#8888a0',
+  line: '#33334d',
+  accent: '#ffcc00',
+  accent2: '#ff2266',
+  good: '#33ee66',
+  bad: '#ff3322',
+  cool: '#22aaff',
+};
+
+const THEMES: Record<ThemeName, Palette> = { keitai, mono, flash, arcade };
 
 export function getPalette(theme: ThemeName = 'keitai'): Palette {
   return THEMES[theme] ?? keitai;

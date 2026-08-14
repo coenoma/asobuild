@@ -20,14 +20,8 @@ import { sfx } from './sfx';
 import { getBest, incPlays, setBest } from './storage';
 import { gameUrl, shareScore } from './share';
 import { currentGoal, isAllCleared, nextGoal } from './goals';
-import {
-  FIXED_DT,
-  VIRTUAL_H,
-  VIRTUAL_W,
-  type AnyGame,
-  type Frame,
-  type Input,
-} from './types';
+import { platformOf } from './platforms';
+import { FIXED_DT, type AnyGame, type Frame, type Input } from './types';
 import styles from './GameShell.module.css';
 
 type Phase = 'title' | 'playing' | 'paused' | 'over' | 'replay' | 'result';
@@ -59,6 +53,18 @@ const OVER_HOLD = 0.85;
 const RETRY_LOCK = 0.4;
 
 export function GameShell({ game }: { game: AnyGame }) {
+  // 機種。画面の寸法・向き・描画の質感・入力の想定がここで決まる
+  const plat = platformOf(game.meta);
+  const theme = game.meta.theme ?? plat.defaultTheme;
+  /**
+   * 画面枠の寸法。keitai の縦長は従来の値そのまま、横長の機種は幅を広めに取る。
+   * CSS 側は keitai の値を既定として持っているので、ここで機種ぶんだけ上書きする。
+   */
+  const screenStyle = {
+    aspectRatio: `${plat.w} / ${plat.h}`,
+    width: plat.w >= plat.h ? 'min(92vw, 660px)' : 'min(92vw, 400px)',
+  } as const;
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>('title');
@@ -136,9 +142,10 @@ export function GameShell({ game }: { game: AnyGame }) {
     if (!canvas || !wrap) return;
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
-    ctx.imageSmoothingEnabled = false;
+    // ドット機種は補間なし。flash（ベクター風）はなめらかに描く
+    ctx.imageSmoothingEnabled = !plat.pixelated;
 
-    const painter = new Painter(ctx, game.meta.theme);
+    const painter = new Painter(ctx, theme, plat);
     const cssFont = getComputedStyle(document.documentElement).getPropertyValue('--font-dot').trim();
     if (cssFont) painter.fontFamily = `${cssFont}, monospace`;
 
@@ -148,6 +155,7 @@ export function GameShell({ game }: { game: AnyGame }) {
     const detach = input.attach(wrap, {
       steer: game.meta.control === 'steer',
       text: game.meta.control === 'type',
+      dims: plat,
     });
 
     // ループ内の状態はすべてここに置く（React の再描画と切り離す）
@@ -308,10 +316,10 @@ export function GameShell({ game }: { game: AnyGame }) {
     };
 
     const drawHud = () => {
-      painter.rect(0, 0, VIRTUAL_W, 16, 'bg2');
+      painter.rect(0, 0, painter.w, 16, 'bg2');
       painter.text(`${state.score}${game.meta.unit}`, 6, 3, { color: 'accent', size: 12 });
       const nearBest = best > 0 && state.score >= best - Math.max(1, Math.round(best * 0.1)) && state.score < best;
-      painter.text(`BEST ${best}`, VIRTUAL_W - 6, 4, {
+      painter.text(`BEST ${best}`, painter.w - 6, 4, {
         color: nearBest && Math.floor(blink * 6) % 2 === 0 ? 'accent2' : 'dim',
         size: 10,
         align: 'right',
@@ -323,38 +331,46 @@ export function GameShell({ game }: { game: AnyGame }) {
       // 裏で動いているデモを薄く見せる。文字が読めることを優先して強めに伏せる
       if (demoState) {
         game.draw(painter, demoState);
-        painter.alpha(0.76, () => painter.rect(0, 0, VIRTUAL_W, VIRTUAL_H, 'bg'));
-        painter.text('DEMO', VIRTUAL_W - 6, 6, { size: 8, align: 'right', color: 'dim' });
+        painter.alpha(0.76, () => painter.rect(0, 0, painter.w, painter.h, 'bg'));
+        painter.text('DEMO', painter.w - 6, 6, { size: 8, align: 'right', color: 'dim' });
       }
-      painter.rect(0, 92, VIRTUAL_W, 2, 'line');
-      painter.text(game.meta.title, VIRTUAL_W / 2, 60, { size: 22, align: 'center', color: 'ink' });
-      painter.text(game.meta.howto, VIRTUAL_W / 2, 104, { size: 12, align: 'center', color: 'dim' });
+      painter.rect(0, 92, painter.w, 2, 'line');
+      painter.text(game.meta.title, painter.w / 2, 60, { size: 22, align: 'center', color: 'ink' });
+      painter.text(game.meta.howto, painter.w / 2, 104, { size: 12, align: 'center', color: 'dim' });
       if (best > 0) {
         const rank = currentGoal(game.meta.goals, best);
-        painter.text(`自己ベスト ${best}${game.meta.unit}${rank ? `（${rank.label}）` : ''}`, VIRTUAL_W / 2, 130, {
+        painter.text(`自己ベスト ${best}${game.meta.unit}${rank ? `（${rank.label}）` : ''}`, painter.w / 2, 130, {
           size: 11,
           align: 'center',
           color: 'accent',
         });
         const next = nextGoal(game.meta.goals, best);
         if (next) {
-          painter.text(`次は「${next.label}」${next.score}${game.meta.unit}`, VIRTUAL_W / 2, 146, {
+          painter.text(`次は「${next.label}」${next.score}${game.meta.unit}`, painter.w / 2, 146, {
             size: 10,
             align: 'center',
             color: 'dim',
           });
         } else if (isAllCleared(game.meta.goals, best)) {
-          painter.text('ぜんぶ達成ずみ', VIRTUAL_W / 2, 146, { size: 10, align: 'center', color: 'good' });
+          painter.text('ぜんぶ達成ずみ', painter.w / 2, 146, { size: 10, align: 'center', color: 'good' });
         }
       }
       if (Math.floor(blink * 2) % 2 === 0) {
-        painter.text('タップでスタート', VIRTUAL_W / 2, VIRTUAL_H - 70, {
+        painter.text('タップでスタート', painter.w / 2, painter.h - 70, {
           size: 13,
           align: 'center',
           color: 'ink',
         });
       }
-      painter.text(hintForControl(game.meta.control), VIRTUAL_W / 2, VIRTUAL_H - 44, {
+      if (plat.extraHint) {
+        // 機種由来の補足（ゲームパッド対応など）。操作の説明とは行を分ける
+        painter.text(plat.extraHint, painter.w / 2, painter.h - 28, {
+          size: 9,
+          align: 'center',
+          color: 'dim',
+        });
+      }
+      painter.text(hintForControl(game.meta.control), painter.w / 2, painter.h - 44, {
         size: 9,
         align: 'center',
         color: 'dim',
@@ -364,32 +380,32 @@ export function GameShell({ game }: { game: AnyGame }) {
     const drawResult = () => {
       // 後ろでゲームは動き続けているが、読ませたいのは結果のほうなので強めに伏せる
       game.draw(painter, state);
-      painter.alpha(0.94, () => painter.rect(0, 0, VIRTUAL_W, VIRTUAL_H, 'bg'));
+      painter.alpha(0.94, () => painter.rect(0, 0, painter.w, painter.h, 'bg'));
       const r = resultRef.current;
-      painter.text('おわり', VIRTUAL_W / 2, 62, { size: 13, align: 'center', color: 'dim' });
-      painter.text(`${r.score}`, VIRTUAL_W / 2, 84, { size: 44, align: 'center', color: 'accent' });
-      painter.text(game.meta.unit, VIRTUAL_W / 2, 132, { size: 12, align: 'center', color: 'dim' });
+      painter.text('おわり', painter.w / 2, 62, { size: 13, align: 'center', color: 'dim' });
+      painter.text(`${r.score}`, painter.w / 2, 84, { size: 44, align: 'center', color: 'accent' });
+      painter.text(game.meta.unit, painter.w / 2, 132, { size: 12, align: 'center', color: 'dim' });
       if (r.reason) {
-        painter.text(r.reason, VIRTUAL_W / 2, 156, { size: 11, align: 'center', color: 'bad' });
+        painter.text(r.reason, painter.w / 2, 156, { size: 11, align: 'center', color: 'bad' });
       }
       // 主役の1行。称号を取った瞬間がいちばん強いので最優先で出す
       const blinkOn = Math.floor(blink * 5) % 2 === 0;
       if (r.gotLabel) {
         if (blinkOn) {
-          painter.text(`「${r.gotLabel}」になった！`, VIRTUAL_W / 2, 180, {
+          painter.text(`「${r.gotLabel}」になった！`, painter.w / 2, 180, {
             size: 15,
             align: 'center',
             color: 'good',
           });
         }
       } else if (r.allCleared) {
-        painter.text('ぜんぶ達成ずみ', VIRTUAL_W / 2, 180, { size: 13, align: 'center', color: 'good' });
+        painter.text('ぜんぶ達成ずみ', painter.w / 2, 180, { size: 13, align: 'center', color: 'good' });
       } else if (r.isBest) {
         if (blinkOn) {
-          painter.text('自己ベスト更新！', VIRTUAL_W / 2, 180, { size: 15, align: 'center', color: 'good' });
+          painter.text('自己ベスト更新！', painter.w / 2, 180, { size: 15, align: 'center', color: 'good' });
         }
       } else if (r.rankLabel) {
-        painter.text(`いまの称号: ${r.rankLabel}`, VIRTUAL_W / 2, 180, {
+        painter.text(`いまの称号: ${r.rankLabel}`, painter.w / 2, 180, {
           size: 11,
           align: 'center',
           color: 'dim',
@@ -404,26 +420,26 @@ export function GameShell({ game }: { game: AnyGame }) {
       // 指摘が出た（2026-08-12 / nuimichi）。目標値と自己ベストの両方を並べて出す。
       if (r.nextLabel) {
         const close = r.nextDiff <= Math.max(2, r.best * 0.15);
-        painter.text(`次は「${r.nextLabel}」${r.best + r.nextDiff}${game.meta.unit}`, VIRTUAL_W / 2, 198, {
+        painter.text(`次は「${r.nextLabel}」${r.best + r.nextDiff}${game.meta.unit}`, painter.w / 2, 198, {
           size: 12,
           align: 'center',
           color: close ? 'accent2' : 'ink',
         });
         painter.text(
           `自己ベスト ${r.best}${game.meta.unit} … あと${r.nextDiff}${game.meta.unit}`,
-          VIRTUAL_W / 2,
+          painter.w / 2,
           215,
           { size: 10, align: 'center', color: 'dim' },
         );
       } else if (r.best > 0) {
-        painter.text(`自己ベスト ${r.best}${game.meta.unit}`, VIRTUAL_W / 2, 202, {
+        painter.text(`自己ベスト ${r.best}${game.meta.unit}`, painter.w / 2, 202, {
           size: 11,
           align: 'center',
           color: !r.allCleared && r.best - r.score <= Math.max(2, r.best * 0.1) ? 'accent2' : 'dim',
         });
       }
       if (phaseTime > RETRY_LOCK && Math.floor(blink * 2) % 2 === 0) {
-        painter.text('タップでもう一回', VIRTUAL_W / 2, VIRTUAL_H - 66, {
+        painter.text('タップでもう一回', painter.w / 2, painter.h - 66, {
           size: 13,
           align: 'center',
           color: 'ink',
@@ -446,6 +462,8 @@ export function GameShell({ game }: { game: AnyGame }) {
     };
 
     const tick = (now: number) => {
+      // ゲームパッドはイベントが来ないので、毎フレームこちらから読む
+      input.pollGamepad();
       const elapsed = Math.min((now - last) / 1000, 0.25);
       last = now;
       acc += elapsed;
@@ -533,10 +551,10 @@ export function GameShell({ game }: { game: AnyGame }) {
         painter.clear('bg');
         game.draw(painter, state);
         drawHud();
-        painter.alpha(0.72, () => painter.rect(0, 0, VIRTUAL_W, VIRTUAL_H, 'bg'));
+        painter.alpha(0.72, () => painter.rect(0, 0, painter.w, painter.h, 'bg'));
         // ゲームの絵と重ならない高さに置く
-        painter.text('ちゅうだん中', VIRTUAL_W / 2, 66, { size: 16, align: 'center', color: 'ink' });
-        painter.text(`いま ${state.score}${game.meta.unit}`, VIRTUAL_W / 2, 92, {
+        painter.text('ちゅうだん中', painter.w / 2, 66, { size: 16, align: 'center', color: 'ink' });
+        painter.text(`いま ${state.score}${game.meta.unit}`, painter.w / 2, 92, {
           size: 11,
           align: 'center',
           color: 'dim',
@@ -544,12 +562,12 @@ export function GameShell({ game }: { game: AnyGame }) {
       } else if (ph === 'replay') {
         painter.clear('bg');
         game.draw(painter, replayState);
-        painter.rect(0, 0, VIRTUAL_W, 16, 'bg2');
+        painter.rect(0, 0, painter.w, 16, 'bg2');
         painter.text(`${replayState.score}${game.meta.unit}`, 6, 3, { color: 'dim', size: 12 });
         if (Math.floor(blink * 3) % 2 === 0) {
-          painter.text('リプレイ', VIRTUAL_W - 6, 4, { size: 10, align: 'right', color: 'accent2' });
+          painter.text('リプレイ', painter.w - 6, 4, { size: 10, align: 'right', color: 'accent2' });
         }
-        painter.text('タップでとばす', VIRTUAL_W / 2, VIRTUAL_H - 24, {
+        painter.text('タップでとばす', painter.w / 2, painter.h - 24, {
           size: 9,
           align: 'center',
           color: 'dim',
@@ -560,7 +578,7 @@ export function GameShell({ game }: { game: AnyGame }) {
         drawHud();
         // 赤の点滅は最初の一瞬だけ。そのあとは「やられた絵」を隠さない
         if (ph === 'over' && phaseTime < 0.18 && Math.floor(blink * 24) % 2 === 0) {
-          painter.alpha(0.3, () => painter.rect(0, 0, VIRTUAL_W, VIRTUAL_H, 'bad'));
+          painter.alpha(0.3, () => painter.rect(0, 0, painter.w, painter.h, 'bad'));
         }
       }
     };
@@ -592,12 +610,12 @@ export function GameShell({ game }: { game: AnyGame }) {
       document.removeEventListener('visibilitychange', onVisibility);
       detach();
     };
-  }, [game]);
+  }, [game, plat, theme]);
 
   if (crashed) {
     return (
       <div className={styles.root}>
-        <div className={styles.crash}>
+        <div className={styles.crash} style={screenStyle}>
           <p className={styles.crashTitle}>エラーが はっせい しました</p>
           <p className={styles.crashBody}>{crashed}</p>
           <button type="button" className={styles.crashButton} onClick={() => window.location.reload()}>
@@ -610,12 +628,14 @@ export function GameShell({ game }: { game: AnyGame }) {
 
   return (
     <div className={styles.root}>
-      <div ref={wrapRef} className={styles.screen}>
+      <div ref={wrapRef} className={styles.screen} style={screenStyle}>
         <canvas
           ref={canvasRef}
-          width={VIRTUAL_W}
-          height={VIRTUAL_H}
+          width={plat.w}
+          height={plat.h}
           className={styles.canvas}
+          // flash 機種は当時のベクター描画の質感なので、ドット拡大にしない
+          style={plat.pixelated ? undefined : { imageRendering: 'auto' }}
           aria-label={`${game.meta.title}のゲーム画面`}
         />
       </div>

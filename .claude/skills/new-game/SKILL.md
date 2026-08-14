@@ -122,6 +122,9 @@ npm run new -- <slug> --title "タイトル" --howto "あそびかた" --control
   例外として `steer`（曲がる）と `type`（打つ）があるが、使ってよいのは
   **その操作を1ボタンに置き換えたら題材そのものが消えるとき**だけ
   （`type` はスマホで遊べなくなる。判断は [fun-doctrine ①](../../../docs/design/fun-doctrine.md)）
+- `--platform` は `keitai`（既定・240×320 縦）/ `flash`（550×400 横・なめらか）/ `arcade`（384×224 横・ドット）。
+  その遊びが**当時どの画面で遊ばれていたか**で選ぶ。迷ったら keitai。
+  → [docs/design/platforms.md](../../../docs/design/platforms.md)
 - `--constraint` は収録の制約（例: `マックのポテトM`）。一覧に出る
 
 ## 3. `step` と `draw` を書く

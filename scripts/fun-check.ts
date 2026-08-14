@@ -40,11 +40,19 @@ const GENRE_LABEL: Record<string, string> = {
   oneshot: '1回たどり着いて終わり',
 };
 
+const PLATFORM_LABEL: Record<string, string> = {
+  keitai: 'ケータイ',
+  flash: 'PCブラウザ',
+  arcade: 'ゲーセン',
+};
+
 function printReport(rep: GateReport): void {
   const head = rep.pass ? `${C.green}合格${C.reset}` : `${C.red}不合格${C.reset}`;
   const genre = GENRE_LABEL[rep.genre] ?? rep.genre;
+  // 機種は keitai 以外のときだけ出す（既定の見え方はこれまで通りに保つ）
+  const plat = rep.platform !== 'keitai' ? ` / ${PLATFORM_LABEL[rep.platform] ?? rep.platform}` : '';
   console.log(
-    `\n${C.bold}${rep.title}${C.reset} ${C.dim}(${rep.slug} / ${genre})${C.reset}  ${head}`,
+    `\n${C.bold}${rep.title}${C.reset} ${C.dim}(${rep.slug} / ${genre}${plat})${C.reset}  ${head}`,
   );
   console.log(`${C.dim}${'─'.repeat(60)}${C.reset}`);
 

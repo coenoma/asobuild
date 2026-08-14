@@ -22,9 +22,10 @@ import { existsSync, mkdirSync, writeFileSync, appendFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createCanvas } from '@napi-rs/canvas';
 import { Painter } from '../src/arcade/painter';
+import { platformOf } from '../src/arcade/platforms';
 import { advance, toInput } from '../src/arcade/runner';
 import { createRng } from '../src/arcade/rng';
-import { FIXED_DT, VIRTUAL_H, VIRTUAL_W } from '../src/arcade/types';
+import { FIXED_DT } from '../src/arcade/types';
 import { loaders, metas } from '../src/games/registry';
 
 const LIVE_DIR = resolve(process.cwd(), '.live');
@@ -55,17 +56,22 @@ async function snapOne(slug: string, seconds: number): Promise<string | null> {
     prevPress = action.press;
   }
 
-  const screen = createCanvas(VIRTUAL_W, VIRTUAL_H);
+  const plat = platformOf(game.meta);
+  const screen = createCanvas(plat.w, plat.h);
   const sctx = screen.getContext('2d');
-  const painter = new Painter(sctx as unknown as CanvasRenderingContext2D, game.meta.theme);
+  const painter = new Painter(
+    sctx as unknown as CanvasRenderingContext2D,
+    game.meta.theme ?? plat.defaultTheme,
+    plat,
+  );
   // sans-serif 任せだと一部の漢字が豆腐（□）になる。gen-ogp.ts と同じ手当て
   painter.fontFamily = '"Hiragino Sans", "Noto Sans CJK JP", "Yu Gothic", sans-serif';
   game.draw(painter, state);
 
-  const out = createCanvas(VIRTUAL_W * SCALE, VIRTUAL_H * SCALE);
+  const out = createCanvas(plat.w * SCALE, plat.h * SCALE);
   const ctx = out.getContext('2d');
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(screen, 0, 0, VIRTUAL_W * SCALE, VIRTUAL_H * SCALE);
+  ctx.imageSmoothingEnabled = !plat.pixelated;
+  ctx.drawImage(screen, 0, 0, plat.w * SCALE, plat.h * SCALE);
 
   const now = new Date();
   const stamp = now.toISOString().replace(/[:.]/g, '-');

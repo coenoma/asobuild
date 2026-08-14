@@ -13,10 +13,11 @@
 
 import { createCanvas, type SKRSContext2D } from '@napi-rs/canvas';
 import { Painter } from '../src/arcade/painter';
+import { platformOf } from '../src/arcade/platforms';
 import { advance, toInput } from '../src/arcade/runner';
 import { createRng } from '../src/arcade/rng';
 import { getPalette } from '../src/arcade/palette';
-import { FIXED_DT, VIRTUAL_H, VIRTUAL_W } from '../src/arcade/types';
+import { FIXED_DT } from '../src/arcade/types';
 import { loaders, metas } from '../src/games/registry';
 
 /**
@@ -65,7 +66,9 @@ async function captureFrame(slug: string, seconds: number) {
 async function generate(slug: string): Promise<void> {
   const { game, state } = await captureFrame(slug, SECONDS);
   const meta = game.meta;
-  const palette = getPalette(meta.theme);
+  const plat = platformOf(meta);
+  const theme = meta.theme ?? plat.defaultTheme;
+  const palette = getPalette(theme);
 
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext('2d');
@@ -76,21 +79,24 @@ async function generate(slug: string): Promise<void> {
 
   // ゲーム画面を別のキャンバスに実寸で描いてから拡大して貼る
   // （最初から拡大して描くとドットが粗くならない）
-  const screen = createCanvas(VIRTUAL_W, VIRTUAL_H);
+  const screen = createCanvas(plat.w, plat.h);
   const sctx = screen.getContext('2d');
-  const painter = new Painter(sctx as unknown as CanvasRenderingContext2D, meta.theme);
+  const painter = new Painter(sctx as unknown as CanvasRenderingContext2D, theme, plat);
   painter.fontFamily = FONT;
   painter.clear('bg');
   game.draw(painter, state);
   // HUD（スコア帯）も入れておくと「ゲームの画面」だと一目で分かる
-  painter.rect(0, 0, VIRTUAL_W, 16, 'bg2');
+  painter.rect(0, 0, plat.w, 16, 'bg2');
   painter.text(`${state.score}${meta.unit}`, 6, 3, { color: 'accent', size: 12 });
 
-  const dw = VIRTUAL_W * SCALE;
-  const dh = VIRTUAL_H * SCALE;
+  // 縦長（keitai）は従来の倍率のまま。横長の機種は右側に収まる大きさへ落とす
+  const scale = plat.h >= plat.w ? SCALE : Math.min(SCALE, 600 / plat.w, 520 / plat.h);
+  const dw = plat.w * scale;
+  const dh = plat.h * scale;
   const dx = W - dw - 90;
   const dy = (H - dh) / 2;
-  ctx.imageSmoothingEnabled = false;
+  // ドット機種は補間なしで拡大。なめらか機種はそのまま補間で拡大
+  ctx.imageSmoothingEnabled = !plat.pixelated;
   // 枠（ケータイの画面らしく見せる）
   ctx.fillStyle = palette.line;
   ctx.fillRect(dx - 8, dy - 8, dw + 16, dh + 16);

@@ -5,6 +5,7 @@
  * 経路を1本にしておかないと「ゲートは通ったのに実機だと違う」が起きる。
  */
 
+import { platformOf } from './platforms';
 import { createRng, type Rng } from './rng';
 import {
   FIXED_DT,
@@ -43,14 +44,21 @@ const NO_KEYS: readonly string[] = Object.freeze([]);
  *
  * ボットの意思・実プレイの操作・リプレイの記録が、すべてこの1本を通る。
  * 経路を分けると「リプレイだけ結果が違う」が起きるので、必ずここを通すこと。
+ *
+ * dims は px/py を省略したときの「画面の真ん中」を決めるためのもの。
+ * 機種が keitai 以外のゲームでは、その機種の寸法を渡すこと（playOnce は自動でやる）。
  */
-export function toInput(frame: Frame, prevPress: boolean): Input {
+export function toInput(
+  frame: Frame,
+  prevPress: boolean,
+  dims: { w: number; h: number } = { w: VIRTUAL_W, h: VIRTUAL_H },
+): Input {
   return {
     tap: frame.press && !prevPress,
     hold: frame.press,
     release: !frame.press && prevPress,
-    px: frame.px ?? VIRTUAL_W / 2,
-    py: frame.py ?? VIRTUAL_H / 2,
+    px: frame.px ?? dims.w / 2,
+    py: frame.py ?? dims.h / 2,
     steer: frame.steer ?? 0,
     typed: frame.typed ?? NO_KEYS,
   };
@@ -101,6 +109,7 @@ export function playOnce<S extends BaseState>(
   opts: { seed: number; policy: Policy<S>; maxSeconds?: number },
 ): PlayResult {
   const maxFrames = Math.ceil((opts.maxSeconds ?? 300) / FIXED_DT);
+  const dims = platformOf(game.meta);
   const rng = createRng(opts.seed);
   // 方針側の乱数はゲーム本体と混ざらないよう別系統にする
   const policyRng = createRng(opts.seed ^ 0x9e3779b9);
@@ -112,7 +121,7 @@ export function playOnce<S extends BaseState>(
 
   while (!state.over && frame < maxFrames) {
     const action = opts.policy(state, policyRng, frame);
-    const input = toInput(action, prevPress);
+    const input = toInput(action, prevPress, dims);
     state = advance(game, state, input, rng, FIXED_DT);
     if (state.score !== prevScore) {
       scoreEvents++;
@@ -147,8 +156,12 @@ export const idlePolicy: Policy<BaseState> = () => ({ press: false });
  *
  * control を渡すと、その操作方式に合ったでたらめさを足す。
  * **渡さなければ乱数の消費は増えない**（既存ゲームの数字を動かさないための作り）。
+ * dims は狙い先のでたらめさの範囲。機種が keitai 以外なら、その機種の寸法を渡す。
  */
-export function makeRandomPolicy<S extends BaseState>(control?: Control): Policy<S> {
+export function makeRandomPolicy<S extends BaseState>(
+  control?: Control,
+  dims: { w: number; h: number } = { w: VIRTUAL_W, h: VIRTUAL_H },
+): Policy<S> {
   let pressing = false;
   let releaseAt = 0;
   let steer = 0;
@@ -163,8 +176,8 @@ export function makeRandomPolicy<S extends BaseState>(control?: Control): Policy
     }
     const action: BotAction = {
       press: pressing,
-      px: rng.range(0, VIRTUAL_W),
-      py: rng.range(0, VIRTUAL_H),
+      px: rng.range(0, dims.w),
+      py: rng.range(0, dims.h),
     };
     if (control === 'steer') {
       // 毎フレーム振り直すと小刻みに震えるだけで前に進めない。

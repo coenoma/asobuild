@@ -12,6 +12,7 @@
  * を数字で見る。落ちたときは「何を直すか」まで出す。
  */
 
+import { platformOf } from './platforms';
 import { createRng } from './rng';
 import {
   advance,
@@ -23,7 +24,7 @@ import {
   type PlayResult,
   type Policy,
 } from './runner';
-import { FIXED_DT, type Frame } from './types';
+import { FIXED_DT, type Frame, type PlatformName } from './types';
 import type { BaseState, FunGate, GameDefinition, Genre } from './types';
 
 /**
@@ -35,7 +36,7 @@ import type { BaseState, FunGate, GameDefinition, Genre } from './types';
 function makeNovicePolicy<S extends BaseState>(game: GameDefinition<S>): Policy<S> {
   const novice = game.novice;
   if (novice) return (state, rng, frame) => novice.call(game, state, rng, frame);
-  return makeRandomPolicy<S>(game.meta.control);
+  return makeRandomPolicy<S>(game.meta.control, platformOf(game.meta));
 }
 
 export const FUN_GATE_DEFAULT: FunGate = {
@@ -92,6 +93,7 @@ const GENRE_GATE: Record<Genre, Partial<FunGate>> = {
 function replaysTheSame<S extends BaseState>(game: GameDefinition<S>): boolean {
   const seed = 4242;
   const control = game.meta.control;
+  const dims = platformOf(game.meta);
 
   // 1回目: ボットに遊ばせながら、操作方式が使う分だけを記録する
   const rng = createRng(seed);
@@ -101,7 +103,7 @@ function replaysTheSame<S extends BaseState>(game: GameDefinition<S>): boolean {
   const log: Frame[] = [];
   while (!state.over && log.length < 3600) {
     const action = game.bot(state, policyRng);
-    const input = toInput(action, prev);
+    const input = toInput(action, prev, dims);
     log.push(toLogFrame(input, control));
     state = advance(game, state, input, rng, FIXED_DT);
     prev = action.press;
@@ -112,7 +114,7 @@ function replaysTheSame<S extends BaseState>(game: GameDefinition<S>): boolean {
   let replayed = game.init(rng2);
   let prev2 = false;
   for (const f of log) {
-    replayed = advance(game, replayed, toInput(f, prev2), rng2, FIXED_DT);
+    replayed = advance(game, replayed, toInput(f, prev2, dims), rng2, FIXED_DT);
     prev2 = f.press;
   }
 
@@ -188,6 +190,8 @@ export interface GateReport {
   slug: string;
   title: string;
   genre: Genre;
+  /** 機種。keitai 以外なら見出しに出す */
+  platform: PlatformName;
   pass: boolean;
   deterministic: boolean;
   /**
@@ -470,6 +474,7 @@ function buildReport<S extends BaseState>(
     slug: game.meta.slug,
     title: game.meta.title,
     genre,
+    platform: game.meta.platform ?? 'keitai',
     pass: checks.every((c) => c.pass),
     deterministic,
     customNovice: typeof game.novice === 'function',
