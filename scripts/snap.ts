@@ -51,7 +51,7 @@ async function snapOne(slug: string, seconds: number): Promise<string | null> {
   const frames = Math.round(seconds / FIXED_DT);
   for (let i = 0; i < frames && !state.over; i++) {
     const action = game.bot(state, botRng);
-    state = advance(game, state, toInput(action.press, prevPress, action.px, action.py), rng, FIXED_DT);
+    state = advance(game, state, toInput(action, prevPress), rng, FIXED_DT);
     prevPress = action.press;
   }
 

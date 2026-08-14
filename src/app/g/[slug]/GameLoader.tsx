@@ -13,16 +13,14 @@ import type { AnyGame } from '@/arcade/types';
 import styles from './page.module.css';
 
 export function GameLoader({ slug }: { slug: string }) {
+  // 登録簿に無いことは描画の時点で分かる。分かっていることを状態にしない
+  const load = loaders[slug];
   const [game, setGame] = useState<AnyGame | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
+    if (!load) return;
     let alive = true;
-    const load = loaders[slug];
-    if (!load) {
-      setFailed(true);
-      return;
-    }
     load()
       .then((mod) => {
         if (alive) setGame(mod.default);
@@ -33,9 +31,9 @@ export function GameLoader({ slug }: { slug: string }) {
     return () => {
       alive = false;
     };
-  }, [slug]);
+  }, [load]);
 
-  if (failed) {
+  if (!load || failed) {
     return <p className={styles.loading}>ゲームを読み込めませんでした。</p>;
   }
   if (!game) {

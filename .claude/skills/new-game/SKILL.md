@@ -118,7 +118,10 @@ npm run new -- <slug> --title "タイトル" --howto "あそびかた" --control
 ```
 
 - `--howto` は20文字以内。読まなくても分かる一行
-- `--control` は `tap` / `hold` / `tap-hold` / `aim`
+- `--control` は `tap` / `hold` / `tap-hold` / `aim` の4つから選ぶ。
+  例外として `steer`（曲がる）と `type`（打つ）があるが、使ってよいのは
+  **その操作を1ボタンに置き換えたら題材そのものが消えるとき**だけ
+  （`type` はスマホで遊べなくなる。判断は [fun-doctrine ①](../../../docs/design/fun-doctrine.md)）
 - `--constraint` は収録の制約（例: `マックのポテトM`）。一覧に出る
 
 ## 3. `step` と `draw` を書く

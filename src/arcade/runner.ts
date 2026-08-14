@@ -12,6 +12,8 @@ import {
   VIRTUAL_W,
   type BaseState,
   type BotAction,
+  type Control,
+  type Frame,
   type GameDefinition,
   type Input,
 } from './types';
@@ -33,15 +35,48 @@ export function advance<S extends BaseState>(
   return next;
 }
 
-/** press の連なりから tap / hold / release を導出する */
-export function toInput(press: boolean, prevPress: boolean, px?: number, py?: number): Input {
+/** 打っていないフレームで毎回配列を作らないよう、空のときは使い回す */
+const NO_KEYS: readonly string[] = Object.freeze([]);
+
+/**
+ * 1フレーム分の操作から Input を作る。tap / release は前フレームとの差で決まる。
+ *
+ * ボットの意思・実プレイの操作・リプレイの記録が、すべてこの1本を通る。
+ * 経路を分けると「リプレイだけ結果が違う」が起きるので、必ずここを通すこと。
+ */
+export function toInput(frame: Frame, prevPress: boolean): Input {
   return {
-    tap: press && !prevPress,
-    hold: press,
-    release: !press && prevPress,
-    px: px ?? VIRTUAL_W / 2,
-    py: py ?? VIRTUAL_H / 2,
+    tap: frame.press && !prevPress,
+    hold: frame.press,
+    release: !frame.press && prevPress,
+    px: frame.px ?? VIRTUAL_W / 2,
+    py: frame.py ?? VIRTUAL_H / 2,
+    steer: frame.steer ?? 0,
+    typed: frame.typed ?? NO_KEYS,
   };
+}
+
+/**
+ * 実プレイの入力を、リプレイに残す形へ落とす。
+ *
+ * **操作方式が使う分だけ残す。** タップのゲームの記録を1フレーム1ビットのまま
+ * 保つための作りなので、まとめて全部残す形にしないこと。
+ * 逆に、記録していない入力はリプレイでは無かったことになる
+ * （aim の狙い先を残していなかった頃は、リプレイが別のプレイになっていた）。
+ */
+export function toLogFrame(input: Input, control: Control): Frame {
+  switch (control) {
+    case 'aim':
+      return { press: input.hold, px: input.px, py: input.py };
+    case 'steer':
+      return { press: input.hold, steer: input.steer };
+    case 'type':
+      return input.typed.length > 0
+        ? { press: input.hold, typed: [...input.typed] }
+        : { press: input.hold };
+    default:
+      return { press: input.hold };
+  }
 }
 
 export interface PlayResult {
@@ -77,7 +112,7 @@ export function playOnce<S extends BaseState>(
 
   while (!state.over && frame < maxFrames) {
     const action = opts.policy(state, policyRng, frame);
-    const input = toInput(action.press, prevPress, action.px, action.py);
+    const input = toInput(action, prevPress);
     state = advance(game, state, input, rng, FIXED_DT);
     if (state.score !== prevScore) {
       scoreEvents++;
@@ -109,10 +144,15 @@ export const idlePolicy: Policy<BaseState> = () => ({ press: false });
  * それだと「初見でも点が入るか」の判定が、ゲームの出来ではなくボットの都合で決まってしまう。
  *
  * 内部状態を持つので、プレイごとに作り直すこと。
+ *
+ * control を渡すと、その操作方式に合ったでたらめさを足す。
+ * **渡さなければ乱数の消費は増えない**（既存ゲームの数字を動かさないための作り）。
  */
-export function makeRandomPolicy<S extends BaseState>(): Policy<S> {
+export function makeRandomPolicy<S extends BaseState>(control?: Control): Policy<S> {
   let pressing = false;
   let releaseAt = 0;
+  let steer = 0;
+  let steerUntil = 0;
   return (_state, rng, frame) => {
     if (pressing) {
       if (frame >= releaseAt) pressing = false;
@@ -121,7 +161,21 @@ export function makeRandomPolicy<S extends BaseState>(): Policy<S> {
       // 3〜75フレーム（0.05〜1.25秒）押し続ける。短い連打も長押しも出る
       releaseAt = frame + 3 + rng.int(72);
     }
-    return { press: pressing, px: rng.range(0, VIRTUAL_W), py: rng.range(0, VIRTUAL_H) };
+    const action: BotAction = {
+      press: pressing,
+      px: rng.range(0, VIRTUAL_W),
+      py: rng.range(0, VIRTUAL_H),
+    };
+    if (control === 'steer') {
+      // 毎フレーム振り直すと小刻みに震えるだけで前に進めない。
+      // 少しの間おなじ向きに切り続ける形にして、「何も分かっていない人」に寄せる
+      if (frame >= steerUntil) {
+        steer = rng.int(3) - 1;
+        steerUntil = frame + 6 + rng.int(30);
+      }
+      action.steer = steer;
+    }
+    return action;
   };
 }
 

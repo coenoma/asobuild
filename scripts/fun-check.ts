@@ -70,6 +70,15 @@ function printReport(rep: GateReport): void {
     if (!c.pass) console.log(`      ${C.yellow}→ ${c.fix}${C.reset}`);
   }
 
+  // でたらめ役を差し替えていることは必ず見えるようにする。
+  // 黙って甘い基準で通していると、次から誰もこの数字を信じなくなる
+  if (rep.customNovice) {
+    console.log(`\n  ${C.yellow}「でたらめ」役はゲーム側の novice() が担っています${C.reset}`);
+    console.log(
+      `  ${C.dim}共通のでたらめボットより甘くなりえます。「初見でも点が入る」は人が確かめること。${C.reset}`,
+    );
+  }
+
   if (rep.topReasons.length) {
     console.log(`\n  ${C.dim}上手いボットの死因:${C.reset}`);
     for (const r of rep.topReasons) {

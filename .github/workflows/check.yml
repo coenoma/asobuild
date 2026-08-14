@@ -1,8 +1,9 @@
 name: check
 
-# 型・面白さゲート・ビルドを通す。
+# 型・規約・面白さゲート・ビルドを通す。
 # ゲートは前回の記録（docs/records/gate/）と見比べるので、
 # 共通ランタイムを触って既存ゲームの手触りが変わった場合もここで気づける。
+# 規約は eslint.config.mjs で、ゲームの絶対ルール（乱数・時刻・生の #hex 等）まで見ている。
 
 on:
   push:
@@ -24,6 +25,9 @@ jobs:
 
       - name: 型チェック
         run: npm run typecheck
+
+      - name: 規約（ゲームの絶対ルールを含む）
+        run: npm run lint
 
       - name: 面白さゲート（記録との比較つき）
         run: npm run fun:all

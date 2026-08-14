@@ -11,7 +11,7 @@
     "dev:rec": "node scripts/rec.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "new": "node scripts/new-game.mjs",
     "say": "node scripts/live.mjs say",
@@ -23,7 +23,7 @@
     "playtest": "tsx scripts/playtest.ts",
     "ship": "npm run check && tsx scripts/ship-check.ts",
     "status": "tsx scripts/status.ts",
-    "check": "npm run typecheck && npm run fun:all && npm run build",
+    "check": "npm run typecheck && npm run lint && npm run fun:all && npm run build",
     "snap": "tsx scripts/snap.ts"
   },
   "dependencies": {

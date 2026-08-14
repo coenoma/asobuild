@@ -6,6 +6,7 @@
  * 収録中に出てもネタになる見た目にしておく。
  */
 
+import Link from 'next/link';
 import styles from './error.module.css';
 
 export default function AppError({
@@ -25,9 +26,9 @@ export default function AppError({
           <button type="button" className={styles.primary} onClick={reset}>
             もう一回
           </button>
-          <a className={styles.link} href="/">
+          <Link className={styles.link} href="/">
             ぜんぶ見る
-          </a>
+          </Link>
         </div>
       </div>
     </main>

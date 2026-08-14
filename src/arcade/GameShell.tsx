@@ -14,13 +14,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Painter } from './painter';
 import { InputSource } from './input';
-import { advance, toInput } from './runner';
+import { advance, toInput, toLogFrame } from './runner';
 import { createRng, randomSeed } from './rng';
 import { sfx } from './sfx';
 import { getBest, incPlays, setBest } from './storage';
 import { gameUrl, shareScore } from './share';
 import { currentGoal, isAllCleared, nextGoal } from './goals';
-import { FIXED_DT, VIRTUAL_H, VIRTUAL_W, type AnyGame, type Input } from './types';
+import {
+  FIXED_DT,
+  VIRTUAL_H,
+  VIRTUAL_W,
+  type AnyGame,
+  type Frame,
+  type Input,
+} from './types';
 import styles from './GameShell.module.css';
 
 type Phase = 'title' | 'playing' | 'paused' | 'over' | 'replay' | 'result';
@@ -81,10 +88,17 @@ export function GameShell({ game }: { game: AnyGame }) {
   const resumeRef = useRef<(() => void) | null>(null);
   const quitRef = useRef<(() => void) | null>(null);
   const resultRef = useRef(result);
-  resultRef.current = result;
+  // 描画中に ref を書き換えない。読むのは共有ボタンとループの中（どちらも描画の外）なので、
+  // 描画が終わってから合わせれば間に合う
+  useEffect(() => {
+    resultRef.current = result;
+  }, [result]);
 
   useEffect(() => {
     sfx.init();
+    // サーバー側では localStorage が読めないので、水和したあとに一度だけ実物へ合わせる。
+    // 「効果の中で setState しない」の例外。ここを外すと、音を消していた人に音が鳴る
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMuted(sfx.isMuted);
   }, []);
 
@@ -129,7 +143,12 @@ export function GameShell({ game }: { game: AnyGame }) {
     if (cssFont) painter.fontFamily = `${cssFont}, monospace`;
 
     const input = new InputSource();
-    const detach = input.attach(wrap);
+    // 左右と打鍵は、それを遊びの中心にしているゲームでだけ拾う。
+    // 常に拾うと、ページの矢印キー操作や文字入力を奪ってしまう
+    const detach = input.attach(wrap, {
+      steer: game.meta.control === 'steer',
+      text: game.meta.control === 'type',
+    });
 
     // ループ内の状態はすべてここに置く（React の再描画と切り離す）
     let phaseLocal: Phase = 'title';
@@ -151,7 +170,15 @@ export function GameShell({ game }: { game: AnyGame }) {
     // step が純粋関数で乱数もシード式なので、**シードと入力列だけで完全に再現できる**。
     // 状態を保存する必要がないので、記録はほぼタダ。
     let seedUsed = 0;
-    let inputLog: boolean[] = [];
+    /**
+     * リプレイ用の操作の記録。
+     *
+     * tap / hold のゲームは1フレームあたり1ビットで足りるが、
+     * 狙い先・左右・打鍵を使うゲームはそれも残さないと同じプレイにならない
+     * （記録していなかった頃は aim のゲームがリプレイで別物になっていた）。
+     * 使う分だけ残すので、tap のゲームの記録はこれまでと同じ大きさのまま。
+     */
+    let inputLog: Frame[] = [];
     // リプレイ再生中の状態（実プレイとは完全に分ける）
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let replayState: any = null;
@@ -239,9 +266,9 @@ export function GameShell({ game }: { game: AnyGame }) {
       replaySlow = 0;
       // 見せたいところまで一気に進める（描かないので一瞬）
       for (let i = 0; i < skip; i++) {
-        const press = inputLog[i];
-        replayState = advance(game, replayState, toInput(press, replayPrev), replayRng, FIXED_DT);
-        replayPrev = press;
+        const f = inputLog[i];
+        replayState = advance(game, replayState, toInput(f, replayPrev), replayRng, FIXED_DT);
+        replayPrev = f.press;
       }
       replayAt = skip;
       gotoPhase('replay');
@@ -437,6 +464,8 @@ export function GameShell({ game }: { game: AnyGame }) {
           release: input.justReleased,
           px: input.px,
           py: input.py,
+          steer: input.steer,
+          typed: input.typed,
         };
 
         if (phaseLocal === 'paused') {
@@ -450,14 +479,14 @@ export function GameShell({ game }: { game: AnyGame }) {
             if (demoRestIn <= 0) startDemo();
           } else {
             const action = game.bot(demoState, demoPolicyRng);
-            const demoInput = toInput(action.press, demoPrevPress, action.px, action.py);
+            const demoInput = toInput(action, demoPrevPress);
             demoState = advance(game, demoState, demoInput, demoRng, FIXED_DT);
             demoPrevPress = action.press;
             if (demoState.over) demoRestIn = 0.8;
           }
           if (tapped) start();
         } else if (phaseLocal === 'playing') {
-          inputLog.push(inp.hold);
+          inputLog.push(toLogFrame(inp, game.meta.control));
           state = advance(game, state, inp, gameRng, FIXED_DT);
           if (state.score > prevScore) {
             sfx.combo(state.score - prevScore > 1 ? 4 : Math.min(12, state.score));
@@ -476,15 +505,9 @@ export function GameShell({ game }: { game: AnyGame }) {
           // 半分の速さで見せる。等速だと何が起きたのか目で追えない
           replaySlow += 1;
           if (replaySlow % 2 === 0 && replayAt < inputLog.length) {
-            const press = inputLog[replayAt];
-            replayState = advance(
-              game,
-              replayState,
-              toInput(press, replayPrev),
-              replayRng,
-              FIXED_DT,
-            );
-            replayPrev = press;
+            const f = inputLog[replayAt];
+            replayState = advance(game, replayState, toInput(f, replayPrev), replayRng, FIXED_DT);
+            replayPrev = f.press;
             replayAt += 1;
           } else if (replayAt >= inputLog.length) {
             gotoPhase('result');
@@ -642,6 +665,11 @@ function hintForControl(control: string): string {
       return 'タップと長押しで操作（スペースキーでも遊べます）';
     case 'aim':
       return '画面を狙ってタップ';
+    case 'steer':
+      return '画面の左右をおして曲がる（← → キーでも）';
+    case 'type':
+      // これだけスマホで遊べないので、開く前に分かるようにしておく
+      return 'キーボードで打つ（パソコン向け）';
     default:
       return 'タップで操作（スペースキーでも遊べます）';
   }

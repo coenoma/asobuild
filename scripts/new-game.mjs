@@ -24,7 +24,8 @@ function opt(name, fallback) {
 }
 
 if (!slug || !/^[a-z][a-z0-9-]*$/.test(slug)) {
-  console.error('使い方: npm run new -- <slug> [--title タイトル] [--howto あそびかた] [--control tap|hold|tap-hold|aim] [--genre action|puzzle|nurture|chance|oneshot] [--constraint 制約] [--unit 点]');
+  console.error('使い方: npm run new -- <slug> [--title タイトル] [--howto あそびかた] [--control tap|hold|tap-hold|aim|steer|type] [--genre action|puzzle|nurture|chance|oneshot] [--constraint 制約] [--unit 点]');
+  console.error('  ※ steer / type は「その操作をすること自体が題材」のときだけ（docs/design/fun-doctrine.md ①）');
   console.error('slug は半角英小文字・数字・ハイフンのみ（例: potato-nobashi）');
   process.exit(1);
 }
@@ -220,5 +221,14 @@ if (genre !== 'action') {
   console.log(`\n⚠️ 雛形の中身は action（反射）用です。`);
   console.log(`   ${genre} の作りは docs/design/genre-map.md を読んでから step/draw/bot を書き換えてください。`);
   console.log(`   型が変わると、面白さゲートが見る項目も変わります。`);
+}
+// 例外の操作方式は、代償と追加の作業を打った直後に伝える（あとで気づくと作り直しになる）
+if (control === 'steer' || control === 'type') {
+  console.log(`\n⚠️ control: ${control} は例外の操作方式です。`);
+  console.log(`   雛形は tap 用なので、input.${control === 'steer' ? 'steer' : 'typed'} を見る形に書き換えてください。`);
+  console.log(`   .claude/rules/games.md の「操作方式ごとの注意」を先に読むこと。`);
+  if (control === 'type') {
+    console.log(`   🔴 type はスマホで遊べません。novice() も書かないと面白さゲートが機能しません。`);
+  }
 }
 console.log('');

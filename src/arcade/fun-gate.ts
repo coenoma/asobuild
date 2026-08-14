@@ -12,14 +12,31 @@
  * を数字で見る。落ちたときは「何を直すか」まで出す。
  */
 
+import { createRng } from './rng';
 import {
+  advance,
   makeRandomPolicy,
   makeSmartPolicy,
   playOnce,
+  toInput,
+  toLogFrame,
   type PlayResult,
   type Policy,
 } from './runner';
+import { FIXED_DT, type Frame } from './types';
 import type { BaseState, FunGate, GameDefinition, Genre } from './types';
+
+/**
+ * 「何も分かっていない人」役を作る。
+ *
+ * ゲームが novice() を持っていればそれを使う。
+ * タイピングのように、共通のでたらめボットでは構造的に一度も成功できない遊びがあるため。
+ */
+function makeNovicePolicy<S extends BaseState>(game: GameDefinition<S>): Policy<S> {
+  const novice = game.novice;
+  if (novice) return (state, rng, frame) => novice.call(game, state, rng, frame);
+  return makeRandomPolicy<S>(game.meta.control);
+}
 
 export const FUN_GATE_DEFAULT: FunGate = {
   idleSurvivalMaxSec: 8,
@@ -65,9 +82,47 @@ const GENRE_GATE: Record<Genre, Partial<FunGate>> = {
   oneshot: { smartSurvivalMaxSec: 900, eventIntervalMaxSec: 15 },
 };
 
+/**
+ * 記録した操作だけで、同じプレイを再現できるか。
+ *
+ * リプレイ・おだいURL・OGP画像は、どれも「種＋操作の記録」から作り直している。
+ * 操作の一部を記録し忘れていると、そこだけ別のプレイになる。
+ * 実際に aim（狙い先）を記録していなかった時期があり、気づかれていなかった。
+ */
+function replaysTheSame<S extends BaseState>(game: GameDefinition<S>): boolean {
+  const seed = 4242;
+  const control = game.meta.control;
+
+  // 1回目: ボットに遊ばせながら、操作方式が使う分だけを記録する
+  const rng = createRng(seed);
+  const policyRng = createRng(seed ^ 0x9e3779b9);
+  let state = game.init(rng);
+  let prev = false;
+  const log: Frame[] = [];
+  while (!state.over && log.length < 3600) {
+    const action = game.bot(state, policyRng);
+    const input = toInput(action, prev);
+    log.push(toLogFrame(input, control));
+    state = advance(game, state, input, rng, FIXED_DT);
+    prev = action.press;
+  }
+
+  // 2回目: 記録だけを頼りに、同じプレイをなぞる
+  const rng2 = createRng(seed);
+  let replayed = game.init(rng2);
+  let prev2 = false;
+  for (const f of log) {
+    replayed = advance(game, replayed, toInput(f, prev2), rng2, FIXED_DT);
+    prev2 = f.press;
+  }
+
+  return replayed.score === state.score && replayed.over === state.over;
+}
+
 /** 全ジャンルで見る項目 */
 const COMMON_CHECKS = [
   'determinism',
+  'replay-fidelity',
   'first-score',
   'skill-matters',
   'event-pace',
@@ -92,7 +147,14 @@ const GENRE_CHECKS: Record<Genre, string[]> = {
   puzzle: [...COMMON_CHECKS, 'not-mashable', 'skilled-lasts', 'always-ends', 'upside'],
   nurture: [...COMMON_CHECKS, 'idle-survives', 'always-ends', 'upside'],
   chance: [...COMMON_CHECKS, 'always-ends', 'upside'],
-  oneshot: ['determinism', 'first-score', 'skill-matters', 'event-pace', 'completable'],
+  oneshot: [
+    'determinism',
+    'replay-fidelity',
+    'first-score',
+    'skill-matters',
+    'event-pace',
+    'completable',
+  ],
 };
 
 export interface Dist {
@@ -128,6 +190,11 @@ export interface GateReport {
   genre: Genre;
   pass: boolean;
   deterministic: boolean;
+  /**
+   * 「でたらめ」役をゲーム側の novice() が担ったか。
+   * 共通のでたらめボットより甘い判定になりうるので、必ず画面に出す。
+   */
+  customNovice: boolean;
   stats: Record<string, PolicyStats>;
   checks: GateCheck[];
   topReasons: { reason: string; count: number }[];
@@ -203,7 +270,7 @@ export function runFunGate<S extends BaseState>(
   const cap = gate.smartSurvivalMaxSec * 2;
 
   const idle = collect(game, 'idle', () => () => ({ press: false }), Math.min(runs, 60), cap, seedOffset);
-  const random = collect(game, 'random', () => makeRandomPolicy<S>(), runs, cap, seedOffset);
+  const random = collect(game, 'random', () => makeNovicePolicy(game), runs, cap, seedOffset);
   const smart = collect(game, 'smart', () => makeSmartPolicy(game), runs, cap, seedOffset);
 
   return buildReport(game, genre, gate, cap, idle, random, smart);
@@ -228,6 +295,7 @@ function buildReport<S extends BaseState>(
   const a = playOnce(game, { seed: 42, policy: makeSmartPolicy(game), maxSeconds: cap });
   const b = playOnce(game, { seed: 42, policy: makeSmartPolicy(game), maxSeconds: cap });
   const deterministic = a.score === b.score && a.frames === b.frames;
+  const replayable = replaysTheSame(game);
 
   const skillRatio = smart.stats.score.p50 / Math.max(random.stats.score.p50, 0.5);
   const upsideRatio = smart.stats.score.p90 / Math.max(smart.stats.score.p50, 0.5);
@@ -240,6 +308,14 @@ function buildReport<S extends BaseState>(
       actual: deterministic ? '一致' : `不一致 (${a.score}/${a.frames} vs ${b.score}/${b.frames})`,
       expected: '一致',
       fix: 'step / init の中で Math.random() や Date.now() を使っている。乱数は init(rng) で受け取った rng だけを使い、時間は引数の dt を積算して持つこと。',
+    },
+    {
+      id: 'replay-fidelity',
+      label: '記録した操作だけで同じプレイになる',
+      pass: replayable,
+      actual: replayable ? '一致' : '別のプレイになった',
+      expected: '一致',
+      fix: 'リプレイ・おだいURL・OGP画像は「種＋操作の記録」から作り直している。meta.control が実際に使っている入力と食い違っているか、runner.ts の toLogFrame がその入力を残していない。まず meta.control が実物と合っているかを見ること。',
     },
     {
       id: 'idle-dies',
@@ -396,6 +472,7 @@ function buildReport<S extends BaseState>(
     genre,
     pass: checks.every((c) => c.pass),
     deterministic,
+    customNovice: typeof game.novice === 'function',
     stats: { idle: idle.stats, random: random.stats, smart: smart.stats },
     checks,
     topReasons: [...reasonCount.entries()]
@@ -488,7 +565,7 @@ export async function runFunGateAsync<S extends BaseState>(
   };
 
   const idle = await collectAsync('idle', () => () => ({ press: false }), Math.min(runs, 60));
-  const random = await collectAsync('random', () => makeRandomPolicy<S>(), runs);
+  const random = await collectAsync('random', () => makeNovicePolicy(game), runs);
   const smart = await collectAsync('smart', () => makeSmartPolicy(game), runs);
 
   return buildReport(game, genre, gate, cap, idle, random, smart);

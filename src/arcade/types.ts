@@ -33,6 +33,21 @@ export interface Input {
   px: number;
   /** ポインタ Y（仮想解像度 0..VIRTUAL_H）。control:'aim' 以外は使わない */
   py: number;
+  /**
+   * 左右の傾き。-1（左）／0（まっすぐ）／+1（右）の3値。control:'steer' 以外は常に 0。
+   *
+   * わざと3値にしてある。中間の角度を入力側で作ると、ゲームごとに感度がばらついて
+   * シリーズとしての手触りが揃わなくなる。滑らかさはゲーム側で
+   * 「いまの角度をこの向きへ少しずつ寄せる」形で作ること（feel.ts と同じ考え方）。
+   */
+  steer: number;
+  /**
+   * このフレームで打たれた文字。control:'type' 以外は常に空。
+   *
+   * 打った順に入る。ほとんどのフレームは0個か1個で、
+   * 速い人が同じフレームに2文字打つことがあるので配列にしてある。
+   */
+  typed: readonly string[];
 }
 
 /** すべてのゲーム状態が必ず持つフィールド */
@@ -61,16 +76,34 @@ export interface Goal {
   label: string;
 }
 
-/** ボットの1フレーム分の意思。press だけで戦えるのが良いゲームの証拠 */
-export interface BotAction {
+/**
+ * 1フレーム分の操作。
+ *
+ * ボットの意思・実プレイの操作・リプレイの記録を、**すべて同じ形**で持つ。
+ * 別々の形にすると、そのうち食い違って「リプレイだけ結果が違う」が起きる。
+ */
+export interface Frame {
   /** ボタンを押しているか */
   press: boolean;
   /** control:'aim' のときの狙い先 */
   px?: number;
   py?: number;
+  /** control:'steer' のときの左右。-1 / 0 / +1 */
+  steer?: number;
+  /** control:'type' のときに、このフレームで打った文字 */
+  typed?: readonly string[];
 }
 
-/** 操作方式。これ以外を増やすときは docs/design/fun-doctrine.md を先に更新すること */
+/** ボットの1フレーム分の意思。press だけで戦えるのが良いゲームの証拠 */
+export type BotAction = Frame;
+
+/**
+ * 操作方式。これ以外を増やすときは docs/design/fun-doctrine.md を先に更新すること。
+ *
+ * 上の4つが基本で、原則は「入力は1つ」（fun-doctrine ①）。
+ * 下の2つは**操作そのものが題材になっている遊び**のための例外で、
+ * 使うとその分だけ遊べる人が減る。迷ったら上の4つで作ること。
+ */
 export type Control =
   /** 押した瞬間だけ意味がある（例: ジャンプ、ハンコ） */
   | 'tap'
@@ -79,7 +112,19 @@ export type Control =
   /** tap と hold の両方を使う */
   | 'tap-hold'
   /** 画面のどこを押したかが意味を持つ（例: 落ちものを指で払う） */
-  | 'aim';
+  | 'aim'
+  /**
+   * 左右に曲げることが遊びの中心（例: 走り続けるものを曲げる）。
+   * PCは矢印キー、スマホは画面の左右half。`input.steer` を見る。
+   */
+  | 'steer'
+  /**
+   * 打った文字そのものが遊び（例: タイピング）。`input.typed` を見る。
+   *
+   * 🔴 **これだけはスマホで遊べない。** ゲームページに注意が出る。
+   * 採用するかは企画ごとの判断で、既定にしてはいけない。
+   */
+  | 'type';
 
 /** 見た目のテーマ。増やすときは palette.ts と対で */
 export type ThemeName = 'keitai' | 'mono' | 'flash';
@@ -237,6 +282,18 @@ export interface GameDefinition<S extends BaseState = BaseState> {
   draw(g: Painter, state: S): void;
   /** 面白さゲート用の簡易 AI。上手い人の再現を狙う */
   bot(state: S, rng: Rng): BotAction;
+  /**
+   * 「何も分かっていない人」の代わり。省略すると共通のでたらめボットが使われる。
+   *
+   * 書いてよいのは、**共通のでたらめボットでは構造的に一度も成功できない**ときだけ。
+   * 例: タイピング。でたらめに文字を打つ人は一度も正解できないので、
+   * 「初見でも点が入るか」がゲームの出来ではなくボットの都合で決まってしまう
+   * （長押しゲームで同じ失敗をしたことがある。runner.ts の makeRandomPolicy を参照）。
+   *
+   * 🔴 ゲートを通すために強く書かないこと。ここは「下手な人」であって「そこそこの人」ではない。
+   * 書くと `npm run fun` の出力に明示される（黙って基準を下げられないようにするため）。
+   */
+  novice?(state: S, rng: Rng, frame: number): BotAction;
   /** 死因を一行で（リザルト画面に出る）。「なぜ死んだか」が伝わると次が回る */
   reason?(state: S): string;
   /**

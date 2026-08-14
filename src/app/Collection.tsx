@@ -25,6 +25,9 @@ export function Collection({ slugs }: { slugs: string[] }) {
       const meta = metas.find((m) => m.slug === slug);
       if (meta?.goals?.length && isAllCleared(meta.goals, getBest(slug))) cleared++;
     }
+    // サーバー側では記録（localStorage）が読めないので、水和したあとに一度だけ数える。
+    // 「効果の中で setState しない」の例外
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setState({ played, cleared, total: slugs.length });
   }, [slugs]);
 
