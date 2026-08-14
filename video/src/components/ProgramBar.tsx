@@ -15,19 +15,39 @@ import { C, SIZE, HARD_SHADOW } from '../brand';
 export const ProgramBar: React.FC<{
   constraint: string;
   chapterLabel?: string;
+  /**
+   * その章で映っている素材の、開発時刻（秒）の目盛り。
+   * `{ at, dur, dev }` … 章内 at 秒から dur 秒のあいだ、開発時刻 dev から進む。
+   *
+   * **章の頭と尻を線で結ぶ（従来）とズレる。** 章のなかで素材が飛ぶので、
+   * 「7分半 考えている」と言っている画面の脇で 5:45 と出る、といった食い違いが起きた（001のFB）。
+   * だから**いま映っている素材の時刻をそのまま出す**。
+   */
+  marks?: { at: number; dur: number; dev: number }[];
   devFrom: number;
   devTo: number;
   /** 制約が尽きる開発時刻（秒）。ここで残量が 0 になる */
   drainAt: number;
   durFrames: number;
   fontFamily: string;
-}> = ({ constraint, chapterLabel, devFrom, devTo, drainAt, durFrames, fontFamily }) => {
+}> = ({ constraint, chapterLabel, marks, devFrom, devTo, drainAt, durFrames, fontFamily }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const dev = interpolate(f, [0, durFrames], [devFrom, devTo], {
-    extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
-  });
+  const t = f / fps;
+  let dev: number;
+  if (marks && marks.length) {
+    // いま映っている素材の時刻。無ければ直前の素材の終わりで止める
+    const cur = marks.filter((m) => m.at <= t).pop();
+    dev = cur ? cur.dev + Math.min(t - cur.at, cur.dur) : marks[0].dev;
+    // 目盛りは戻さない。編集で前後を入れ替えても、見ている人には進んで見える
+    const maxSoFar = marks.filter((m) => m.at <= t).reduce((a, m) => Math.max(a, m.dev), marks[0].dev);
+    dev = Math.max(dev, maxSoFar);
+  } else {
+    dev = interpolate(f, [0, durFrames], [devFrom, devTo], {
+      extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
+    });
+  }
   const left = Math.max(0, 1 - dev / drainAt);
   const empty = left <= 0.001;
 

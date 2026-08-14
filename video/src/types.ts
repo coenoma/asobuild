@@ -152,6 +152,12 @@ export interface Edl {
     constraint: string;
     /** 開発の実時間（秒）。番組バーの経過表示に使う */
     devSeconds: number;
+    /**
+     * 開発の時計 = 画面収録の時刻 + これ（秒）。
+     * 001は48。実測で、AIの「◯m◯s thinking」表示とこの値が一致する
+     * （依頼を投げたのは収録開始の48秒前だった）。
+     */
+    devOffset?: number;
   };
   sources: Record<string, Source>;
   /** 使ってはいけない区間。extract.mjs がここと clips を突き合わせる */

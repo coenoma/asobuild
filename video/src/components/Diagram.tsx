@@ -16,40 +16,44 @@ import { fade } from './common';
 const VW = 1600;
 const VH = 760;
 
-/** 針の位置と、糸が通る高さ */
-const NEEDLES = [
-  { x: 380, hole: 300 },
-  { x: 780, hole: 470 },
-  { x: 1180, hole: 250 },
-];
-const START = { x: 90, y: 380 };
-const SAG = 130; // 押していない間に落ちるぶん
-
-/** 「はなすと落ちる」ぶんのたるみを入れて、2点をつなぐ */
-function segment(x0: number, y0: number, x1: number, y1: number, steps = 24) {
-  const pts: [number, number][] = [];
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    const y = y0 + (y1 - y0) * t + SAG * 4 * t * (1 - t);
-    pts.push([x0 + (x1 - x0) * t, y]);
-  }
-  return pts;
-}
+/**
+ * 縫い針は**右に1本**。糸は**左からくねくね**しながら伸びて、その穴を通す。
+ *
+ * 001のFB:「縫い針は右の方に1つ、左からくねくねする感じで、いっぽんに通すという感じの演出に」
+ * 「はなすと落ちる、が物理法則的に不自然だから正弦波というか、くねくねするように」
+ *
+ * 押しているあいだ上がり、離すと落ちる——を素直に描くと直線の折れ線になるが、
+ * 実際の手ざわりは**波打ちながら進む**。だから正弦波で描く。
+ */
+const NEEDLE = { x: 1180, hole: 380, gap: 78 };
+const START = { x: 90, y: 470 };
+/** 波の高さと、画面いっぱいに入る波の数 */
+const AMP = 96;
+const WAVES = 2.4;
 
 function threadPoints() {
   const pts: [number, number][] = [];
-  let prev = START;
-  for (const n of NEEDLES) {
-    pts.push(...segment(prev.x, prev.y, n.x, n.hole));
-    prev = { x: n.x, y: n.hole };
+  const steps = 160;
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const x = START.x + (NEEDLE.x - START.x) * t;
+    // 穴に近づくほど波を小さくして、ぴたりと通す
+    const taper = 1 - t * t;
+    const base = START.y + (NEEDLE.hole - START.y) * t;
+    pts.push([x, base - Math.sin(t * Math.PI * 2 * WAVES) * AMP * taper]);
   }
-  pts.push(...segment(prev.x, prev.y, VW - 60, 340));
+  // 通したあとは、そのまま右へ抜ける
+  for (let i = 1; i <= 20; i++) {
+    const t = i / 20;
+    pts.push([NEEDLE.x + (VW - 80 - NEEDLE.x) * t, NEEDLE.hole - Math.sin(t * Math.PI) * 26]);
+  }
   return pts;
 }
 
+const NEEDLES = [NEEDLE];
+
 const PTS = threadPoints();
 const PATH = PTS.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
-
 const Label: React.FC<{ x: number; y: number; text: string; color?: string; size?: number; anchor?: 'start' | 'middle' }> = ({
   x, y, text, color = C.ink, size = 40, anchor = 'middle',
 }) => (
@@ -73,13 +77,17 @@ const Thread: React.FC<{ progress: number; fontFamily: string }> = ({ progress, 
       {/* 布（下地） */}
       <rect x={40} y={120} width={VW - 80} height={520} fill={C.bg2} stroke={C.line} strokeWidth={3} />
 
-      {/* 針。上下2本の棒のあいだが「めど」 */}
+      {/* 縫い針は右に1本。上下2本の棒のあいだが「めど」 */}
       {NEEDLES.map((n, i) => (
         <g key={i}>
-          <rect x={n.x - 15} y={140} width={30} height={n.hole - 140 - 46} fill={C.ink} />
-          <rect x={n.x - 15} y={n.hole + 46} width={30} height={620 - (n.hole + 46)} fill={C.ink} />
+          <rect x={n.x - 17} y={140} width={34} height={n.hole - 140 - n.gap / 2} fill={C.ink} />
+          <rect x={n.x - 17} y={n.hole + n.gap / 2} width={34} height={620 - (n.hole + n.gap / 2)} fill={C.ink} />
           {/* めど（穴）。ここを通す */}
-          <rect x={n.x - 15} y={n.hole - 46} width={30} height={92} fill={C.bg} stroke={C.accent} strokeWidth={3} />
+          <rect
+            x={n.x - 17} y={n.hole - n.gap / 2} width={34} height={n.gap}
+            fill={C.bg} stroke={C.accent} strokeWidth={4}
+          />
+          <Label x={n.x} y={n.hole - n.gap / 2 - 22} text="めど" color={C.accent} size={34} />
         </g>
       ))}
 
@@ -88,9 +96,9 @@ const Thread: React.FC<{ progress: number; fontFamily: string }> = ({ progress, 
       <path d={drawn} fill="none" stroke={C.accent2} strokeWidth={9} strokeLinecap="round" strokeLinejoin="round" />
       <circle cx={hx} cy={hy} r={16} fill={C.accent} stroke={C.bg} strokeWidth={4} />
 
-      <Label x={360} y={84} text="おしている間 ▲ 上がる" color={C.good} size={42} />
-      <Label x={1230} y={84} text="はなすと ▼ 落ちる" color={C.bad} size={42} />
-      <Label x={VW / 2} y={684} text="この2つだけで めどに糸を通す" color={C.dim} size={34} />
+      <Label x={330} y={84} text="おしている間 ▲ 上がる" color={C.good} size={42} />
+      <Label x={870} y={84} text="はなすと ▼ 落ちる" color={C.bad} size={42} />
+      <Label x={VW / 2} y={690} text="くねくね進んで、めどに1本 通す" color={C.dim} size={36} />
     </svg>
   );
 };

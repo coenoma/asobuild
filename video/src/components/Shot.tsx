@@ -16,8 +16,10 @@ export const Shot: React.FC<{
   zoom?: number | [number, number];
   origin?: [number, number];
   frame?: boolean;
+  /** ワイプ（自撮りの小窓）。窓らしい縁をつける */
+  wipe?: boolean;
   durFrames: number;
-}> = ({ clip, box, fit = 'cover', zoom = 1, origin = [0.5, 0.5], frame: withFrame, durFrames }) => {
+}> = ({ clip, box, fit = 'cover', zoom = 1, origin = [0.5, 0.5], frame: withFrame, wipe, durFrames }) => {
   const f = useCurrentFrame();
   const { width, height } = useVideoConfig();
 
@@ -40,8 +42,12 @@ export const Shot: React.FC<{
       style={{
         ...style,
         overflow: 'hidden',
-        // 角丸は使わない（当時の画面に角丸はない）
-        border: withFrame ? `3px solid ${C.line}` : undefined,
+        // 盤面に角丸は使わない（当時の画面に角丸はない）。
+        // ただしワイプは「番組側の窓」なので、少し丸めて縁をつけたほうが窓に見える
+        borderRadius: wipe ? 12 : undefined,
+        border: wipe ? `5px solid ${C.ink}` : withFrame ? `3px solid ${C.line}` : undefined,
+        outline: wipe ? `3px solid ${C.bg}` : undefined,
+        boxShadow: wipe ? '0 10px 26px rgba(0,0,0,0.55)' : undefined,
         background: C.bg,
       }}
     >

@@ -43,8 +43,15 @@ function useLocalFont(): void {
   }, [handle]);
 }
 
-/** 制約が尽きる開発時刻（秒）。実測: ソイラテを飲み干したのは 自撮り29:53 = 画面22:50 */
-const DRAIN_AT = 22 * 60 + 50;
+/**
+ * 開発の時計は**画面収録の時刻 + devOffset**（EDL の meta で持つ。001は48秒）。
+ * 実測で、AIの「◯m◯s thinking」表示とこの値が一致する（依頼は収録開始の48秒前）。
+ * 手で章ごとに書かない。**映っている素材から引く**（ProgramBar の marks）。
+ */
+const SELF_TO_SCREEN = 423; // 自撮りの時刻 - これ = 画面収録の時刻
+
+/** 制約が尽きる開発時刻（秒）。ソイラテを飲み干したのは 画面22:50 */
+const DRAIN_AT = 22 * 60 + 50 + 48;
 
 const LayerView: React.FC<{ layer: Layer; durFrames: number }> = ({ layer, durFrames }) => {
   switch (layer.type) {
@@ -57,6 +64,7 @@ const LayerView: React.FC<{ layer: Layer; durFrames: number }> = ({ layer, durFr
           zoom={layer.zoom}
           origin={layer.origin}
           frame={layer.frame}
+          wipe={layer.wipe}
           durFrames={durFrames}
         />
       );
@@ -131,7 +139,27 @@ const LayerView: React.FC<{ layer: Layer; durFrames: number }> = ({ layer, durFr
   }
 };
 
-const ChapterView: React.FC<{ chapter: Chapter; constraint: string }> = ({ chapter, constraint }) => {
+/**
+ * 上端のバーに出す「開発の経過」の目盛りを、章の素材から組み立てる。
+ * 手で書いた章ごとの devFrom/devTo は使わない（画面と食い違う原因になっていた）。
+ */
+function devMarks(chapter: Chapter, edl: Edl): { at: number; dur: number; dev: number }[] {
+  const off = edl.meta.devOffset ?? 0;
+  return chapter.layers
+    .filter((l): l is Extract<Layer, { type: 'shot' }> => l.type === 'shot' && !l.wipe)
+    .map((l) => {
+      const clip = edl.clips[l.clip];
+      if (!clip) return null;
+      // 自撮りの時刻は画面収録の時刻に直してから使う
+      const screenIn = clip.src === 'self' ? clip.in - SELF_TO_SCREEN : clip.in;
+      return { at: l.at, dur: l.dur, dev: screenIn + off };
+    })
+    .filter((m): m is { at: number; dur: number; dev: number } => m !== null)
+    .sort((a, b) => a.at - b.at);
+}
+
+const ChapterView: React.FC<{ chapter: Chapter; constraint: string; edl: Edl }> = ({ chapter, constraint, edl }) => {
+  const marks = devMarks(chapter, edl);
   const { fps } = useVideoConfig();
   const chFrames = secToFrames(chapter.dur, fps);
 
@@ -160,6 +188,7 @@ const ChapterView: React.FC<{ chapter: Chapter; constraint: string }> = ({ chapt
         <ProgramBar
           constraint={constraint}
           chapterLabel={chapter.label}
+          marks={marks}
           devFrom={chapter.devFrom ?? 0}
           devTo={chapter.devTo ?? chapter.devFrom ?? 0}
           drainAt={DRAIN_AT}
@@ -183,7 +212,7 @@ export const Episode: React.FC<{ edl: Edl }> = ({ edl }) => {
         cursor += dur;
         return (
           <Sequence key={ch.id} from={from} durationInFrames={dur} name={ch.id} layout="none">
-            <ChapterView chapter={ch} constraint={edl.meta.constraint} />
+            <ChapterView chapter={ch} constraint={edl.meta.constraint} edl={edl} />
           </Sequence>
         );
       })}

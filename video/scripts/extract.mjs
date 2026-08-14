@@ -47,7 +47,18 @@ mkdirSync(FOOTAGE, { recursive: true });
  */
 const GRADE = {
   screen: null,
-  self: 'eq=contrast=1.20:saturation=1.30:brightness=-0.045:gamma=0.96',
+  /**
+   * 自撮りの色。**素人の自撮りに見えないところまで持っていく**（001のFB）。
+   * やっていること: 黒を少し浮かせる（フィルムっぽさ）／中間を明るく／
+   * 白飛びを 0.965 で止める（窓の光で飛んでいた）／肌に寄せて少し暖色へ／
+   * ハイライトだけ少し寒色（暖と寒の差が「それっぽさ」になる）／軽くシャープ。
+   * ビネットは入れない（寄りの画では、暗い四隅が作り物っぽく見えた）。
+   */
+  self:
+    "curves=all='0/0.035 0.25/0.245 0.5/0.53 0.75/0.80 1/0.965'," +
+    'eq=contrast=1.05:saturation=1.14:gamma=1.02,' +
+    'colorbalance=rs=0.02:bs=-0.03:rm=0.035:bm=-0.02:rh=0.005:bh=0.025,' +
+    'unsharp=5:5:0.55:5:5:0.0',
 };
 
 function build(clip, id) {
