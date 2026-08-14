@@ -314,6 +314,8 @@ npx remotion render src/index.ts Episode out/<slug>.mp4
 
 - **尺は7分**（チャンネルが知られていない間）。素材が49分あっても7分に落とす
 - **編集の中身はコードではなく `video/edl/*.json`**。ナレーションは後から乗せて尺を調整する
+- **本命の声は読み上げではない。** 動画を見ながら自由に喋った画面収録が本命で、
+  **映像のほうを声に合わせ直す**（[docs/video/atereco.md](docs/video/atereco.md)。声が正、映像が従）
 - ゲートの合否・落ちた項目名・時刻は `.live/status.jsonl` から引く。**手で書き写さない**
 - 効果音・ジングルは [sfx.ts](src/arcade/sfx.ts) と同じ矩形波シンセで作る。**外から持ってこない**（PUBLIC なので音源の再配布になる）。意味の割り当ては [sound-design.md](docs/video/sound-design.md)
 - 締めは4つ: 遊べる場所 → 高評価・チャンネル登録 → **リクエスト** → **最高記録をコメントで**

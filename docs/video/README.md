@@ -16,6 +16,7 @@
 | [structure.md](./structure.md) | 章立ては固定しない。心情の流れが構成になる | 編集を始めるとき |
 | [telop-rules.md](./telop-rules.md) | 色・書体・大きさ・言い回し・効果音 | テロップを書くとき |
 | [voice-and-script.md](./voice-and-script.md) | **台本の声（ゆとの喋りかた）。原稿を書く前に** | ナレーション原稿を書くとき |
+| [atereco.md](./atereco.md) | **本命の声の録り方と、声に映像を合わせ直す段取り**（読み上げではない） | アテレコを録る前・録ったあと |
 | [sound-design.md](./sound-design.md) | **音の設計。どの音が何を意味するか。音源は外から持ってこない** | 音を足すとき |
 | [edit-checklist.md](./edit-checklist.md) | **編集の関所。出す前に必ず通す**（タイミング・可読性・テロップ・ワイプ・締め） | 書き出す前 |
 | [research-notes/](./research-notes/) | 外部調査の精査記録（何を採り、何を外れ値と判断したか） | 企画・型を見直すとき |
@@ -55,7 +56,13 @@ node scripts/storyboard.mjs edl/<slug>.json > ../docs/video/storyboards/<slug>.m
 # ⑥ 見ながら直す
 npx remotion studio
 
-# ⑦ 書き出す
+# ⑦ 本命の声を録って、映像を声に合わせ直す（読み上げではない → docs/video/atereco.md）
+node scripts/atereco.mjs edl/<slug>.json --extract ~/収録/アテレコ.mov
+node scripts/atereco.mjs edl/<slug>.json --blocks
+node scripts/atereco.mjs edl/<slug>.json --sheet --srt ~/収録/文字起こし.srt
+node scripts/atereco.mjs edl/<slug>.json --cut && node scripts/atereco.mjs edl/<slug>.json --check
+
+# ⑧ 書き出す
 npx remotion render src/index.ts Episode out/<slug>.mp4
 
 # ⑧ 確認用の声（VOICEVOX）を乗せる。本命の声も同じコマンド
