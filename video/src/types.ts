@@ -102,6 +102,12 @@ export type Layer =
   | { type: 'titleCard'; at: number; dur: number; title: string; sub: string }
   /** 締めのカード */
   | { type: 'endCard'; at: number; dur: number; url: string; lines?: string[] }
+  /**
+   * 決めの瞬間（一気に寄る・止まる・音）。記録更新・初めて動いた・即死に使う。
+   * **1本に2〜3回まで**（docs/video/structure.md §決めの瞬間）。
+   * frame はクリップ内の何秒の画で止めるか。origin は寄る中心（スコア表示の位置など）。
+   */
+  | { type: 'punch'; at: number; dur: number; clip: string; frame: number; zoom?: number; origin?: [number, number]; box?: Box; fit?: 'cover' | 'contain'; sound?: string | null; volume?: number }
   /** 効果音 */
   | { type: 'sfx'; at: number; name: string; volume?: number };
 

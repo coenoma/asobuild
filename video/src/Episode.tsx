@@ -11,6 +11,7 @@ import { Diagram } from './components/Diagram';
 import { Loading } from './components/Loading';
 import { TimeStamp } from './components/TimeStamp';
 import { Spot } from './components/Spot';
+import { Punch } from './components/Punch';
 import { Scrim } from './components/Scrim';
 import { ProgramBar } from './components/ProgramBar';
 import { secToFrames } from './components/common';
@@ -100,6 +101,20 @@ const LayerView: React.FC<{ layer: Layer; durFrames: number }> = ({ layer, durFr
           color={layer.color}
           durFrames={durFrames}
           fontFamily={fontFamily}
+        />
+      );
+    case 'punch':
+      return (
+        <Punch
+          clip={layer.clip}
+          frame={layer.frame}
+          zoom={layer.zoom}
+          origin={layer.origin}
+          box={layer.box}
+          fit={layer.fit}
+          sound={layer.sound}
+          volume={layer.volume}
+          durFrames={durFrames}
         />
       );
     case 'scrim':
