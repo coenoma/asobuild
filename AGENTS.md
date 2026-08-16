@@ -19,6 +19,7 @@ Claude Code 以外のツール（Cursor / Codex など）を使う場合も、�
 | サイト側の規約 | [.claude/rules/web.md](./.claude/rules/web.md) |
 | 面白さの原則（作る前に読む） | [docs/design/fun-doctrine.md](./docs/design/fun-doctrine.md) |
 | 2005年前後の空気（時代背景・価値観・流行の材料庫） | [docs/design/era-2005.md](./docs/design/era-2005.md) |
+| 懐かしさのヒキの採点・体験再現ものの設計 | [docs/design/nostalgia-hooks.md](./docs/design/nostalgia-hooks.md) |
 | 効く工夫のカタログ | [docs/design/feel-catalog.md](./docs/design/feel-catalog.md) |
 | **既存作を題材にするときの型（記憶から作る）** | [docs/design/memory-first.md](./docs/design/memory-first.md) |
 | 権利の線引き | [docs/design/rights-and-originality.md](./docs/design/rights-and-originality.md) |
