@@ -75,40 +75,75 @@ if (process.argv.includes('--blocks')) {
     console.error(`先に --extract を。見つかりません: voice/${slug}/atereco.wav`);
     process.exit(1);
   }
-  // 無音検出。しきい値は「喋っていない時間」が拾える程度に緩く
-  const NOISE = arg('noise') ?? '-35dB';
+  /**
+   * 無音のしきい値。**録音の大きさは毎回ちがう**ので、決め打ちにしない。
+   *
+   * 001の試し録りは声の頂点が -41dB で、既定の -35dB では「ずっと無音」と判定されて
+   * ブロックが0個になった。かといって低くしすぎると部屋の音まで声として拾う。
+   * so 上から順に下げていき、**ブロックが2つ以上に割れた時点で止める**。
+   * 使った値は必ず表示する（人が「そんなに下げたのか」と気づけるように）。
+   */
   const MIN_SILENCE = Number(arg('gap') ?? 0.6);
-  // silencedetect の結果は stderr に出る
-  const stderr = spawnSync(
-    'ffmpeg',
-    ['-i', WAV, '-af', `silencedetect=noise=${NOISE}:d=${MIN_SILENCE}`, '-f', 'null', '-'],
-    { encoding: 'utf8' },
-  ).stderr;
+  const given = arg('noise');
+  const LADDER = given ? [given] : ['-35dB', '-40dB', '-45dB', '-50dB', '-55dB'];
+
   const dur = Number(
     execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', WAV]).toString(),
   );
+  const detect = (noise) =>
+    spawnSync('ffmpeg', ['-i', WAV, '-af', `silencedetect=noise=${noise}:d=${MIN_SILENCE}`, '-f', 'null', '-'],
+      { encoding: 'utf8' }).stderr;
 
-  const silences = [];
-  let start = null;
-  for (const line of stderr.split('\n')) {
-    const s = /silence_start: ([\d.]+)/.exec(line);
-    const e = /silence_end: ([\d.]+)/.exec(line);
-    if (s) start = Number(s[1]);
-    if (e && start !== null) {
-      silences.push([start, Number(e[1])]);
-      start = null;
+  const parse = (stderr) => {
+    const out = [];
+    let start = null;
+    for (const line of stderr.split('\n')) {
+      const s = /silence_start: (-?[\d.]+)/.exec(line);
+      const e = /silence_end: ([\d.]+)/.exec(line);
+      if (s) start = Math.max(0, Number(s[1]));
+      if (e && start !== null) {
+        out.push([start, Number(e[1])]);
+        start = null;
+      }
     }
+    if (start !== null) out.push([start, dur]);
+    return out;
+  };
+  const toBlocks = (sil) => {
+    const bs = [];
+    let cur = 0;
+    for (const [s, e] of sil) {
+      if (s - cur >= 0.4) bs.push({ start: r1(cur), end: r1(s) });
+      cur = e;
+    }
+    if (dur - cur >= 0.4) bs.push({ start: r1(cur), end: r1(dur) });
+    return bs;
+  };
+
+  let NOISE = LADDER[0];
+  let silences = [];
+  let picked = null;
+  for (const n of LADDER) {
+    const b = toBlocks(parse(detect(n)));
+    if (picked === null || b.length >= 2) {
+      NOISE = n;
+      silences = parse(detect(n));
+      picked = b;
+    }
+    if (b.length >= 2) break;
   }
-  if (start !== null) silences.push([start, dur]);
+  console.log(`無音のしきい値: ${NOISE}${given ? '（指定）' : '（自動）'}`);
+  if (picked.length <= 1) {
+    console.log('');
+    console.log('⚠️  発話ブロックに割れませんでした。よくある原因は次の2つです。');
+    console.log('   1. 画面収録に**システム音**が混ざっている（動画の音が鳴り続けて途切れない）');
+    console.log('   2. 声が小さすぎて、部屋の音と区別がつかない（マイクを近づける／入力を上げる）');
+    console.log('   docs/video/atereco.md「撮る前に確かめる」を見てください。');
+    console.log('');
+  }
 
   // 無音の反転＝発話ブロック。短すぎるもの（咳・椅子の音）は捨てる
-  const blocks = [];
-  let cur = 0;
-  for (const [s, e] of silences) {
-    if (s - cur >= 0.4) blocks.push({ start: r1(cur), end: r1(s) });
-    cur = e;
-  }
-  if (dur - cur >= 0.4) blocks.push({ start: r1(cur), end: r1(dur) });
+  const blocks = toBlocks(silences);
 
   /**
    * 声を別録り（ボイスメモ等）したときの、画面収録との時刻の差（秒）。

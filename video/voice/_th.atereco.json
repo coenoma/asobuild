@@ -1,0 +1,27 @@
+{
+  "_note": [
+    "アテレコの対応表。blocks の各行に人が chapter を書き込む（対応する章の ID。捨てるなら \"skip\"）。",
+    "どの章か迷ったら、画面収録を開いてそのブロックの時刻を見る（再生位置が映っている）。",
+    "動画を止めて喋っていた区間は paused: true を書く（映像側の尺を伸ばす候補になる）。",
+    "章の ID: hook / throw / recall / more / appeared / itsuppoi / timeup / brushup / best / scary / end"
+  ],
+  "source": "voice/_th/atereco.wav",
+  "blocks": [
+    {
+      "n": 1,
+      "start": 3.5,
+      "end": 4.9,
+      "dur": 1.4,
+      "text": "",
+      "chapter": ""
+    },
+    {
+      "n": 2,
+      "start": 6.3,
+      "end": 6.7,
+      "dur": 0.4,
+      "text": "",
+      "chapter": ""
+    }
+  ]
+}
