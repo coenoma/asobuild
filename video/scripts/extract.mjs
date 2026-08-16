@@ -12,7 +12,7 @@
  *   node scripts/extract.mjs edl/001-nuimichi.json --force            # 既存を無視して作り直す
  */
 
-import { readFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { homedir } from 'node:os';
@@ -153,15 +153,34 @@ const ids = Object.keys(edl.clips).filter((id) => !only || id === only);
 let made = 0;
 let skipped = 0;
 
+/**
+ * 何をどう切ったかの控え。**中身が変わったら切り直す**ために要る。
+ *
+ * ファイルの有無だけで判断していたら、EDL の in や crop を変えても古い切り出しが使われ、
+ * 「2分47秒」と言っている画面が 2m44s のまま、という食い違いが起きた（001で実際に起きた）。
+ * しかも見た目には何も起きないので、人が気づくまで残る。
+ */
+const MANIFEST = resolve(FOOTAGE, '.manifest.json');
+const manifest = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, 'utf8')) : {};
+const stamp = (clip) => JSON.stringify({
+  src: clip.src, crop: clip.crop, in: clip.in, dur: clip.dur, speed: clip.speed ?? 1,
+  box: edl.crops?.[clip.crop] ?? null,
+});
+
 for (const id of ids) {
   const outPath = resolve(FOOTAGE, `${id}.mp4`);
-  if (!force && existsSync(outPath)) { skipped++; continue; }
+  const now = stamp(edl.clips[id]);
+  if (!force && existsSync(outPath) && manifest[id] === now) { skipped++; continue; }
+  if (existsSync(outPath) && manifest[id] !== now) {
+    process.stdout.write('（切り方が変わったので作り直し）');
+  }
   const clip = edl.clips[id];
   const { args } = build(clip, id);
   const label = `${id}  ${clip.crop}  ${clip.in.toFixed(1)}s +${clip.dur}s${clip.speed && clip.speed !== 1 ? ` ×${clip.speed}` : ''}`;
   process.stdout.write(`切り出し中: ${label} ... `);
   try {
     execFileSync('ffmpeg', args, { stdio: ['ignore', 'ignore', 'pipe'] });
+    manifest[id] = now;
     console.log('できた');
     made++;
   } catch (e) {
@@ -171,4 +190,5 @@ for (const id of ids) {
   }
 }
 
+writeFileSync(MANIFEST, `${JSON.stringify(manifest, null, 1)}\n`, 'utf8');
 console.log(`\n${made}本 切り出し / ${skipped}本 すでにある（作り直すなら --force）`);

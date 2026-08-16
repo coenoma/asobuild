@@ -35,6 +35,7 @@ if (!edlPath || !MODES.some((m) => process.argv.includes(m))) {
   console.error('  --blocks   無音で区切って発話ブロックを検出する（別録りなら --offset <秒> で画面収録の時刻も併記）');
   console.error('  --sheet    文字起こしをブロックへ割り付け、対応表を作る');
   console.error('  --cut      章の割り当てに従って human/<章ID>.wav を切り出す（voice.mjs --mux が拾う）');
+  console.error('             --keep-gaps を足すと、ブロックを詰めずに章の最初から最後までを丸ごと切る');
   console.error('  --check    章ごとの声の長さと映像の尺を見比べる（映像を伸ばす候補が分かる）');
   process.exit(1);
 }
@@ -269,11 +270,33 @@ if (process.argv.includes('--cut')) {
     process.exit(1);
   }
 
+  /**
+   * `--keep-gaps` … ブロックを詰めずに、**章の最初から最後までを丸ごと**切り出す。
+   *
+   * 1本通しで喋った収録では、こちらが正しい。ブロックを詰めると
+   * 「間」が消えて息継ぎが不自然になるうえ、**文字起こしの時刻がそのまま使えなくなる**
+   * （字幕を作り直す羽目になり、ズレの温床になる）。
+   * 間が全体の1割程度なら、そのまま残したほうが喋りのリズムが生きる。
+   *
+   * 詰めたいのは「録り直しを何度もして、要らない区間が多い」収録のとき（既定の --cut）。
+   */
+  const keepGaps = process.argv.includes('--keep-gaps');
   const humanDir = resolve(VOICE_DIR, 'human');
   mkdirSync(humanDir, { recursive: true });
+  const starts = {};
   for (const ch of chapterIds) {
     const blocks = data.blocks.filter((b) => b.chapter === ch);
     if (blocks.length === 0) continue;
+    if (keepGaps) {
+      const from = blocks[0].start;
+      const to = blocks[blocks.length - 1].end;
+      const out = resolve(humanDir, `${ch}.wav`);
+      execFileSync('ffmpeg', ['-y', '-ss', String(from), '-to', String(to), '-i', WAV, out],
+        { stdio: ['ignore', 'ignore', 'ignore'] });
+      starts[ch] = from;
+      console.log(`  ${ch}: ${from}〜${to}s を丸ごと → human/${ch}.wav（${r1(to - from)}s）`);
+      continue;
+    }
     // ブロックを 0.35秒の間でつないで、章の声にする
     const parts = blocks.map((b, i) => `[0:a]atrim=${b.start}:${b.end},asetpts=PTS-STARTPTS[p${i}]`);
     const gaps = blocks.slice(1).map((_, i) => `anullsrc=r=48000:cl=mono,atrim=0:0.35[g${i}]`);
@@ -285,6 +308,12 @@ if (process.argv.includes('--cut')) {
     });
     const total = r1(blocks.reduce((a, b) => a + b.dur, 0) + (blocks.length - 1) * 0.35);
     console.log(`  ${ch}: ブロック ${blocks.map((b) => b.n).join('+')} → human/${ch}.wav（${total}s）`);
+  }
+  if (keepGaps) {
+    // 章の声が録音のどこから始まるか。字幕の時刻を録音から引き写すのに要る
+    const map = resolve(ROOT, 'voice', `${slug}.human-starts.json`);
+    writeFileSync(map, `${JSON.stringify(starts, null, 2)}\n`, 'utf8');
+    console.log(`\n章ごとの開始時刻: voice/${slug}.human-starts.json（字幕を録音から作るときに使う）`);
   }
   console.log('\n切り出しました。voice.mjs --mux が人の声を優先します。次: --check で尺を見比べる');
 }

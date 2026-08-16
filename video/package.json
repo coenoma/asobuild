@@ -14,7 +14,9 @@
     "sfx": "node scripts/sfx.mjs",
     "scan": "node scripts/scan-risk.mjs",
     "typecheck": "tsc --noEmit",
-    "storyboard": "node scripts/storyboard.mjs"
+    "storyboard": "node scripts/storyboard.mjs",
+    "build": "remotion render src/index.ts Episode out/001-nuimichi.mp4 --public-dir=public --concurrency=3",
+    "mux": "node scripts/voice.mjs edl/001-nuimichi.json --mux"
   },
   "dependencies": {
     "@remotion/cli": "4.0.452",

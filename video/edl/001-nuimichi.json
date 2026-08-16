@@ -17,7 +17,7 @@
       "file": "bgm/ending.wav",
       "peakDb": -8,
       "note": "同 Next Time（短い版）。締めのカードから鳴らす",
-      "at": 318.53
+      "at": 666.39
     }
   },
   "_note": [
@@ -213,6 +213,20 @@
       "y": 960,
       "w": 900,
       "h": 200
+    },
+    "termAdd2": {
+      "src": "screen",
+      "x": 0,
+      "y": 1150,
+      "w": 960,
+      "h": 400
+    },
+    "termReview": {
+      "src": "screen",
+      "x": 0,
+      "y": 990,
+      "w": 960,
+      "h": 400
     }
   },
   "clips": {
@@ -220,28 +234,28 @@
       "src": "self",
       "crop": "selfCup",
       "in": 3,
-      "dur": 8,
+      "dur": 9,
       "note": "カップを手に持っている（依頼スタート）"
     },
     "hook-prompt": {
       "src": "screen",
       "crop": "terminal",
       "in": 6,
-      "dur": 8,
+      "dur": 4,
       "note": "たのんだ文章（本人の日本語。テロップは上に）"
     },
     "throw-type": {
       "src": "screen",
       "crop": "terminal",
       "in": 4,
-      "dur": 12,
+      "dur": 13,
       "note": "依頼を打っている"
     },
     "throw-self": {
       "src": "self",
       "crop": "selfWide",
       "in": 455,
-      "dur": 9,
+      "dur": 10,
       "note": "まだ満タン"
     },
     "think-3m": {
@@ -268,8 +282,8 @@
     "recall-term": {
       "src": "screen",
       "crop": "terminal",
-      "in": 822,
-      "dur": 12,
+      "in": 820,
+      "dur": 11,
       "speed": 1.4,
       "note": "当時のレビュー本文"
     },
@@ -277,7 +291,7 @@
       "src": "screen",
       "crop": "terminal",
       "in": 742,
-      "dur": 11,
+      "dur": 15,
       "speed": 1.5,
       "note": "補足の連投が積み上がっている"
     },
@@ -285,14 +299,14 @@
       "src": "self",
       "crop": "selfCup",
       "in": 1136,
-      "dur": 13,
+      "dur": 12,
       "note": "ラテが減っている"
     },
     "sca-term": {
       "src": "screen",
       "crop": "terminal",
-      "in": 840,
-      "dur": 8,
+      "in": 838,
+      "dur": 10,
       "speed": 1.6,
       "note": "雛形ができる"
     },
@@ -300,20 +314,20 @@
       "src": "screen",
       "crop": "browser",
       "in": 852,
-      "dur": 14,
+      "dur": 11,
       "note": "14:20 に ぬいみち が一覧へ並ぶ"
     },
     "ugly-play": {
       "src": "screen",
       "crop": "game",
       "in": 958,
-      "dur": 28,
+      "dur": 23,
       "note": "初版。白い四角と黄色い点"
     },
     "ugly-play2": {
       "src": "screen",
       "crop": "game",
-      "in": 1268,
+      "in": 1262,
       "dur": 11,
       "note": "21:08 押すと上がる・離すと落ちる"
     },
@@ -321,42 +335,42 @@
       "src": "screen",
       "crop": "game",
       "in": 1019,
-      "dur": 14,
+      "dur": 6,
       "note": "おわり 20点"
     },
     "ugly-self": {
       "src": "self",
       "crop": "selfFace",
       "in": 1396,
-      "dur": 9,
+      "dur": 6,
       "note": "それっぽい！の反応〔画面 16:02〕"
     },
     "retry-36": {
       "src": "screen",
       "crop": "game",
       "in": 1195,
-      "dur": 8,
+      "dur": 18,
       "note": "遊んで死ぬ→36点（1199に結果）"
     },
     "retry-44": {
       "src": "screen",
       "crop": "game",
       "in": 1297,
-      "dur": 9,
+      "dur": 14,
       "note": "遊んで死ぬ→44点（1301に結果）"
     },
     "drink-end": {
       "src": "self",
       "crop": "selfCup",
       "in": 1781,
-      "dur": 15,
+      "dur": 14,
       "note": "最後のひとくち→ 自撮り29:53（+12秒）で空のカップを掲げる"
     },
     "turn-title": {
       "src": "screen",
       "crop": "game",
       "in": 1468,
-      "dur": 10,
+      "dur": 15,
       "note": "24:26 デモが通り続ける→実際に遊ぶと +8秒 で即ぷつん"
     },
     "turn-play": {
@@ -384,21 +398,21 @@
       "src": "screen",
       "crop": "game",
       "in": 1622,
-      "dur": 15,
+      "dur": 11,
       "note": "とおった・倍率が上がる"
     },
     "shape-res": {
       "src": "screen",
       "crop": "game",
       "in": 1666,
-      "dur": 10,
+      "dur": 9,
       "note": "おわり 232点"
     },
     "react-232": {
       "src": "self",
       "crop": "selfWide",
       "in": 2096,
-      "dur": 9,
+      "dur": 6,
       "note": "232点で死んだ直後の反応〔画面 27:46〕"
     },
     "death-0": {
@@ -412,14 +426,14 @@
       "src": "screen",
       "crop": "game",
       "in": 2592,
-      "dur": 18,
+      "dur": 11,
       "note": "560点への走り"
     },
     "hum-res": {
       "src": "screen",
       "crop": "game",
       "in": 2611,
-      "dur": 12,
+      "dur": 5,
       "note": "おわり 560点"
     },
     "react-460": {
@@ -440,7 +454,7 @@
       "src": "screen",
       "crop": "game",
       "in": 2884,
-      "dur": 14,
+      "dur": 23,
       "note": "本番で遊ぶ"
     },
     "ship-res": {
@@ -454,48 +468,48 @@
       "src": "screen",
       "crop": "terminal",
       "in": 196,
-      "dur": 10,
+      "dur": 26,
       "note": "考えている最中に補足を打っている"
     },
     "think-7z": {
       "src": "screen",
       "crop": "termThink",
-      "in": 392,
-      "dur": 10,
+      "in": 393,
+      "dur": 20,
       "note": "7m24s thinking の行だけ"
     },
     "add-zoom": {
       "src": "screen",
       "crop": "termAdd",
       "in": 462,
-      "dur": 10,
+      "dur": 20,
       "note": "投げた補足の本文（読める）"
     },
     "req-zoom": {
       "src": "screen",
       "crop": "termReq",
       "in": 1374,
-      "dur": 10,
+      "dur": 22,
       "note": "ブラッシュアップ依頼の本文（読める）"
     },
     "fb-zoom": {
       "src": "screen",
       "crop": "termFb",
       "in": 1996,
-      "dur": 12,
+      "dur": 14,
       "note": "遊んだ感想の本文（読める）"
     },
     "w-ugly": {
       "src": "self",
       "crop": "selfWipe",
       "in": 1381,
-      "dur": 28,
+      "dur": 18,
       "note": "初版をプレイ中の顔"
     },
     "w-play2": {
       "src": "self",
       "crop": "selfWipe",
-      "in": 1691,
+      "in": 1685,
       "dur": 11
     },
     "w-r36": {
@@ -531,8 +545,8 @@
     "think-3z": {
       "src": "screen",
       "crop": "termThink3",
-      "in": 114,
-      "dur": 10,
+      "in": 119,
+      "dur": 21,
       "note": "2m06s thinking の行だけ"
     },
     "think-11z": {
@@ -547,20 +561,149 @@
       "crop": "selfWipe",
       "in": 1891,
       "dur": 10
+    },
+    "add-zoom2": {
+      "src": "screen",
+      "crop": "termAdd2",
+      "in": 484,
+      "dur": 21,
+      "note": "補足の続き（落ち方・サイン波）"
+    },
+    "recall-review": {
+      "src": "screen",
+      "crop": "termReview",
+      "in": 828,
+      "dur": 23,
+      "note": "当時の口コミのまとめ（読める）"
+    },
+    "brush-self": {
+      "src": "self",
+      "crop": "selfWide",
+      "in": 1795,
+      "dur": 34,
+      "note": "飲み干したあと。まだ一ターン、続行です"
+    },
+    "brush-work": {
+      "src": "screen",
+      "crop": "terminal",
+      "in": 1412,
+      "dur": 29,
+      "note": "直しているところ"
+    },
+    "fb-zoom2": {
+      "src": "screen",
+      "crop": "termFb",
+      "in": 2012,
+      "dur": 16,
+      "note": "感想の続き（演出の位置）"
+    },
+    "ship-play2": {
+      "src": "screen",
+      "crop": "game",
+      "in": 2892,
+      "dur": 15,
+      "note": "本番プレイ。上の表示に注目"
+    },
+    "ship-play3": {
+      "src": "screen",
+      "crop": "game",
+      "in": 2906,
+      "dur": 7,
+      "note": "本番プレイ。音の演出"
+    },
+    "w-ugly2": {
+      "src": "self",
+      "crop": "selfWipe",
+      "in": 1685,
+      "dur": 18
+    },
+    "w-r36b": {
+      "src": "self",
+      "crop": "selfWipe",
+      "in": 1618,
+      "dur": 11
+    },
+    "w-r44b": {
+      "src": "self",
+      "crop": "selfWipe",
+      "in": 1720,
+      "dur": 14
+    },
+    "w-title2": {
+      "src": "self",
+      "crop": "selfWipe",
+      "in": 1891,
+      "dur": 15
+    },
+    "w-turn2": {
+      "src": "self",
+      "crop": "selfWipe",
+      "in": 1913,
+      "dur": 16
+    },
+    "w-shape2": {
+      "src": "self",
+      "crop": "selfWipe",
+      "in": 2045,
+      "dur": 11
+    },
+    "more-zoom": {
+      "src": "screen",
+      "crop": "termAdd",
+      "in": 762,
+      "dur": 21,
+      "note": "連投した補足（読める）"
+    },
+    "self-play2": {
+      "src": "self",
+      "crop": "selfWide",
+      "in": 1700,
+      "dur": 8,
+      "note": "初版を遊んでいる顔"
+    },
+    "self-shape": {
+      "src": "self",
+      "crop": "selfWide",
+      "in": 2055,
+      "dur": 8,
+      "note": "針と糸の版を遊んでいる顔"
+    },
+    "w-r36c": {
+      "src": "self",
+      "crop": "selfWipe",
+      "in": 1618,
+      "dur": 18
     }
   },
   "chapters": [
     {
       "id": "hook",
       "mood": "ソイラテ1杯を飲み干すまでに、AIだけで糸通しみたいなゲームは作れるのか",
-      "dur": 13.6,
+      "dur": 20.5,
       "noBar": true,
       "layers": [
         {
           "type": "shot",
           "clip": "hook-cup",
           "at": 0,
-          "dur": 5,
+          "dur": 8.5,
+          "fit": "cover",
+          "zoom": [
+            1,
+            1.08
+          ]
+        },
+        {
+          "type": "diagram",
+          "at": 8.5,
+          "dur": 4.5,
+          "kind": "thread"
+        },
+        {
+          "type": "shot",
+          "clip": "hook-prompt",
+          "at": 13,
+          "dur": 3.5,
           "fit": "cover",
           "zoom": [
             1,
@@ -568,66 +711,54 @@
           ],
           "origin": [
             0.5,
-            0.5
+            0.66
           ]
         },
         {
-          "type": "sfx",
-          "at": 0.2,
-          "name": "jingleStart",
-          "volume": 0.7
-        },
-        {
-          "type": "diagram",
-          "at": 5,
-          "dur": 5.6,
-          "kind": "thread"
-        },
-        {
           "type": "titleCard",
-          "at": 10.6,
-          "dur": 3,
+          "at": 16.5,
+          "dur": 4,
           "title": "アソビルド",
           "sub": "＃1　ソイラテ1杯を飲み干すまでに、できるのか"
         },
         {
           "type": "sfx",
-          "at": 10.65,
+          "at": 16.55,
           "name": "title",
           "volume": 0.95
         },
         {
           "type": "telop",
           "at": 0.4,
-          "dur": 2.2,
-          "text": "ソイラテ、1杯",
+          "dur": 4.04,
+          "text": "このスタバのソイラテトールサイズ1杯を飲み終わるまで",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 2.6,
-          "dur": 2.19,
-          "text": "これを飲み終わるまでに",
+          "at": 4.44,
+          "dur": 4.2,
+          "text": "に懐かしの糸通しみたいなゲームをAIだけで作ってみる。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 5.4,
-          "dur": 4,
-          "text": "AIだけで、糸通しみたいなゲームが作れるのか",
+          "at": 8.64,
+          "dur": 3.76,
+          "text": "どこまでいけるのかやってみようと思います。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 9.4,
-          "dur": 1.51,
-          "text": "やってみます",
+          "at": 13.2,
+          "dur": 3.3,
+          "text": "使うのはClaude Codeというアプリですね。",
           "style": "sub",
           "place": "bottom",
           "gen": true
@@ -638,15 +769,13 @@
       "id": "throw",
       "mood": "まずはたくさんぶっこむ／なんか考えてる？／待ちきれず補足／まだ考えてる",
       "label": "なげる",
-      "dur": 36.5,
-      "devFrom": 0,
-      "devTo": 400,
+      "dur": 117.22,
       "layers": [
         {
           "type": "shot",
           "clip": "throw-type",
           "at": 0,
-          "dur": 7,
+          "dur": 13,
           "fit": "cover",
           "zoom": [
             1,
@@ -660,8 +789,8 @@
         {
           "type": "shot",
           "clip": "throw-self",
-          "at": 7,
-          "dur": 4.4,
+          "at": 13,
+          "dur": 9.3,
           "fit": "cover",
           "origin": [
             0.5,
@@ -671,8 +800,8 @@
         {
           "type": "shot",
           "clip": "think-3z",
-          "at": 11.4,
-          "dur": 7.1,
+          "at": 22.3,
+          "dur": 18,
           "fit": "contain",
           "box": {
             "x": 6,
@@ -683,8 +812,14 @@
           "frame": true
         },
         {
+          "type": "sfx",
+          "at": 22.4,
+          "name": "tick",
+          "volume": 0.7
+        },
+        {
           "type": "spot",
-          "at": 11.9,
+          "at": 23,
           "dur": 5,
           "box": {
             "x": 40,
@@ -696,16 +831,10 @@
           "color": "cool"
         },
         {
-          "type": "sfx",
-          "at": 11.9,
-          "name": "reveal",
-          "volume": 0.75
-        },
-        {
           "type": "shot",
           "clip": "add-term",
-          "at": 18.5,
-          "dur": 4,
+          "at": 40.3,
+          "dur": 24.2,
           "fit": "cover",
           "zoom": [
             1,
@@ -717,16 +846,10 @@
           ]
         },
         {
-          "type": "sfx",
-          "at": 20.4,
-          "name": "reveal",
-          "volume": 0.75
-        },
-        {
           "type": "shot",
           "clip": "think-7z",
-          "at": 22.5,
-          "dur": 4.4,
+          "at": 64.5,
+          "dur": 18.4,
           "fit": "contain",
           "box": {
             "x": 6,
@@ -737,9 +860,15 @@
           "frame": true
         },
         {
+          "type": "sfx",
+          "at": 64.6,
+          "name": "tick",
+          "volume": 0.7
+        },
+        {
           "type": "spot",
-          "at": 22.9,
-          "dur": 3.2,
+          "at": 65.2,
+          "dur": 5,
           "box": {
             "x": 39.5,
             "y": 54.5,
@@ -752,8 +881,27 @@
         {
           "type": "shot",
           "clip": "add-zoom",
-          "at": 26.9,
-          "dur": 9.6,
+          "at": 82.9,
+          "dur": 18,
+          "fit": "contain",
+          "box": {
+            "x": 4,
+            "y": 11,
+            "w": 92,
+            "h": 62
+          }
+        },
+        {
+          "type": "sfx",
+          "at": 83,
+          "name": "tap",
+          "volume": 0.7
+        },
+        {
+          "type": "shot",
+          "clip": "add-zoom2",
+          "at": 100.9,
+          "dur": 16.32,
           "fit": "contain",
           "box": {
             "x": 4,
@@ -764,100 +912,252 @@
         },
         {
           "type": "telop",
-          "at": 0.4,
-          "dur": 3.9,
-          "text": "とりあえず、覚えてることを、ぜんぶ投げます",
+          "at": 0.17,
+          "dur": 3.38,
+          "text": "とりあえず覚えていることを全部投げまくって",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 4.3,
-          "dur": 3,
-          "text": "ルールも、手ざわりも、ぜんぶ",
+          "at": 3.55,
+          "dur": 4.19,
+          "text": "ルールとか当時の手触り感とか面白かったところみたいな",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 7.3,
-          "dur": 4.3,
-          "text": "作るのはAIで、ぼくは見てるだけなんですよね",
+          "at": 7.74,
+          "dur": 2.59,
+          "text": "ところを全部送りつけます。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 11.6,
-          "dur": 2.2,
-          "text": "……なんか、考えてる？",
+          "at": 14.37,
+          "dur": 2.66,
+          "text": "実際に作るのはClaude Code",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 13.8,
-          "dur": 2.2,
-          "text": "ひとまず、待ちます",
+          "at": 17.03,
+          "dur": 3.3,
+          "text": "AI側で僕は本当に見ているだけですね。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 16,
-          "dur": 2.9,
-          "text": "数字が、ずっと増えていきます",
+          "at": 22.31,
+          "dur": 3.32,
+          "text": "最初の指示を投げてひとまず待つんですが",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 18.9,
-          "dur": 3.8,
-          "text": "待ちきれないので、思い出したことを足していきます",
+          "at": 25.63,
+          "dur": 2.61,
+          "text": "待ち続けて待ち続けて待ち続けて",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 22.7,
-          "dur": 2.6,
-          "text": "そのあいだも、ずっと考えてます",
+          "at": 28.24,
+          "dur": 5.59,
+          "text": "この2分47秒とかそれが表示されているところが増えていくんですが",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 25.3,
-          "dur": 1.53,
-          "text": "7分半",
-          "style": "main",
-          "place": "bottom",
-          "color": "accent",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 27.5,
-          "dur": 2.8,
-          "text": "投げたのは、こういう文章です",
+          "at": 33.83,
+          "dur": 4.75,
+          "text": "シンキングって書いてある通りずっとこのAIが考え続け",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 30.3,
-          "dur": 3.39,
-          "text": "気になる方は、止めて読んでみてください",
+          "at": 38.58,
+          "dur": 2.15,
+          "text": "ているんですよね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 41.43,
+          "dur": 3.5,
+          "text": "なかなか終わらない、待ちきれない待ちきれないので",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 44.93,
+          "dur": 3.78,
+          "text": "最初の指示だけじゃなくて追加でこんな感じだったかなと",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 48.71,
+          "dur": 3.76,
+          "text": "思い出したことをどんどん足していきました。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 52.47,
+          "dur": 5.68,
+          "text": "だから連続で連続で返事が来ないのにLINEを送り続け",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 58.15,
+          "dur": 3.34,
+          "text": "るやつみたいな感じですね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 64.51,
+          "dur": 2.86,
+          "text": "その間もずっとやつは考え続けていて",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 67.37,
+          "dur": 3.37,
+          "text": "実際7分21秒とか表示されているんですが",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 70.74,
+          "dur": 3.03,
+          "text": "実際まだ返事何も来ていないんですよ。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 73.77,
+          "dur": 3.65,
+          "text": "だからなんかファイル作ってるのかもしれないんですが",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 77.42,
+          "dur": 2.99,
+          "text": "僕の方からは見えてない状況ですね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 82.91,
+          "dur": 2.7,
+          "text": "その時間およそ7分半ですね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 85.61,
+          "dur": 2.75,
+          "text": "ちなみに補足として投げたのはこういう文章です。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 88.36,
+          "dur": 3.01,
+          "text": "気になる方は止めてぜひ読んでみてください。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 92.55,
+          "dur": 3.09,
+          "text": "例えばどんなふうに動いてたのかとか",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 95.64,
+          "dur": 2.91,
+          "text": "落ち方が若干物理法則よりゆっくり",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 98.55,
+          "dur": 4.74,
+          "text": "本当にガッと落ちたら落ちちゃうじゃないですか。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 103.29,
+          "dur": 4.35,
+          "text": "実際には物理法則に忠実なのかな?よくわからないけど",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 107.64,
+          "dur": 6.07,
+          "text": "その辺の感覚とかをいい感じに追記というか連投して送っております。",
           "style": "sub",
           "place": "bottom",
           "gen": true
@@ -868,220 +1168,19 @@
       "id": "recall",
       "mood": "糸通しについてももう少し思い出すか／あーこんなだったな",
       "label": "思い出す",
-      "dur": 30,
-      "devFrom": 400,
-      "devTo": 700,
+      "dur": 63.54,
       "layers": [
         {
-          "type": "shot",
-          "clip": "recall-term",
-          "at": 0,
-          "dur": 6,
-          "fit": "cover",
-          "zoom": [
-            1.04,
-            1.16
-          ],
-          "origin": [
-            0.5,
-            0.3
-          ]
-        },
-        {
           "type": "diagram",
-          "at": 6,
-          "dur": 8.4,
+          "at": 0,
+          "dur": 16.5,
           "kind": "thread"
         },
         {
           "type": "shot",
           "clip": "recall-term",
-          "at": 14.4,
-          "dur": 5.6,
-          "fit": "cover",
-          "zoom": [
-            1.28,
-            1.4
-          ],
-          "origin": [
-            0.5,
-            0.86
-          ]
-        },
-        {
-          "type": "diagram",
-          "at": 20,
-          "dur": 10,
-          "kind": "shift"
-        },
-        {
-          "type": "telop",
-          "at": 0.3,
-          "dur": 3.1,
-          "text": "糸通しって、覚えてます？",
-          "style": "sub",
-          "place": "bottom",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 3.4,
-          "dur": 2.4,
-          "text": "あー、こんなだったな",
-          "style": "sub",
-          "place": "bottom",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 6.4,
-          "dur": 4,
-          "text": "押してるあいだだけ上がって、離すと落ちる",
-          "style": "sub",
-          "place": "bottom",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 10.4,
-          "dur": 2.06,
-          "text": "それだけのゲームです",
-          "style": "sub",
-          "place": "bottom",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 14.7,
-          "dur": 3.3,
-          "text": "当時の口コミも、そのまま貼っときました",
-          "style": "sub",
-          "place": "bottom",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 18,
-          "dur": 4.2,
-          "text": "不満は、判定がシビアなのと、単調なこと",
-          "style": "sub",
-          "place": "bottom",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 22.2,
-          "dur": 3.6,
-          "text": "そしたら、AIのほうから提案がきました",
-          "style": "sub",
-          "place": "bottom",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 25.8,
-          "dur": 3.93,
-          "text": "通すほど倍率が上がるようにします、って",
-          "style": "sub",
-          "place": "bottom",
-          "gen": true
-        }
-      ],
-      "noBar": true
-    },
-    {
-      "id": "more",
-      "mood": "まだ考えてる／ラテが減る／そのあいだも送りつける／と、思っていたら",
-      "label": "まだかな",
-      "dur": 23,
-      "devFrom": 700,
-      "devTo": 860,
-      "layers": [
-        {
-          "type": "shot",
-          "clip": "think-11z",
-          "at": 0,
-          "dur": 5,
-          "fit": "contain",
-          "box": {
-            "x": 6,
-            "y": 32,
-            "w": 88,
-            "h": 35
-          },
-          "frame": true
-        },
-        {
-          "type": "spot",
-          "at": 0.5,
-          "dur": 3.6,
-          "box": {
-            "x": 41.6,
-            "y": 41.6,
-            "w": 31,
-            "h": 7
-          },
-          "from": "right",
-          "color": "bad"
-        },
-        {
-          "type": "sfx",
-          "at": 0.5,
-          "name": "reveal",
-          "volume": 0.75
-        },
-        {
-          "type": "sfx",
-          "at": 4.7,
-          "name": "swipe",
-          "volume": 0.8
-        },
-        {
-          "type": "timeStamp",
-          "at": 5,
-          "dur": 2.2,
-          "value": "11分",
-          "note": "経過",
-          "color": "bad",
-          "sub": "コードは、まだ1行も"
-        },
-        {
-          "type": "sfx",
-          "at": 5,
-          "name": "stampHit",
-          "volume": 0.9
-        },
-        {
-          "type": "shot",
-          "clip": "more-cup",
-          "at": 7.2,
-          "dur": 5.8,
-          "fit": "cover",
-          "origin": [
-            0.5,
-            0.5
-          ]
-        },
-        {
-          "type": "shot",
-          "clip": "more-term",
-          "at": 13,
-          "dur": 5,
-          "fit": "cover",
-          "zoom": [
-            1,
-            1.08
-          ],
-          "origin": [
-            0.5,
-            0.74
-          ]
-        },
-        {
-          "type": "shot",
-          "clip": "sca-term",
-          "at": 18,
-          "dur": 4,
+          "at": 16.5,
+          "dur": 9.4,
           "fit": "cover",
           "zoom": [
             1,
@@ -1093,64 +1192,436 @@
           ]
         },
         {
+          "type": "shot",
+          "clip": "recall-review",
+          "at": 25.9,
+          "dur": 21.1,
+          "fit": "contain",
+          "box": {
+            "x": 4,
+            "y": 11,
+            "w": 92,
+            "h": 62
+          }
+        },
+        {
+          "type": "sfx",
+          "at": 26,
+          "name": "tap",
+          "volume": 0.7
+        },
+        {
+          "type": "diagram",
+          "at": 47,
+          "dur": 16.54,
+          "kind": "shift"
+        },
+        {
+          "type": "sfx",
+          "at": 47.1,
+          "name": "best",
+          "volume": 0.8
+        },
+        {
           "type": "telop",
-          "at": 0.4,
-          "dur": 2.2,
-          "text": "まだ、考えてます",
+          "at": 4.01,
+          "dur": 2.46,
+          "text": "ちなみに糸通しって覚えてますか?というかご存知ですか",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 2.6,
-          "dur": 4.18,
-          "text": "11分たっても、コードは1行も出てきません",
+          "at": 6.47,
+          "dur": 2.92,
+          "text": "ね?どんな感じだったかちょっと思い出してみてください。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 7.6,
-          "dur": 2.8,
-          "text": "ラテ、減ってきたんですけど",
+          "at": 9.39,
+          "dur": 3.82,
+          "text": "画面としてはこんな感じだったかな?と押してる間に上が",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 10.4,
-          "dur": 3,
-          "text": "これ、時間切れじゃないですか？",
+          "at": 13.21,
+          "dur": 1.32,
+          "text": "って話すと落ちる。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 13.4,
-          "dur": 3.4,
-          "text": "そのあいだも、思い出したことを送りつけてます",
+          "at": 14.53,
+          "dur": 3.24,
+          "text": "それを繰り返して糸通し、針糸に通すみたいな。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 16.8,
-          "dur": 3.8,
-          "text": "「失敗したときも、シュールに静かに終わる」とか",
+          "at": 17.77,
+          "dur": 2.38,
+          "text": "そんな感じですね。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 20.6,
+          "at": 20.15,
+          "dur": 2.36,
+          "text": "僕の記憶だと頼りないというか",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 22.51,
+          "dur": 4.71,
+          "text": "まだまだいろんな人の意見もあった方がいいかなと思ったので",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 27.22,
           "dur": 2.23,
-          "text": "と、思っていたら",
+          "text": "7分半以上まだ考えてるので",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 29.45,
+          "dur": 2.04,
+          "text": "当時の口コミなんかも検索したり",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 31.49,
+          "dur": 3.54,
+          "text": "これはチャットGPTでまとめさせたかな?それをコピー",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 35.03,
+          "dur": 2.06,
+          "text": "して送りつけました。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 37.09,
+          "dur": 3.24,
+          "text": "どの辺がどう中毒性があったのかとか",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 40.33,
+          "dur": 4.96,
+          "text": "その時の不満とか判定がシビアだよとか単調だよというの",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 45.29,
+          "dur": 5.34,
+          "text": "が不満できたので送ってみたらAIから提案が来るんですよ。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 50.63,
+          "dur": 3.47,
+          "text": "通せば通すほど点数の倍率、1本通すほどに1点、1点",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 54.1,
+          "dur": 1.25,
+          "text": "1点じゃなくて2点",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 55.35,
+          "dur": 3.62,
+          "text": "3点とだんだん上がっていくようにするとかそういうとこ",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 58.97,
+          "dur": 2.58,
+          "text": "ろも提案が来たりしております。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        }
+      ],
+      "noBar": true
+    },
+    {
+      "id": "more",
+      "mood": "まだ考えてる／ラテが減る／そのあいだも送りつける／と、思っていたら",
+      "label": "まだかな",
+      "dur": 58.96,
+      "layers": [
+        {
+          "type": "shot",
+          "clip": "think-11z",
+          "at": 0,
+          "dur": 7,
+          "fit": "contain",
+          "box": {
+            "x": 6,
+            "y": 32,
+            "w": 88,
+            "h": 35
+          },
+          "frame": true
+        },
+        {
+          "type": "spot",
+          "at": 0.6,
+          "dur": 4.5,
+          "box": {
+            "x": 41.6,
+            "y": 41.6,
+            "w": 31,
+            "h": 7
+          },
+          "from": "right",
+          "color": "bad"
+        },
+        {
+          "type": "shot",
+          "clip": "more-cup",
+          "at": 7,
+          "dur": 10.2,
+          "fit": "cover"
+        },
+        {
+          "type": "shot",
+          "clip": "more-term",
+          "at": 17.2,
+          "dur": 13.6,
+          "fit": "cover",
+          "zoom": [
+            1,
+            1.08
+          ],
+          "origin": [
+            0.5,
+            0.74
+          ]
+        },
+        {
+          "type": "sfx",
+          "at": 17.3,
+          "name": "tick",
+          "volume": 0.7
+        },
+        {
+          "type": "shot",
+          "clip": "more-zoom",
+          "at": 30.8,
+          "dur": 19.2,
+          "fit": "contain",
+          "box": {
+            "x": 4,
+            "y": 11,
+            "w": 92,
+            "h": 62
+          }
+        },
+        {
+          "type": "shot",
+          "clip": "sca-term",
+          "at": 50,
+          "dur": 8.96,
+          "fit": "cover",
+          "zoom": [
+            1,
+            1.06
+          ],
+          "origin": [
+            0.5,
+            0.6
+          ]
+        },
+        {
+          "type": "sfx",
+          "at": 52,
+          "name": "tap",
+          "volume": 0.7
+        },
+        {
+          "type": "telop",
+          "at": 2.49,
+          "dur": 5.07,
+          "text": "ちなみにまだ11分経ってもまだコードは1行も出てこず",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 7.56,
+          "dur": 1.95,
+          "text": "考え続けてましたね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 9.51,
+          "dur": 4.62,
+          "text": "ラテ結構飲み続けて減ってきてるんですけど時間切れが気",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 14.13,
+          "dur": 5.46,
+          "text": "になるのでラテを飲む時間というかペースもちょっと調整しつつ",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 19.59,
+          "dur": 4.28,
+          "text": "その間もどんどん思い出したことを追加で送りつけてます。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 23.87,
+          "dur": 2.66,
+          "text": "例えば何だったろうな。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 26.53,
+          "dur": 2.22,
+          "text": "さっき言っちゃったところか。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 28.75,
+          "dur": 3.64,
+          "text": "落ちるところも若干ゆっくり目立ったような気がするのとか",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 33.25,
+          "dur": 3.69,
+          "text": "あとはサイン波というか、なみなみの動きの感じ",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 36.94,
+          "dur": 4.37,
+          "text": "にょろにょろする感じも結構印象的だったなというところ",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 41.31,
+          "dur": 4.36,
+          "text": "で凝っていたというか作り込まれているなという印象を送",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 45.67,
+          "dur": 2.18,
+          "text": "ったりしております。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 51.75,
+          "dur": 1.18,
+          "text": "さあどうなるか。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 52.93,
+          "dur": 1.06,
+          "text": "どうなるか。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 53.99,
+          "dur": 4.92,
+          "text": "実際に動くものが出るのか全く動かないようになるのか。",
           "style": "sub",
           "place": "bottom",
           "gen": true
@@ -1161,30 +1632,28 @@
       "id": "appeared",
       "mood": "あ、なんかできてる！／四角と丸……シュール／でも、それっぽくないですか？",
       "label": "できた？",
-      "dur": 30,
-      "devFrom": 860,
-      "devTo": 1020,
+      "dur": 50.17,
       "layers": [
         {
           "type": "timeStamp",
           "at": 0,
-          "dur": 2,
-          "value": "14分",
+          "dur": 2.5,
+          "value": "15分",
           "note": "経過",
           "color": "accent",
           "sub": "なんか、できてる？"
         },
         {
           "type": "sfx",
-          "at": 0,
+          "at": 0.05,
           "name": "stampHit",
           "volume": 0.9
         },
         {
           "type": "shot",
           "clip": "sca-list",
-          "at": 2,
-          "dur": 9,
+          "at": 2.5,
+          "dur": 9.5,
           "fit": "cover",
           "zoom": [
             1,
@@ -1196,9 +1665,15 @@
           ]
         },
         {
+          "type": "sfx",
+          "at": 6.9,
+          "name": "score",
+          "volume": 0.85
+        },
+        {
           "type": "spot",
-          "at": 6.6,
-          "dur": 4,
+          "at": 7,
+          "dur": 4.5,
           "box": {
             "x": 3,
             "y": 61,
@@ -1209,16 +1684,10 @@
           "color": "accent"
         },
         {
-          "type": "sfx",
-          "at": 6.6,
-          "name": "reveal",
-          "volume": 0.75
-        },
-        {
           "type": "shot",
           "clip": "ugly-play",
-          "at": 11,
-          "dur": 9,
+          "at": 12,
+          "dur": 16.6,
           "fit": "contain",
           "box": {
             "x": 31,
@@ -1230,8 +1699,8 @@
         {
           "type": "shot",
           "clip": "w-ugly",
-          "at": 11,
-          "dur": 9,
+          "at": 12,
+          "dur": 16.6,
           "fit": "cover",
           "box": {
             "x": 81,
@@ -1244,32 +1713,15 @@
         },
         {
           "type": "sfx",
-          "at": 11.8,
+          "at": 12.4,
           "name": "tap",
           "volume": 0.8
         },
         {
-          "type": "sfx",
-          "at": 14.5,
-          "name": "over",
-          "volume": 0.7
-        },
-        {
-          "type": "shot",
-          "clip": "ugly-self",
-          "at": 20,
-          "dur": 4,
-          "fit": "cover",
-          "origin": [
-            0.5,
-            0.4
-          ]
-        },
-        {
           "type": "shot",
           "clip": "ugly-res",
-          "at": 24,
-          "dur": 6,
+          "at": 28.6,
+          "dur": 5,
           "fit": "contain",
           "box": {
             "x": 31,
@@ -1280,97 +1732,157 @@
         },
         {
           "type": "sfx",
-          "at": 24.3,
+          "at": 28.8,
           "name": "score",
           "volume": 0.85
         },
         {
+          "type": "shot",
+          "clip": "retry-36",
+          "at": 33.6,
+          "dur": 16.57,
+          "fit": "contain",
+          "box": {
+            "x": 31,
+            "y": 7,
+            "w": 38,
+            "h": 86
+          }
+        },
+        {
+          "type": "shot",
+          "clip": "w-r36c",
+          "at": 33.6,
+          "dur": 16.57,
+          "fit": "cover",
+          "box": {
+            "x": 81,
+            "y": 50,
+            "w": 16,
+            "h": 29
+          },
+          "frame": true,
+          "wipe": true
+        },
+        {
+          "type": "sfx",
+          "at": 33.9,
+          "name": "tap",
+          "volume": 0.8
+        },
+        {
           "type": "telop",
-          "at": 2.4,
-          "dur": 2.41,
-          "text": "14分たったところで",
+          "at": 0.13,
+          "dur": 4.66,
+          "text": "ただし14分15分経ったところで出てきましたね。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 7.2,
-          "dur": 2.4,
-          "text": "あ、なんかできてる！",
-          "style": "main",
-          "place": "top",
-          "color": "accent",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 9.6,
-          "dur": 2.2,
-          "text": "一覧に並んでます",
+          "at": 4.79,
+          "dur": 1.04,
+          "text": "ぬいみち?",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 11.8,
-          "dur": 2.13,
-          "text": "さっそく遊んでみます",
+          "at": 5.83,
+          "dur": 4,
+          "text": "ぬいみちって名前もちょっともじってるんですが糸通しみ",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 14.8,
-          "dur": 1.05,
-          "text": "……えっ",
+          "at": 9.83,
+          "dur": 1.54,
+          "text": "たいなものですね。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 16.6,
-          "dur": 1.8,
-          "text": "四角と、丸",
+          "at": 11.37,
+          "dur": 2.08,
+          "text": "ちょっと遊んでみるんですが全然違いますね。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 18.4,
-          "dur": 2,
-          "text": "シュールだな……",
+          "at": 13.45,
+          "dur": 5.22,
+          "text": "四角と丸で謎の物体がシュールだな。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 20.4,
-          "dur": 3.8,
-          "text": "でも、なんか、それっぽくないですか？",
+          "at": 18.67,
+          "dur": 5.05,
+          "text": "これをポチポチすると確かに動きは若干糸通しっぽいけど",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 24.2,
-          "dur": 3.8,
-          "text": "20点。取り逃がしが多すぎた、って",
+          "at": 23.72,
+          "dur": 5.01,
+          "text": "ちょっとマリオっぽいというか糸通しではないですね。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 28,
-          "dur": 1.95,
-          "text": "死んだ理由まで出るんだ",
+          "at": 28.73,
+          "dur": 3.14,
+          "text": "最初のゲームはとりあえず20点。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 31.87,
+          "dur": 5.89,
+          "text": "全然うまくいかなかったんですが操作感はわかるしなんか",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 37.76,
+          "dur": 4.99,
+          "text": "それっぽさはあって楽しいっちゃ楽しいですね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 42.75,
+          "dur": 5.06,
+          "text": "ただ四角と丸なんでなんだこれっていうシュールさは糸通",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 47.81,
+          "dur": 2.31,
+          "text": "しよりも上がってますね。",
           "style": "sub",
           "place": "bottom",
           "gen": true
@@ -1381,55 +1893,13 @@
       "id": "itsuppoi",
       "mood": "押すと上がる、離すと落ちる／操作はわかる／なんだかんだ、もう一回",
       "label": "それっぽい",
-      "dur": 22,
-      "devFrom": 1020,
-      "devTo": 1332,
+      "dur": 14.76,
       "layers": [
         {
           "type": "shot",
-          "clip": "retry-36",
-          "at": 0,
-          "dur": 7,
-          "fit": "contain",
-          "box": {
-            "x": 31,
-            "y": 7,
-            "w": 38,
-            "h": 86
-          }
-        },
-        {
-          "type": "shot",
-          "clip": "w-r36",
-          "at": 0,
-          "dur": 7,
-          "fit": "cover",
-          "box": {
-            "x": 81,
-            "y": 50,
-            "w": 16,
-            "h": 29
-          },
-          "frame": true,
-          "wipe": true
-        },
-        {
-          "type": "sfx",
-          "at": 0.4,
-          "name": "tap",
-          "volume": 0.8
-        },
-        {
-          "type": "sfx",
-          "at": 4,
-          "name": "score",
-          "volume": 0.85
-        },
-        {
-          "type": "shot",
           "clip": "ugly-play2",
-          "at": 7,
-          "dur": 6,
+          "at": 0,
+          "dur": 10,
           "fit": "contain",
           "box": {
             "x": 31,
@@ -1441,8 +1911,8 @@
         {
           "type": "shot",
           "clip": "w-play2",
-          "at": 7,
-          "dur": 6,
+          "at": 0,
+          "dur": 10,
           "fit": "cover",
           "box": {
             "x": 81,
@@ -1455,15 +1925,59 @@
         },
         {
           "type": "sfx",
-          "at": 7.3,
+          "at": 0.4,
           "name": "tap",
           "volume": 0.8
         },
         {
           "type": "shot",
+          "clip": "self-play2",
+          "at": 10,
+          "dur": 4.76,
+          "fit": "cover",
+          "origin": [
+            0.5,
+            0.42
+          ]
+        },
+        {
+          "type": "telop",
+          "at": 0.02,
+          "dur": 4.55,
+          "text": "だんだんクリアしていくと速くなってくるとかもうまく再現",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 4.57,
+          "dur": 4.55,
+          "text": "再現っていうのかあれですがちょっとできてますね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 9.98,
+          "dur": 4.73,
+          "text": "僕の表情すごい曖昧ですがこれ結構楽しんでますね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        }
+      ]
+    },
+    {
+      "id": "itsuppoi2",
+      "dur": 13.2,
+      "layers": [
+        {
+          "type": "shot",
           "clip": "retry-44",
-          "at": 13,
-          "dur": 9,
+          "at": 0,
+          "dur": 13.2,
           "fit": "contain",
           "box": {
             "x": 31,
@@ -1474,9 +1988,9 @@
         },
         {
           "type": "shot",
-          "clip": "w-r44",
-          "at": 13,
-          "dur": 9,
+          "clip": "w-r44b",
+          "at": 0,
+          "dur": 13.2,
           "fit": "cover",
           "box": {
             "x": 81,
@@ -1489,94 +2003,75 @@
         },
         {
           "type": "sfx",
-          "at": 13.3,
+          "at": 0.4,
           "name": "tap",
           "volume": 0.8
         },
         {
           "type": "sfx",
-          "at": 17,
+          "at": 4.5,
           "name": "best",
-          "volume": 0.85
+          "volume": 0.8
         },
         {
           "type": "telop",
-          "at": 0.4,
-          "dur": 3,
-          "text": "押してるあいだ上がって、離すと落ちる",
+          "at": 2.4,
+          "dur": 3.4,
+          "text": "ちょっと安心したのか、ソイラテを飲みながら",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 3.4,
-          "dur": 2.6,
-          "text": "あ、操作はわかりますね",
+          "at": 5.8,
+          "dur": 0.8,
+          "text": "楽しんでいますね",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 6,
-          "dur": 1.6,
-          "text": "36点",
+          "at": 6.56,
+          "dur": 2,
+          "text": "これは表情が動いていないのですが、",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 7.6,
-          "dur": 2.4,
-          "text": "四角と丸だけなんですけど",
+          "at": 8.56,
+          "dur": 1.88,
+          "text": "集中して楽しんでいますね",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 10,
-          "dur": 2.69,
-          "text": "これ、けっこう楽しいです",
-          "style": "sub",
-          "place": "bottom",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 13.4,
-          "dur": 4.2,
-          "text": "なんだかんだ、もう一回やっちゃうんですよね",
-          "style": "sub",
-          "place": "bottom",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 17.6,
-          "dur": 3.2,
-          "text": "44点。ちょっとずつ伸びます",
+          "at": 10.44,
+          "dur": 1.4,
+          "text": "44点",
           "style": "sub",
           "place": "bottom",
           "gen": true
         }
-      ]
+      ],
+      "label": "それっぽい"
     },
     {
       "id": "timeup",
       "mood": "飲み終わったよー！／成果：謎の四角と丸で、やれと言われれば楽しめるレベルのなにか／まあ少しだけブラッシュアップするか",
       "label": "時間切れ",
-      "dur": 25,
-      "devFrom": 1332,
-      "devTo": 1395,
+      "dur": 30.08,
       "layers": [
         {
           "type": "shot",
           "clip": "drink-end",
           "at": 0,
-          "dur": 11,
+          "dur": 13,
           "fit": "cover",
           "origin": [
             0.5,
@@ -1593,118 +2088,115 @@
           "color": "cool"
         },
         {
-          "type": "sfx",
-          "at": 10.7,
-          "name": "swipe",
-          "volume": 0.8
-        },
-        {
           "type": "timeStamp",
-          "at": 11,
-          "dur": 2.6,
+          "at": 13,
+          "dur": 3,
           "value": "22分",
-          "sub": "タイムアップ",
-          "color": "bad"
+          "note": "経過",
+          "color": "bad",
+          "sub": "タイムアップ"
         },
         {
           "type": "sfx",
-          "at": 11,
+          "at": 13.05,
           "name": "stampHit",
           "volume": 0.9
         },
         {
           "type": "shot",
           "clip": "ugly-play2",
-          "at": 13.6,
-          "dur": 5.7,
-          "fit": "cover",
-          "origin": [
-            0.5,
-            0.5
-          ],
+          "at": 16,
+          "dur": 7,
+          "fit": "contain",
+          "box": {
+            "x": 31,
+            "y": 7,
+            "w": 38,
+            "h": 86
+          },
           "recap": true
         },
         {
           "type": "scrim",
-          "at": 13.6,
-          "dur": 11.4,
+          "at": 16,
+          "dur": 14.08,
           "amount": 0.74
         },
         {
           "type": "shot",
           "clip": "retry-44",
-          "at": 19.3,
-          "dur": 5.7,
-          "fit": "cover",
-          "origin": [
-            0.5,
-            0.5
-          ],
+          "at": 23,
+          "dur": 7.08,
+          "fit": "contain",
+          "box": {
+            "x": 31,
+            "y": 7,
+            "w": 38,
+            "h": 86
+          },
           "recap": true
         },
         {
           "type": "telop",
-          "at": 0.4,
-          "dur": 2.6,
-          "text": "開発、22分",
+          "at": 0,
+          "dur": 5.06,
+          "text": "開発22分経ってちょっと遊んでもらって飲み干しましたよ最後の一口。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 3,
-          "dur": 2.54,
-          "text": "ラテ、最後のひとくち",
+          "at": 5.06,
+          "dur": 3.6,
+          "text": "終わりですよ終わり。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 9,
-          "dur": 1.75,
-          "text": "飲み終わったよー！",
+          "at": 8.66,
+          "dur": 4.87,
+          "text": "タイムアップということで時間切れなのでちょっとまとめ",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 14,
-          "dur": 2.6,
-          "text": "はい、時間切れです",
-          "style": "main",
-          "place": "center",
-          "color": "bad",
+          "at": 13.53,
+          "dur": 4.88,
+          "text": "じゃないですけどここまでできたら謎の四角と丸でこれや",
+          "style": "sub",
+          "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 16.6,
-          "dur": 2.8,
-          "text": "できたのは、謎の四角と丸で",
-          "style": "main",
-          "place": "center",
+          "at": 18.41,
+          "dur": 4.87,
+          "text": "って暇つぶしといてって言われてれば十分楽しめるかなっ",
+          "style": "sub",
+          "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 19.4,
-          "dur": 2.8,
-          "text": "やれと言われれば、楽しめる",
-          "style": "main",
-          "place": "center",
-          "color": "accent",
+          "at": 23.28,
+          "dur": 2.64,
+          "text": "ていう感じのレベルですね。",
+          "style": "sub",
+          "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 22.2,
-          "dur": 2.15,
-          "text": "……レベルの、なにか",
-          "style": "main",
-          "place": "center",
+          "at": 25.92,
+          "dur": 4.11,
+          "text": "糸通しではないかなという感想ですかね。",
+          "style": "sub",
+          "place": "bottom",
           "gen": true
         }
       ]
@@ -1713,14 +2205,12 @@
       "id": "brushup",
       "mood": "ブラッシュアップ依頼／針と糸になった！／1回で死なない？／あ、終わった",
       "label": "ブラッシュアップ",
-      "dur": 33,
-      "devFrom": 1395,
-      "devTo": 2100,
+      "dur": 110.91,
       "layers": [
         {
           "type": "timeStamp",
           "at": 0,
-          "dur": 2,
+          "dur": 3,
           "value": "23分",
           "note": "経過",
           "color": "cool",
@@ -1728,28 +2218,67 @@
         },
         {
           "type": "sfx",
-          "at": 0,
+          "at": 0.05,
           "name": "stampHit",
           "volume": 0.9
         },
         {
           "type": "shot",
+          "clip": "brush-self",
+          "at": 3,
+          "dur": 32.1,
+          "fit": "cover",
+          "origin": [
+            0.5,
+            0.42
+          ]
+        },
+        {
+          "type": "shot",
           "clip": "req-zoom",
-          "at": 2,
-          "dur": 8,
+          "at": 35.1,
+          "dur": 20,
           "fit": "contain",
           "box": {
             "x": 4,
             "y": 11,
             "w": 92,
             "h": 62
-          }
+          },
+          "recap": true
+        },
+        {
+          "type": "sfx",
+          "at": 35.2,
+          "name": "tap",
+          "volume": 0.7
+        },
+        {
+          "type": "shot",
+          "clip": "brush-work",
+          "at": 55.1,
+          "dur": 26.7,
+          "fit": "cover",
+          "zoom": [
+            1,
+            1.08
+          ],
+          "origin": [
+            0.5,
+            0.6
+          ]
+        },
+        {
+          "type": "sfx",
+          "at": 55.2,
+          "name": "tick",
+          "volume": 0.7
         },
         {
           "type": "shot",
           "clip": "turn-title",
-          "at": 10,
-          "dur": 7,
+          "at": 81.8,
+          "dur": 14.2,
           "fit": "contain",
           "box": {
             "x": 31,
@@ -1760,9 +2289,9 @@
         },
         {
           "type": "shot",
-          "clip": "w-title",
-          "at": 10,
-          "dur": 7,
+          "clip": "w-title2",
+          "at": 81.8,
+          "dur": 14.2,
           "fit": "cover",
           "box": {
             "x": 81,
@@ -1775,15 +2304,15 @@
         },
         {
           "type": "sfx",
-          "at": 10.6,
+          "at": 82.4,
           "name": "best",
           "volume": 0.85
         },
         {
           "type": "shot",
           "clip": "turn-play",
-          "at": 17,
-          "dur": 16,
+          "at": 96,
+          "dur": 14.91,
           "fit": "contain",
           "box": {
             "x": 31,
@@ -1794,9 +2323,9 @@
         },
         {
           "type": "shot",
-          "clip": "w-turn",
-          "at": 17,
-          "dur": 16,
+          "clip": "w-turn2",
+          "at": 96,
+          "dur": 14.91,
           "fit": "cover",
           "box": {
             "x": 81,
@@ -1809,103 +2338,237 @@
         },
         {
           "type": "sfx",
-          "at": 17.3,
+          "at": 96.3,
           "name": "tap",
           "volume": 0.8
         },
         {
           "type": "sfx",
-          "at": 28.1,
+          "at": 106,
           "name": "over",
           "volume": 0.8
         },
         {
           "type": "telop",
-          "at": 2.4,
-          "dur": 2.8,
-          "text": "企画としては、ここまでなんですけど",
+          "at": 0.3,
+          "dur": 4.82,
+          "text": "ただまだこれポン出しでポン出しというか僕が一回指示送",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 5.2,
-          "dur": 3.4,
-          "text": "まだまだ面白くできそうなので、続けます",
+          "at": 5.12,
+          "dur": 4.82,
+          "text": "って連続で2,3回追加で指示を送ったものの往復会話と",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 8.6,
-          "dur": 3.2,
-          "text": "「懐かしい」が足りない、って書きました",
+          "at": 9.94,
+          "dur": 2.04,
+          "text": "しては一ターンですね。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 11.8,
-          "dur": 2.8,
-          "text": "そしたら、針と糸になってる！",
-          "style": "main",
-          "place": "bottom",
-          "color": "accent",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 14.6,
-          "dur": 2.8,
-          "text": "めちゃいい。めちゃいい",
+          "at": 11.98,
+          "dur": 3.94,
+          "text": "僕が何度か送って帰ってきたものを遊んだまでなんですが",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 17.4,
-          "dur": 3.6,
-          "text": "あれ、これ、当たっても死なない？",
+          "at": 15.92,
+          "dur": 4.28,
+          "text": "まだまだ結構面白くできそうだなと思うので続行です。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 21,
-          "dur": 2.71,
-          "text": "1回で死ぬタイプじゃないのかな",
+          "at": 21.44,
+          "dur": 4.76,
+          "text": "企画としてはここまでなんですけどね。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 24.4,
-          "dur": 1.78,
-          "text": "いつ終わるんだ？",
+          "at": 27.18,
+          "dur": 1.44,
+          "text": "続けていきましょう。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 28.6,
-          "dur": 1.8,
-          "text": "あ、終わった",
+          "at": 35.38,
+          "dur": 3.38,
+          "text": "ということで追加のフィードバックというかここからブラ",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 30.4,
-          "dur": 2.28,
-          "text": "意外と、できるなあ",
+          "at": 38.76,
+          "dur": 3.38,
+          "text": "ッシュアップなんですがやっぱり全然見た目が違うので懐",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 42.14,
+          "dur": 5,
+          "text": "かしさがないよねとかノスタルジーに浸るみたいなのが全くないよねとか。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 47.14,
+          "dur": 3.63,
+          "text": "やっぱりそこは糸なのか分からないけど何かを何かに通す",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 50.77,
+          "dur": 3.51,
+          "text": "みたいなのがないとその辺はないのかなとか。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 54.28,
+          "dur": 3.77,
+          "text": "あとは押して上がって離して下がるのは分かったんですけ",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 58.05,
+          "dur": 3.29,
+          "text": "どどうやったらゲームオーバーなのかなとか。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 61.34,
+          "dur": 4.29,
+          "text": "あとはさっき触れるの忘れてましたけど四角と丸で四角が",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 65.63,
+          "dur": 4.29,
+          "text": "丸を通ったら多分点なんですけど通ってないというか取れ",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 69.92,
+          "dur": 5.64,
+          "text": "てないか取れたみたいなの違いがちょっとよく分からなかったですね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 75.56,
+          "dur": 4.64,
+          "text": "その辺をちょっと直してくださいみたいなところを言ってみております。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 86.08,
+          "dur": 3.72,
+          "text": "ということで新しいのが出てきたんですが針と糸っぽくな",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 89.8,
+          "dur": 3.72,
+          "text": "ってますね謎の矢印なんですが動きはかなり糸通しっぽく",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 93.52,
+          "dur": 2.76,
+          "text": "なってきました軌跡とかもね残しながら。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 96.28,
+          "dur": 2.83,
+          "text": "でも何かぶつかっても死なないのがちょっとよく分からな",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 99.11,
+          "dur": 3.39,
+          "text": "いんですがいつ終わるのか分からないゲームという感じですね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 102.5,
+          "dur": 3.24,
+          "text": "でもまあ結構面白いですね急に終わりました。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 105.74,
+          "dur": 5.08,
+          "text": "意外とやれるんじゃないですかね28分経ってもまだまだ遊んでます。",
           "style": "sub",
           "place": "bottom",
           "gen": true
@@ -1916,14 +2579,12 @@
       "id": "best",
       "mood": "集中してます／232点／感想を投げる／なだらかに直った／560点",
       "label": "はまる",
-      "dur": 48,
-      "devFrom": 2100,
-      "devTo": 2620,
+      "dur": 67.4,
       "layers": [
         {
           "type": "timeStamp",
           "at": 0,
-          "dur": 2,
+          "dur": 2.5,
           "value": "28分",
           "note": "経過",
           "color": "accent",
@@ -1931,15 +2592,15 @@
         },
         {
           "type": "sfx",
-          "at": 0,
+          "at": 0.05,
           "name": "stampHit",
           "volume": 0.9
         },
         {
           "type": "shot",
           "clip": "shape-play",
-          "at": 2,
-          "dur": 8.5,
+          "at": 2.5,
+          "dur": 9.8,
           "fit": "contain",
           "box": {
             "x": 31,
@@ -1950,9 +2611,9 @@
         },
         {
           "type": "shot",
-          "clip": "w-shape",
-          "at": 2,
-          "dur": 8.5,
+          "clip": "w-shape2",
+          "at": 2.5,
+          "dur": 9.8,
           "fit": "cover",
           "box": {
             "x": 81,
@@ -1965,21 +2626,32 @@
         },
         {
           "type": "sfx",
-          "at": 2.3,
+          "at": 2.8,
           "name": "tap",
           "volume": 0.8
         },
         {
           "type": "sfx",
-          "at": 7,
+          "at": 7.5,
           "name": "score",
           "volume": 0.85
         },
         {
           "type": "shot",
+          "clip": "self-shape",
+          "at": 12.3,
+          "dur": 5.3,
+          "fit": "cover",
+          "origin": [
+            0.5,
+            0.42
+          ]
+        },
+        {
+          "type": "shot",
           "clip": "shape-res",
-          "at": 10.5,
-          "dur": 4.5,
+          "at": 17.6,
+          "dur": 5,
           "fit": "contain",
           "box": {
             "x": 31,
@@ -1990,13 +2662,13 @@
         },
         {
           "type": "sfx",
-          "at": 10.7,
+          "at": 17.8,
           "name": "score",
           "volume": 0.85
         },
         {
           "type": "number",
-          "at": 10.8,
+          "at": 17.9,
           "dur": 3,
           "value": "232",
           "unit": "点",
@@ -2007,8 +2679,8 @@
         {
           "type": "shot",
           "clip": "react-232",
-          "at": 15,
-          "dur": 4.5,
+          "at": 22.6,
+          "dur": 3.2,
           "fit": "cover",
           "zoom": [
             1.06,
@@ -2022,8 +2694,27 @@
         {
           "type": "shot",
           "clip": "fb-zoom",
-          "at": 19.5,
-          "dur": 8,
+          "at": 25.8,
+          "dur": 13.1,
+          "fit": "contain",
+          "box": {
+            "x": 4,
+            "y": 11,
+            "w": 92,
+            "h": 62
+          }
+        },
+        {
+          "type": "sfx",
+          "at": 25.9,
+          "name": "tap",
+          "volume": 0.7
+        },
+        {
+          "type": "shot",
+          "clip": "fb-zoom2",
+          "at": 38.9,
+          "dur": 14.9,
           "fit": "contain",
           "box": {
             "x": 4,
@@ -2034,54 +2725,9 @@
         },
         {
           "type": "shot",
-          "clip": "react",
-          "at": 27.5,
-          "dur": 4,
-          "fit": "cover",
-          "origin": [
-            0.5,
-            0.4
-          ]
-        },
-        {
-          "type": "shot",
-          "clip": "death-0",
-          "at": 31.5,
-          "dur": 5,
-          "fit": "contain",
-          "box": {
-            "x": 31,
-            "y": 7,
-            "w": 38,
-            "h": 86
-          }
-        },
-        {
-          "type": "shot",
-          "clip": "w-death",
-          "at": 31.5,
-          "dur": 5,
-          "fit": "cover",
-          "box": {
-            "x": 81,
-            "y": 50,
-            "w": 16,
-            "h": 29
-          },
-          "frame": true,
-          "wipe": true
-        },
-        {
-          "type": "sfx",
-          "at": 35,
-          "name": "jingleOver",
-          "volume": 0.8
-        },
-        {
-          "type": "shot",
           "clip": "hum-play",
-          "at": 36.5,
-          "dur": 8,
+          "at": 53.8,
+          "dur": 9.6,
           "fit": "contain",
           "box": {
             "x": 31,
@@ -2092,21 +2738,21 @@
         },
         {
           "type": "sfx",
-          "at": 36.8,
+          "at": 54.1,
           "name": "tap",
           "volume": 0.8
         },
         {
           "type": "sfx",
-          "at": 40.5,
+          "at": 58,
           "name": "score",
           "volume": 0.85
         },
         {
           "type": "shot",
           "clip": "hum-res",
-          "at": 44.5,
-          "dur": 3.5,
+          "at": 63.4,
+          "dur": 4,
           "fit": "contain",
           "box": {
             "x": 31,
@@ -2117,14 +2763,14 @@
         },
         {
           "type": "sfx",
-          "at": 44.7,
+          "at": 63.6,
           "name": "best",
           "volume": 0.9
         },
         {
           "type": "number",
-          "at": 44.8,
-          "dur": 3,
+          "at": 63.7,
+          "dur": 3.2,
           "value": "560",
           "unit": "点",
           "label": "じこベスト こうしん",
@@ -2133,118 +2779,153 @@
         },
         {
           "type": "telop",
-          "at": 2.4,
-          "dur": 2.6,
-          "text": "通すほど倍率が上がって",
+          "at": 0.59,
+          "dur": 3.16,
+          "text": "さっきの最初の提案にもあったような倍率が上がるとかも",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 5,
-          "dur": 3,
-          "text": "1回でも当たったら、おわり",
-          "style": "sub",
-          "place": "bottom",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 8,
-          "dur": 1.95,
-          "text": "……集中してますね",
-          "style": "sub",
-          "place": "bottom",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 11,
-          "dur": 2.03,
-          "text": "232点",
-          "style": "main",
-          "place": "bottom",
-          "color": "accent",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 15.4,
+          "at": 3.75,
           "dur": 2.92,
-          "text": "あれ、これ、はまるやつだ",
+          "text": "うまくいってるのかなちょっとやってみましょうか。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 19.9,
-          "dur": 2.7,
-          "text": "遊んだ感想も、そのまま投げます",
+          "at": 6.67,
+          "dur": 6.16,
+          "text": "これ楽しんでますが表情が無表情ですがこれ全然楽しんでますね。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 22.6,
-          "dur": 5,
-          "text": "4、5回やって232点。難しいかも、って",
+          "at": 12.83,
+          "dur": 5.32,
+          "text": "これハマるやつだなと思いながらじーっとやってますね。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 27.6,
-          "dur": 2.6,
-          "text": "そしたら、針の穴を広げて",
+          "at": 18.15,
+          "dur": 4.4,
+          "text": "僕結構シュール系の単調ミニゲーム好きで得意なんですけど4",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 30.2,
-          "dur": 3.6,
-          "text": "だんだん速くなるのと、穴が小さくなるのを",
+          "at": 22.55,
+          "dur": 3.78,
+          "text": "5回やってみてさっきの232点だったんですよね。",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 33.8,
-          "dur": 2.24,
-          "text": "なだらかにしてくれました",
+          "at": 26.33,
+          "dur": 3.76,
+          "text": "これがミニゲームの難易度設定とか難しくなり具合みたい",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 37,
-          "dur": 3.18,
-          "text": "倍率5倍のまま、どんどんのびる",
+          "at": 30.09,
+          "dur": 3.76,
+          "text": "なところがどうなのかなっていうのがちょうどいいのか簡",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 41.2,
-          "dur": 1.8,
-          "text": "まだ、のびる",
+          "at": 33.85,
+          "dur": 3.75,
+          "text": "単なのか難しいのかよく分からなかったのでその辺をちょ",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 44.7,
-          "dur": 3.01,
-          "text": "560点。じこベスト",
+          "at": 37.6,
+          "dur": 1.81,
+          "text": "っと言ってみました。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 39.41,
+          "dur": 5.19,
+          "text": "若干難しいのかなと思ったと言ったらそのバイアスがかか",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 44.6,
+          "dur": 5.2,
+          "text": "ってきたのか針の穴をちょっと広げてみたりとか早くなっ",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 49.8,
+          "dur": 4.99,
+          "text": "ていくとか穴が小さくなっていくみたいなところをね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 54.79,
+          "dur": 3.08,
+          "text": "難易度調整してくれたみたいです。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 57.87,
+          "dur": 3.4,
+          "text": "やり込んだらこんな感じでどんどんどんどんいきますよス",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 61.27,
+          "dur": 4.18,
+          "text": "ピードかなり上がってますがプラス10点プラス10点自己ベスト更新",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 65.45,
+          "dur": 1.9,
+          "text": "560点ですよこれは。",
           "style": "sub",
           "place": "bottom",
           "gen": true
@@ -2255,15 +2936,13 @@
       "id": "scary",
       "mood": "公開した／49分／おつかれさまでした、結論です／元のより面白いかも／おそろしや",
       "label": "こうかい",
-      "dur": 36,
-      "devFrom": 2940,
-      "devTo": 2940,
+      "dur": 90.59,
       "layers": [
         {
           "type": "shot",
           "clip": "ship-live",
           "at": 0,
-          "dur": 4.4,
+          "dur": 6,
           "fit": "cover",
           "zoom": [
             1.18,
@@ -2283,8 +2962,8 @@
         {
           "type": "shot",
           "clip": "ship-play",
-          "at": 4.4,
-          "dur": 5.6,
+          "at": 6,
+          "dur": 7.2,
           "fit": "contain",
           "box": {
             "x": 31,
@@ -2295,15 +2974,15 @@
         },
         {
           "type": "sfx",
-          "at": 4.7,
+          "at": 6.3,
           "name": "tap",
           "volume": 0.8
         },
         {
           "type": "shot",
           "clip": "ugly-play",
-          "at": 10,
-          "dur": 8.3,
+          "at": 13.2,
+          "dur": 21.1,
           "fit": "contain",
           "box": {
             "x": 7,
@@ -2316,8 +2995,8 @@
         {
           "type": "shot",
           "clip": "ship-play",
-          "at": 10,
-          "dur": 8.3,
+          "at": 13.2,
+          "dur": 21.1,
           "fit": "contain",
           "box": {
             "x": 55,
@@ -2329,8 +3008,8 @@
         },
         {
           "type": "telop",
-          "at": 10.2,
-          "dur": 2.4,
+          "at": 13.4,
+          "dur": 2.6,
           "text": "14分 → 49分",
           "place": "top",
           "style": "note",
@@ -2338,20 +3017,59 @@
         },
         {
           "type": "sfx",
-          "at": 10.2,
+          "at": 13.4,
           "name": "score",
           "volume": 0.85
         },
         {
+          "type": "shot",
+          "clip": "ship-play2",
+          "at": 34.3,
+          "dur": 13.5,
+          "fit": "contain",
+          "box": {
+            "x": 31,
+            "y": 7,
+            "w": 38,
+            "h": 86
+          }
+        },
+        {
+          "type": "spot",
+          "at": 35,
+          "dur": 5,
+          "box": {
+            "x": 31,
+            "y": 8,
+            "w": 38,
+            "h": 7
+          },
+          "from": "right",
+          "color": "accent"
+        },
+        {
+          "type": "shot",
+          "clip": "ship-play3",
+          "at": 47.8,
+          "dur": 5.6,
+          "fit": "contain",
+          "box": {
+            "x": 31,
+            "y": 7,
+            "w": 38,
+            "h": 86
+          }
+        },
+        {
           "type": "sfx",
-          "at": 18.1,
-          "name": "swipe",
-          "volume": 0.8
+          "at": 48,
+          "name": "score",
+          "volume": 0.85
         },
         {
           "type": "timeStamp",
-          "at": 18.4,
-          "dur": 2.6,
+          "at": 53.4,
+          "dur": 3,
           "value": "49分",
           "note": "ぜんぶで",
           "color": "accent",
@@ -2359,123 +3077,253 @@
         },
         {
           "type": "sfx",
-          "at": 18.4,
+          "at": 53.45,
           "name": "stampHit",
           "volume": 0.9
         },
         {
           "type": "black",
-          "at": 21,
-          "dur": 15
+          "at": 56.4,
+          "dur": 34.19
         },
         {
           "type": "sfx",
-          "at": 21.2,
+          "at": 57,
           "name": "sting",
           "volume": 0.95
         },
         {
           "type": "sfx",
-          "at": 24,
-          "name": "best",
-          "volume": 0.85
+          "at": 72,
+          "name": "tap",
+          "volume": 0.7
         },
         {
           "type": "sfx",
-          "at": 30.6,
+          "at": 80,
           "name": "score",
           "volume": 0.85
         },
         {
           "type": "sfx",
-          "at": 33.8,
+          "at": 87.5,
           "name": "over",
           "volume": 0.85
         },
         {
           "type": "telop",
-          "at": 0.3,
-          "dur": 2.28,
-          "text": "そのまま公開しました",
+          "at": 0.51,
+          "dur": 3.46,
+          "text": "楽しいですねめちゃめちゃハマってますよもう公開しちゃ",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 4,
-          "dur": 4.06,
-          "text": "概要欄のURLから、だれでも遊べます",
+          "at": 3.97,
+          "dur": 3.45,
+          "text": "いましてこれ実はねウェブのブラウザから概要欄に貼って",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 10.6,
-          "dur": 4,
-          "text": "14分の姿と、49分の姿です",
+          "at": 7.42,
+          "dur": 3.46,
+          "text": "るんですが概要欄のURLからそのまま皆さんも遊ぶこと",
           "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 14.6,
-          "dur": 2.69,
-          "text": "格段によくなりましたよね？",
-          "style": "main",
-          "place": "bottom",
-          "color": "good",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 21.4,
-          "dur": 2.6,
-          "text": "さて、結論です",
-          "style": "main",
-          "place": "center",
-          "color": "cool",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 24,
-          "dur": 3.6,
-          "text": "作れるのか、でいうと──作れちゃいました",
-          "style": "main",
-          "place": "center",
-          "color": "accent",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 27.6,
-          "dur": 3,
-          "text": "雑に投げただけなんですけど",
+          "at": 10.88,
+          "dur": 2.77,
+          "text": "ができる状態で公開しております。",
           "style": "sub",
-          "place": "center",
+          "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 30.6,
-          "dur": 3.2,
-          "text": "元のより面白いかもしれない",
-          "style": "main",
-          "place": "center",
-          "color": "accent",
+          "at": 13.65,
+          "dur": 3.98,
+          "text": "14分時点一発目と49分時点の姿見比べてみましょうか",
+          "style": "sub",
+          "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 33.8,
-          "dur": 1.46,
-          "text": "おそろしや……",
-          "style": "main",
-          "place": "center",
-          "color": "bad",
+          "at": 17.63,
+          "dur": 1.88,
+          "text": "こんな感じですね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 20.11,
+          "dur": 2.4,
+          "text": "四角と丸の謎の動きから。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 23.21,
+          "dur": 6.26,
+          "text": "矢印は謎なんですが縫いと糸通しっぽい感じは再現されつ",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 29.47,
+          "dur": 5.3,
+          "text": "つゲーム性もかなり出てるんじゃないですかね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 34.77,
+          "dur": 3.92,
+          "text": "作りながら遊んでるときは全然気づかなかったんですが上",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 38.69,
+          "dur": 3.93,
+          "text": "の方でベストの点数とか何歩通したとか合計点とかその辺",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 42.62,
+          "dur": 2.47,
+          "text": "がすごい上手く表示されてますね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 45.09,
+          "dur": 3.18,
+          "text": "意外とねゲームプレイ中ってその辺見れないんですよね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 48.27,
+          "dur": 5.6,
+          "text": "あとは通った時の音ゲーみたいな演出これも結構凝ってきてますよね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 53.87,
+          "dur": 3.62,
+          "text": "ということで最初のスタートから考えるとここまでで49",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 57.49,
+          "dur": 2.86,
+          "text": "分経過ということでお疲れ様でした。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 61.29,
+          "dur": 5.47,
+          "text": "改めての結論ですがこれね一発でも作れたし結構面白いの",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 66.76,
+          "dur": 7.17,
+          "text": "を雑に投げてプログラム的な難しい指示とか一切してないんですけれども",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 73.93,
+          "dur": 2.78,
+          "text": "ゲームの感覚その当時の記憶とかこうやったら面白いんじ",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 76.71,
+          "dur": 2.86,
+          "text": "ゃないかなっていうのをちょっと送るだけで",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 79.57,
+          "dur": 3.27,
+          "text": "なんだろうね結構元のより面白いのができるんじゃないか",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 82.84,
+          "dur": 3.28,
+          "text": "なぐらい一瞬で今のAIClaude Codeはやって",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 86.12,
+          "dur": 1.13,
+          "text": "くれちゃいますね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 87.25,
+          "dur": 3.18,
+          "text": "おそろしやということで。",
+          "style": "sub",
+          "place": "bottom",
           "gen": true
         }
       ]
@@ -2483,79 +3331,94 @@
     {
       "id": "end",
       "mood": "ここからあなたも遊べるよ",
-      "dur": 29.9,
-      "noBar": true,
+      "dur": 33,
       "layers": [
         {
           "type": "endCard",
           "at": 0,
-          "dur": 29.9,
+          "dur": 33,
           "url": "asobuild.coenoma.com"
         },
         {
           "type": "sfx",
-          "at": 0.1,
+          "at": 0.2,
           "name": "outro",
           "volume": 0.9
         },
         {
           "type": "telop",
-          "at": 0.6,
-          "dur": 3,
-          "text": "ぬいみち、いま遊べます",
-          "style": "main",
-          "place": "bottom",
-          "color": "accent",
-          "gen": true
-        },
-        {
-          "type": "telop",
-          "at": 3.6,
-          "dur": 2.95,
-          "text": "概要欄にURLがあります",
-          "style": "main",
+          "at": 0.66,
+          "dur": 6.32,
+          "text": "繰り返しになりますけどこれ概要欄にURLがあって",
+          "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 7.2,
-          "dur": 4.2,
-          "text": "高評価とチャンネル登録、うれしいです",
-          "style": "main",
+          "at": 6.98,
+          "dur": 2.79,
+          "text": "asobuild.coenoma.comのところから",
+          "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 11.4,
-          "dur": 2.65,
-          "text": "「これ作ってみて」のリクエストと",
-          "style": "main",
+          "at": 9.77,
+          "dur": 2.33,
+          "text": "遊べるのでぜひ遊んでみてください。",
+          "style": "sub",
           "place": "bottom",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 15,
-          "dur": 3.8,
-          "text": "あなたの最高記録、コメントで待ってます",
-          "style": "main",
+          "at": 15.48,
+          "dur": 3.08,
+          "text": "あとは高評価とチャンネル登録ぜひよろしくお願いします。",
+          "style": "sub",
           "place": "bottom",
-          "color": "accent",
           "gen": true
         },
         {
           "type": "telop",
-          "at": 18.8,
-          "dur": 2.88,
-          "text": "ではでは、また次の動画で",
-          "style": "main",
+          "at": 18.56,
+          "dur": 0.9,
+          "text": "嬉しいです。",
+          "style": "sub",
           "place": "bottom",
-          "color": "accent",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 19.46,
+          "dur": 3.32,
+          "text": "コメント欄にこれ作ってみてのリクエストだったりとか",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 22.78,
+          "dur": 4.12,
+          "text": "あとはプレイしてみてあなたの最高記録ぜひコメントしてみてください。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 26.9,
+          "dur": 2.36,
+          "text": "ではではまた次の動画でお会いしましょう。",
+          "style": "sub",
+          "place": "bottom",
           "gen": true
         }
-      ]
+      ],
+      "noBar": true
     }
   ]
 }

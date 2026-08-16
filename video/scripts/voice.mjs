@@ -146,7 +146,12 @@ if (process.argv.includes('--apply')) {
     ch.layers = ch.layers.filter((l) => !l.gen);
     const lines = script.chapters[ch.id] ?? [];
     lines.forEach((line, i) => {
-      const voiceDur = durOf[`${ch.id}#${i}`] ?? 2.0;
+      /**
+       * 行の長さ。**アテレコを起こした原稿には line.dur が入っている**ので、そちらを優先する。
+       * 仮声の実測（layout）は、原稿が仮声から作られているときだけ正しい。
+       * 人の声に差し替えたあとで layout を見ると、行の対応がずれて字幕が伸び縮みする。
+       */
+      const voiceDur = line.dur ?? durOf[`${ch.id}#${i}`] ?? 2.0;
       const next = lines[i + 1];
       // 声より少しだけ長く出す
       let end = line.at + voiceDur + 0.5;
