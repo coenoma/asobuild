@@ -28,7 +28,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..');
 
 const edlPath = process.argv[2];
-const MODES = ['--extract', '--blocks', '--sheet', '--cut', '--check'];
+const MODES = ['--extract', '--blocks', '--sheet', '--cut', '--check', '--tighten'];
 if (!edlPath || !MODES.some((m) => process.argv.includes(m))) {
   console.error('使い方: node scripts/atereco.mjs edl/<slug>.json --extract <収録> | --blocks | --sheet [--srt f|--json f] | --cut | --check');
   console.error('  --extract  画面収録から音声だけを取り出す（48kHz mono wav）');
@@ -37,6 +37,7 @@ if (!edlPath || !MODES.some((m) => process.argv.includes(m))) {
   console.error('  --cut      章の割り当てに従って human/<章ID>.wav を切り出す（voice.mjs --mux が拾う）');
   console.error('             --keep-gaps を足すと、ブロックを詰めずに章の最初から最後までを丸ごと切る');
   console.error('  --check    章ごとの声の長さと映像の尺を見比べる（映像を伸ばす候補が分かる）');
+  console.error('  --tighten  章ごとの声から間を詰める（喋りは削らない）。時刻の対応表も出す');
   process.exit(1);
 }
 
@@ -339,4 +340,70 @@ if (process.argv.includes('--check')) {
     console.log(`  ${ch.id.padEnd(10)} 声 ${r1(sec)}s / 映像 ${ch.dur}s${mark}`);
   }
   console.log(over === 0 ? '\n全章、映像に収まっています。' : `\n${over}章は映像側の調整が要ります。`);
+}
+
+/* ---------- --tighten ---------- */
+
+/**
+ * 章ごとの声から**間（ま）を詰める**。
+ *
+ * 1本通しで喋ると、考えている時間・言い直し・場面が変わるところで必ず間ができる。
+ * 喋っているぶんには自然でも、動画にすると「テンポが悪い」になる（001のFB）。
+ *
+ * やること: 一定より長い無音を、決めた長さまで縮める。**喋りは1文字も削らない**。
+ * 同時に「元の時刻 → 詰めたあとの時刻」の対応表を出すので、
+ * 字幕と映像の時刻をそのまま引き直せる（ズレようがない）。
+ *
+ *   node scripts/atereco.mjs edl/<slug>.json --tighten [--keep 0.35] [--min 0.6]
+ *     --keep  残す間の長さ（既定 0.35秒）
+ *     --min   これより長い無音を詰める（既定 0.6秒）
+ */
+if (process.argv.includes('--tighten')) {
+  const KEEP = Number(arg('keep') ?? 0.35);
+  const MIN = Number(arg('min') ?? 0.6);
+  const humanDir = resolve(VOICE_DIR, 'human');
+  const maps = {};
+  for (const ch of chapterIds) {
+    const src = resolve(humanDir, `${ch}.wav`);
+    if (!existsSync(src)) continue;
+    const dur = Number(
+      execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src]).toString(),
+    );
+    const stderr = spawnSync('ffmpeg', ['-i', src, '-af', `silencedetect=noise=-35dB:d=${MIN}`, '-f', 'null', '-'],
+      { encoding: 'utf8' }).stderr;
+    const sil = [];
+    let st = null;
+    for (const line of stderr.split('\n')) {
+      const a = /silence_start: (-?[\d.]+)/.exec(line);
+      const b = /silence_end: ([\d.]+)/.exec(line);
+      if (a) st = Math.max(0, Number(a[1]));
+      if (b && st !== null) { sil.push([st, Number(b[1])]); st = null; }
+    }
+    if (st !== null) sil.push([st, dur]);
+
+    // 残す区間（喋り＋詰めた間）を組み立てる
+    const keeps = [];
+    let cur = 0;
+    for (const [a, b] of sil) {
+      if (a > cur) keeps.push([cur, Math.min(a + KEEP / 2, b)]);
+      cur = Math.max(cur, b - KEEP / 2);
+    }
+    if (dur > cur) keeps.push([cur, dur]);
+    const merged = keeps.filter(([a, b]) => b - a > 0.02);
+    const total = merged.reduce((x, [a, b]) => x + (b - a), 0);
+    if (merged.length <= 1 || dur - total < 0.2) { maps[ch] = { dur, cuts: [] }; continue; }
+
+    const filter = merged.map(([a, b], i) => `[0:a]atrim=${a.toFixed(3)}:${b.toFixed(3)},asetpts=PTS-STARTPTS[p${i}]`)
+      .join(';') + ';' + merged.map((_, i) => `[p${i}]`).join('') + `concat=n=${merged.length}:v=0:a=1[out]`;
+    const out = resolve(humanDir, `${ch}.wav`);
+    const tmp = resolve(humanDir, `_${ch}.wav`);
+    execFileSync('ffmpeg', ['-y', '-i', src, '-filter_complex', filter, '-map', '[out]', tmp],
+      { stdio: ['ignore', 'ignore', 'ignore'] });
+    execFileSync('mv', [tmp, out]);
+    maps[ch] = { dur: r1(total), cuts: merged.map(([a, b]) => [r1(a), r1(b)]) };
+    console.log(`  ${ch}: ${r1(dur)}s → ${r1(total)}s（${r1(dur - total)}s 詰めた）`);
+  }
+  const mapPath = resolve(ROOT, 'voice', `${slug}.tighten.json`);
+  writeFileSync(mapPath, `${JSON.stringify(maps, null, 1)}\n`, 'utf8');
+  console.log(`\n対応表: voice/${slug}.tighten.json（字幕と映像の時刻を引き直すのに使う）`);
 }
