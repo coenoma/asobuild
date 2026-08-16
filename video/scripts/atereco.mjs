@@ -32,7 +32,7 @@ const MODES = ['--extract', '--blocks', '--sheet', '--cut', '--check'];
 if (!edlPath || !MODES.some((m) => process.argv.includes(m))) {
   console.error('使い方: node scripts/atereco.mjs edl/<slug>.json --extract <収録> | --blocks | --sheet [--srt f|--json f] | --cut | --check');
   console.error('  --extract  画面収録から音声だけを取り出す（48kHz mono wav）');
-  console.error('  --blocks   無音で区切って発話ブロックを検出する');
+  console.error('  --blocks   無音で区切って発話ブロックを検出する（別録りなら --offset <秒> で画面収録の時刻も併記）');
   console.error('  --sheet    文字起こしをブロックへ割り付け、対応表を作る');
   console.error('  --cut      章の割り当てに従って human/<章ID>.wav を切り出す（voice.mjs --mux が拾う）');
   console.error('  --check    章ごとの声の長さと映像の尺を見比べる（映像を伸ばす候補が分かる）');
@@ -110,19 +110,29 @@ if (process.argv.includes('--blocks')) {
   }
   if (dur - cur >= 0.4) blocks.push({ start: r1(cur), end: r1(dur) });
 
+  /**
+   * 声を別録り（ボイスメモ等）したときの、画面収録との時刻の差（秒）。
+   * 表に「画面収録では何分何秒か」を併記するためだけに使う。切り出しには影響しない。
+   *   --offset 12.5  … 声の 0秒 が、画面収録の 12.5秒 にあたる
+   */
+  const offset = Number(arg('offset') ?? 0);
+
   const data = {
     _note: [
       'アテレコの対応表。blocks の各行に人が chapter を書き込む（対応する章の ID。捨てるなら "skip"）。',
       'どの章か迷ったら、画面収録を開いてそのブロックの時刻を見る（再生位置が映っている）。',
+      ...(offset ? [`声を別録りしたので、画面収録の時刻 = 声の時刻 + ${offset}秒（screen 列がそれ）。`] : []),
       '動画を止めて喋っていた区間は paused: true を書く（映像側の尺を伸ばす候補になる）。',
       `章の ID: ${chapterIds.join(' / ')}`,
     ],
     source: `voice/${slug}/atereco.wav`,
+    ...(offset ? { offset } : {}),
     blocks: blocks.map((b, i) => ({
       n: i + 1,
       start: b.start,
       end: b.end,
       dur: r1(b.end - b.start),
+      ...(offset ? { screen: r1(b.start + offset) } : {}),
       text: '',
       chapter: '',
     })),
@@ -193,10 +203,13 @@ if (process.argv.includes('--sheet')) {
     '**chapter 列を `voice/' + slug + '.atereco.json` に書き込むこと**（ここは見るだけの表）。',
     '迷ったら画面収録のその時刻を開く。動画を止めて喋った区間は `paused: true` も。',
     '',
-    '| # | 音声 | 長さ | 発話 | 章 |',
-    '|---|---|---|---|---|',
-    ...data.blocks.map(
-      (b) => `| ${b.n} | ${mmss(b.start)}〜${mmss(b.end)} | ${b.dur}s | ${b.text || '（無音側？）'} | ${b.chapter || '　'} |`,
+    // 声を別録りしたときは「画面収録では何分何秒か」も並べる（そこを開いて章を決めるため）
+    data.offset ? '| # | 音声 | 画面収録 | 長さ | 発話 | 章 |' : '| # | 音声 | 長さ | 発話 | 章 |',
+    data.offset ? '|---|---|---|---|---|---|' : '|---|---|---|---|---|',
+    ...data.blocks.map((b) =>
+      data.offset
+        ? `| ${b.n} | ${mmss(b.start)}〜${mmss(b.end)} | **${mmss(b.screen ?? b.start)}** | ${b.dur}s | ${b.text || '（無音側？）'} | ${b.chapter || '　'} |`
+        : `| ${b.n} | ${mmss(b.start)}〜${mmss(b.end)} | ${b.dur}s | ${b.text || '（無音側？）'} | ${b.chapter || '　'} |`,
     ),
   ];
   const sheetPath = resolve(ROOT, 'voice', `${slug}.atereco.md`);
