@@ -75,7 +75,7 @@ export type Layer =
       /** voice.mjs --apply が生成した字幕の印。手で書かない（apply のたびに入れ替わる） */
       gen?: boolean;
       /** 画面のどこに置くか。既定は下 */
-      place?: 'bottom' | 'top' | 'center' | 'lower-left';
+      place?: 'bottom' | 'top' | 'center' | 'lower-left' | 'center-right';
       color?: keyof typeof import('./brand').C;
     }
   /** 数字の強調（スコアなど） */

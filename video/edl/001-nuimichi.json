@@ -19,7 +19,7 @@
       "file": "bgm/ending.wav",
       "peakDb": -8,
       "note": "同 Next Time（短い版）。締めのカードから鳴らす",
-      "at": 606.5,
+      "at": 607.0,
       "gainDb": -3.5,
       "publicFile": "bgm/ending.wav"
     }
@@ -839,7 +839,7 @@
   "chapters": [
     {
       "id": "cold",
-      "dur": 4.4,
+      "dur": 4.9,
       "noBar": true,
       "mood": "約束とのズレで引く: 頼んだら→謎の画→……糸通し？（完成品は見せない）",
       "layers": [
@@ -865,7 +865,7 @@
           "dur": 2.25,
           "fit": "contain",
           "box": {
-            "x": 31,
+            "x": 8,
             "y": 7,
             "w": 38,
             "h": 86
@@ -882,20 +882,16 @@
           "at": 2,
           "dur": 1.9,
           "text": "……糸通し？",
-          "place": "center",
+          "place": "center-right",
           "style": "main",
           "color": "bad"
         },
         {
-          "type": "black",
-          "at": 3.9,
-          "dur": 0.5
-        },
-        {
-          "type": "sfx",
-          "at": 3.95,
-          "name": "tick",
-          "volume": 0.7
+          "type": "loading",
+          "at": 3.7,
+          "dur": 1.2,
+          "text": "アソビルド",
+          "note": "よみこみ中…"
         }
       ]
     },

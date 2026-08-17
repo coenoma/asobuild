@@ -3,13 +3,15 @@ import { AbsoluteFill, useCurrentFrame, useVideoConfig } from 'remotion';
 import { C, SIZE, PANEL_BG, BORDER, HARD_SHADOW, SUB_BG, SUB_INK, SUB_EDGE, CARD_SHADOW } from '../brand';
 import { fade, rise } from './common';
 
-type Place = 'bottom' | 'top' | 'center' | 'lower-left';
+type Place = 'bottom' | 'top' | 'center' | 'lower-left' | 'center-right';
 
 const PLACE: Record<Place, React.CSSProperties> = {
   bottom: { justifyContent: 'flex-end', alignItems: 'center', paddingBottom: 76 },
   top: { justifyContent: 'flex-start', alignItems: 'center', paddingTop: 96 },
   center: { justifyContent: 'center', alignItems: 'center' },
   'lower-left': { justifyContent: 'flex-end', alignItems: 'flex-start', paddingBottom: 48, paddingLeft: 56 },
+  // 画を左に置いたとき、右の空きに出す（コールドオープン等）
+  'center-right': { justifyContent: 'center', alignItems: 'flex-end', paddingRight: 170 },
 };
 
 /**

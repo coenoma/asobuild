@@ -48,20 +48,21 @@ mkdirSync(FOOTAGE, { recursive: true });
 const GRADE = {
   screen: null,
   /**
-   * 自撮りの色。**素人の自撮りに見えないところまで持っていく**（001のFB）。
-   * やっていること: 黒を少し浮かせる（フィルムっぽさ）／中間を明るく／
-   * 白飛びを 0.965 で止める（窓の光で飛んでいた）／肌に寄せて少し暖色へ／
-   * ハイライトだけ少し寒色（暖と寒の差が「それっぽさ」になる）／軽くシャープ。
-   * ビネットは入れない（寄りの画では、暗い四隅が作り物っぽく見えた）。
+   * 自撮りの色。**「人がいけてる感じ」に寄せる**（001のFB）。
+   * やっていること: 黒を浮かせて全体を明るく／白飛びを 0.985 で止める／
+   * 彩度をわずかに抜いて色白へ（美白は「白くする」でなく「赤みと彩度を抜く」）／
+   * smartblur で肌のざらつきだけ軽くならし、輪郭は unsharp で返す。
+   * ビネットは入れない（寄りの画では作り物っぽく見えた）。
    */
   self:
-    "curves=all='0/0.035 0.25/0.245 0.5/0.53 0.75/0.80 1/0.965'," +
-    'eq=contrast=1.05:saturation=1.14:gamma=1.02,' +
-    'colorbalance=rs=0.02:bs=-0.03:rm=0.035:bm=-0.02:rh=0.005:bh=0.025,' +
-    'unsharp=5:5:0.55:5:5:0.0',
+    "curves=all='0/0.06 0.25/0.32 0.5/0.62 0.75/0.86 1/0.985'," +
+    'eq=contrast=1.0:saturation=0.98:gamma=1.09,' +
+    'colorbalance=rs=0.01:bs=0.0:rm=0.01:bm=0.01:rh=0.015:bh=0.03,' +
+    'smartblur=lr=1.6:ls=-0.4,' +
+    'unsharp=5:5:0.3',
 };
 
-function build(clip, id) {
+function build(clip, id, outPath) {
   const src = edl.sources[clip.src];
   if (!src) throw new Error(`${id}: sources に "${clip.src}" がありません`);
   const crop = edl.crops[clip.crop];
@@ -88,7 +89,7 @@ function build(clip, id) {
       '-an',
       '-c:v', 'libx264', '-preset', 'medium', '-crf', '17',
       '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
-      resolve(FOOTAGE, `${id}.mp4`),
+      outPath ?? resolve(FOOTAGE, `${id}.mp4`),
     ],
   };
 }
@@ -165,21 +166,28 @@ const manifest = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, 'utf8'
 const stamp = (clip) => JSON.stringify({
   src: clip.src, crop: clip.crop, in: clip.in, dur: clip.dur, speed: clip.speed ?? 1,
   box: edl.crops?.[clip.crop] ?? null,
+  // 色（グレーディング）を変えたときも作り直したいので、控えに含める
+  grade: GRADE[clip.src] ?? null,
 });
 
 for (const id of ids) {
   const outPath = resolve(FOOTAGE, `${id}.mp4`);
+  // いったん別名に書いてから置き換える。
+  // 直接書くと、Studio が**書きかけのファイル**を読んで MediaPlaybackError になる
+  // （切り直し中にプレビューしていた001で実際に起きた）
+  const tmpPath = resolve(FOOTAGE, `.${id}.tmp.mp4`);
   const now = stamp(edl.clips[id]);
   if (!force && existsSync(outPath) && manifest[id] === now) { skipped++; continue; }
   if (existsSync(outPath) && manifest[id] !== now) {
     process.stdout.write('（切り方が変わったので作り直し）');
   }
   const clip = edl.clips[id];
-  const { args } = build(clip, id);
+  const { args } = build(clip, id, tmpPath);
   const label = `${id}  ${clip.crop}  ${clip.in.toFixed(1)}s +${clip.dur}s${clip.speed && clip.speed !== 1 ? ` ×${clip.speed}` : ''}`;
   process.stdout.write(`切り出し中: ${label} ... `);
   try {
     execFileSync('ffmpeg', args, { stdio: ['ignore', 'ignore', 'pipe'] });
+    execFileSync('mv', [tmpPath, outPath]);   // 完成してから置く（書きかけを見せない）
     manifest[id] = now;
     console.log('できた');
     made++;
