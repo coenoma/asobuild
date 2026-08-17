@@ -65,7 +65,16 @@ if (existsSync(humanDir)) {
     n++;
   }
 }
-console.log(`声: ${n}章ぶんを public/voice/ へ`);
+// 声の無い章（コールドオープン等）には**無音を置く**。
+// 合成側は全章ぶんの voice/<id>.wav を読むので、無いと描画が落ちる
+let silent = 0;
+for (const ch of edl.chapters) {
+  const dst = resolve(outVoice, `${ch.id}.wav`);
+  if (existsSync(dst)) continue;
+  spawnSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=mono', '-t', '0.1', dst]);
+  silent++;
+}
+console.log(`声: ${n}章ぶん＋無音${silent}章を public/voice/ へ`);
 
 // ── BGM（リポジトリの外にある。無ければ黙って飛ばす）
 const outBgm = resolve(ROOT, 'public/bgm');
