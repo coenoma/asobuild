@@ -1034,175 +1034,6 @@
           "wipe": true
         },
         {
-          "type": "shot",
-          "clip": "throw-self",
-          "at": 10.97,
-          "dur": 7.63,
-          "fit": "cover",
-          "origin": [
-            0.5,
-            0.42
-          ]
-        },
-        {
-          "type": "shot",
-          "clip": "think-3z",
-          "at": 18.6,
-          "dur": 16.6,
-          "fit": "contain",
-          "box": {
-            "x": 6,
-            "y": 32,
-            "w": 88,
-            "h": 35
-          },
-          "frame": true
-        },
-        {
-          "type": "shot",
-          "clip": "w-think-3z",
-          "at": 18.6,
-          "dur": 16.6,
-          "fit": "cover",
-          "box": {
-            "x": 81,
-            "y": 50,
-            "w": 16,
-            "h": 29
-          },
-          "frame": true,
-          "wipe": true
-        },
-        {
-          "type": "sfx",
-          "at": 18.7,
-          "name": "tick",
-          "volume": 0.7
-        },
-        {
-          "type": "spot",
-          "at": 19,
-          "dur": 16.1,
-          "box": {
-            "x": 40,
-            "y": 30.5,
-            "w": 30,
-            "h": 8
-          },
-          "from": "right",
-          "color": "cool"
-        },
-        {
-          "type": "shot",
-          "clip": "add-term",
-          "at": 35.2,
-          "dur": 20.46,
-          "fit": "cover",
-          "zoom": [
-            1,
-            1.08
-          ],
-          "origin": [
-            0.5,
-            0.72
-          ]
-        },
-        {
-          "type": "shot",
-          "clip": "w-add-term",
-          "at": 35.2,
-          "dur": 20.46,
-          "fit": "cover",
-          "box": {
-            "x": 81,
-            "y": 50,
-            "w": 16,
-            "h": 29
-          },
-          "frame": true,
-          "wipe": true
-        },
-        {
-          "type": "shot",
-          "clip": "think-7z",
-          "at": 55.66,
-          "dur": 18.35,
-          "fit": "contain",
-          "box": {
-            "x": 6,
-            "y": 32,
-            "w": 88,
-            "h": 35
-          },
-          "frame": true
-        },
-        {
-          "type": "shot",
-          "clip": "w-think-7z",
-          "at": 55.66,
-          "dur": 18.35,
-          "fit": "cover",
-          "box": {
-            "x": 81,
-            "y": 50,
-            "w": 16,
-            "h": 29
-          },
-          "frame": true,
-          "wipe": true
-        },
-        {
-          "type": "sfx",
-          "at": 55.76,
-          "name": "tick",
-          "volume": 0.7
-        },
-        {
-          "type": "spot",
-          "at": 56.36,
-          "dur": 17.55,
-          "box": {
-            "x": 41,
-            "y": 54.5,
-            "w": 30,
-            "h": 6.5
-          },
-          "from": "right",
-          "color": "bad"
-        },
-        {
-          "type": "sfx",
-          "at": 71.6,
-          "name": "tap",
-          "volume": 0.7
-        },
-        {
-          "type": "shot",
-          "clip": "add-zoom",
-          "at": 74.01,
-          "dur": 15.29,
-          "fit": "contain",
-          "box": {
-            "x": 4,
-            "y": 11,
-            "w": 92,
-            "h": 62
-          }
-        },
-        {
-          "type": "shot",
-          "clip": "add-zoom2",
-          "at": 89.3,
-          "dur": 11.4,
-          "fit": "contain",
-          "box": {
-            "x": 4,
-            "y": 11,
-            "w": 92,
-            "h": 62
-          }
-        },
-        {
           "type": "telop",
           "at": 0.17,
           "dur": 3.48,
@@ -1239,6 +1070,17 @@
           "gen": true
         },
         {
+          "type": "shot",
+          "clip": "throw-self",
+          "at": 10.97,
+          "dur": 7.63,
+          "fit": "cover",
+          "origin": [
+            0.5,
+            0.42
+          ]
+        },
+        {
           "type": "telop",
           "at": 11.97,
           "dur": 2.66,
@@ -1257,6 +1099,35 @@
           "gen": true
         },
         {
+          "type": "shot",
+          "clip": "think-3z",
+          "at": 18.6,
+          "dur": 16.6,
+          "fit": "contain",
+          "box": {
+            "x": 6,
+            "y": 32,
+            "w": 88,
+            "h": 35
+          },
+          "frame": true
+        },
+        {
+          "type": "shot",
+          "clip": "w-think-3z",
+          "at": 18.6,
+          "dur": 16.6,
+          "fit": "cover",
+          "box": {
+            "x": 81,
+            "y": 50,
+            "w": 16,
+            "h": 29
+          },
+          "frame": true,
+          "wipe": true
+        },
+        {
           "type": "telop",
           "at": 18.61,
           "dur": 3.04,
@@ -1264,6 +1135,25 @@
           "style": "sub",
           "place": "bottom",
           "gen": true
+        },
+        {
+          "type": "sfx",
+          "at": 18.7,
+          "name": "tick",
+          "volume": 0.7
+        },
+        {
+          "type": "spot",
+          "at": 19,
+          "dur": 16.1,
+          "box": {
+            "x": 40,
+            "y": 30.5,
+            "w": 30,
+            "h": 8
+          },
+          "from": "right",
+          "color": "cool"
         },
         {
           "type": "telop",
@@ -1309,6 +1199,36 @@
           "style": "sub",
           "place": "bottom",
           "gen": true
+        },
+        {
+          "type": "shot",
+          "clip": "add-term",
+          "at": 35.2,
+          "dur": 20.46,
+          "fit": "cover",
+          "zoom": [
+            1,
+            1.08
+          ],
+          "origin": [
+            0.5,
+            0.72
+          ]
+        },
+        {
+          "type": "shot",
+          "clip": "w-add-term",
+          "at": 35.2,
+          "dur": 20.46,
+          "fit": "cover",
+          "box": {
+            "x": 81,
+            "y": 50,
+            "w": 16,
+            "h": 29
+          },
+          "frame": true,
+          "wipe": true
         },
         {
           "type": "telop",
@@ -1374,6 +1294,54 @@
           "gen": true
         },
         {
+          "type": "shot",
+          "clip": "think-7z",
+          "at": 55.66,
+          "dur": 18.35,
+          "fit": "contain",
+          "box": {
+            "x": 6,
+            "y": 32,
+            "w": 88,
+            "h": 35
+          },
+          "frame": true
+        },
+        {
+          "type": "shot",
+          "clip": "w-think-7z",
+          "at": 55.66,
+          "dur": 18.35,
+          "fit": "cover",
+          "box": {
+            "x": 81,
+            "y": 50,
+            "w": 16,
+            "h": 29
+          },
+          "frame": true,
+          "wipe": true
+        },
+        {
+          "type": "sfx",
+          "at": 55.76,
+          "name": "tick",
+          "volume": 0.7
+        },
+        {
+          "type": "spot",
+          "at": 56.36,
+          "dur": 17.55,
+          "box": {
+            "x": 39,
+            "y": 47.0,
+            "w": 34,
+            "h": 10
+          },
+          "from": "right",
+          "color": "bad"
+        },
+        {
           "type": "telop",
           "at": 58.53,
           "dur": 3.42,
@@ -1419,6 +1387,25 @@
           "gen": true
         },
         {
+          "type": "sfx",
+          "at": 71.6,
+          "name": "tap",
+          "volume": 0.7
+        },
+        {
+          "type": "shot",
+          "clip": "add-zoom",
+          "at": 74.01,
+          "dur": 15.29,
+          "fit": "contain",
+          "box": {
+            "x": 4,
+            "y": 11,
+            "w": 92,
+            "h": 62
+          }
+        },
+        {
           "type": "telop",
           "at": 74.11,
           "dur": 2.75,
@@ -1462,6 +1449,19 @@
           "style": "sub",
           "place": "bottom",
           "gen": true
+        },
+        {
+          "type": "shot",
+          "clip": "add-zoom2",
+          "at": 89.3,
+          "dur": 11.4,
+          "fit": "contain",
+          "box": {
+            "x": 4,
+            "y": 11,
+            "w": 92,
+            "h": 62
+          }
         },
         {
           "type": "telop",

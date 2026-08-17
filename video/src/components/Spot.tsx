@@ -92,7 +92,7 @@ export const Spot: React.FC<{
       />
       )}
       <div style={{ position: 'absolute', display: 'flex', alignItems: 'center', gap: 12, ...pos }}>
-        <span style={{ fontSize: noBox ? 110 : 76, color: C[color], textShadow: HARD_SHADOW, lineHeight: 1, fontWeight: 900 }}>{arrow}</span>
+        <span style={{ fontSize: noBox ? 110 : 92, color: C[color], textShadow: HARD_SHADOW, lineHeight: 1, fontWeight: 900 }}>{arrow}</span>
         {label ? (
           <span
             style={{
