@@ -234,6 +234,20 @@ if (existsSync(layoutPath)) {
   }
 }
 
+// 11. 締めの曲が鳴りきる前に動画が終わっていないか（尺をいじるたびに起きる）
+{
+  const conf = edl.meta?.endingBgm;
+  const file = conf ? resolve(ROOT, conf.file) : null;
+  if (conf && file && existsSync(file)) {
+    const total = edl.chapters.reduce((a, c) => a + c.dur, 0);
+    const len = Number(spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', file], { encoding: 'utf8' }).stdout.trim());
+    const need = (conf.at ?? total) + len;
+    if (need > total + 0.05) {
+      bad.push(`締めの曲が鳴りきる前に動画が終わる（曲の終わり ${need.toFixed(1)}s > 総尺 ${total.toFixed(1)}s）。end 章を ${(need - total + 1).toFixed(1)}s のばす`);
+    }
+  }
+}
+
 for (const m of bad) console.log(`✗ ${m}`);
 for (const m of warn) console.log(`△ ${m}`);
 if (!bad.length && !warn.length) console.log('ズレは見つかりませんでした');

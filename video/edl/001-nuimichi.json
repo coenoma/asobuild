@@ -4271,12 +4271,12 @@
     {
       "id": "end",
       "mood": "ここからあなたも遊べるよ",
-      "dur": 22.04,
+      "dur": 30.8,
       "layers": [
         {
           "type": "endCard",
           "at": 0,
-          "dur": 21.96,
+          "dur": 30.8,
           "url": "asobuild.coenoma.com",
           "buttons": [
             {
