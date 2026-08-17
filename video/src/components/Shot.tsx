@@ -42,12 +42,21 @@ export const Shot: React.FC<{
       style={{
         ...style,
         overflow: 'hidden',
-        // 盤面に角丸は使わない（当時の画面に角丸はない）。
-        // ただしワイプは「番組側の窓」なので、少し丸めて縁をつけたほうが窓に見える
-        borderRadius: wipe ? 12 : undefined,
-        border: wipe ? `5px solid ${C.ink}` : withFrame ? `3px solid ${C.line}` : undefined,
-        outline: wipe ? `3px solid ${C.bg}` : undefined,
-        boxShadow: wipe ? '0 10px 26px rgba(0,0,0,0.55)' : undefined,
+        /**
+         * 盤面に角丸は使わない（当時の画面に角丸はない）。
+         * ただしワイプは**番組側の窓**なので、丸めて縁をつける。
+         * 縁は border ではなく影の輪で作る（border だと映像が食われて顔が小さくなる）。
+         * 白い輪 → 細い黒 → 落ち影、の3枚重ねで「浮いた窓」に見せる。
+         */
+        borderRadius: wipe ? 22 : undefined,
+        border: wipe ? undefined : withFrame ? `3px solid ${C.line}` : undefined,
+        boxShadow: wipe
+          ? [
+              `0 0 0 5px rgba(233,241,228,0.96)`,   // 白い輪
+              `0 0 0 8px rgba(16,24,32,0.92)`,      // その外に細い黒
+              `0 14px 30px rgba(0,0,0,0.5)`,        // 落ち影
+            ].join(', ')
+          : undefined,
         background: C.bg,
       }}
     >
@@ -67,6 +76,18 @@ export const Shot: React.FC<{
         // 音は使わない（喋りは後から乗せる／効果音は別に作る）
         muted
       />
+      {wipe ? (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: 22,
+            // 内側にうっすら影。窓のふちが立って見える
+            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.28), inset 0 -14px 22px rgba(0,0,0,0.28)',
+            pointerEvents: 'none',
+          }}
+        />
+      ) : null}
     </div>
   );
 };

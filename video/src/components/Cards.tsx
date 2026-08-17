@@ -73,7 +73,7 @@ export const BigNumber: React.FC<{
         }}
       >
         {label ? (
-          <div style={{ fontFamily, fontWeight: 800, fontSize: SIZE.note, color: right ? SUB_INK : C.dim, textShadow: right ? undefined : HARD_SHADOW, marginBottom: 4 }}>
+          <div style={{ fontFamily, fontWeight: 900, fontSize: SIZE.note, color: right ? SUB_INK : C.dim, textShadow: right ? undefined : HARD_SHADOW, marginBottom: 4 }}>
             {label}
           </div>
         ) : null}

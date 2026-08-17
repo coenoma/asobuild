@@ -7,6 +7,10 @@ public/footage/
 # 効果音は scripts/sfx.mjs で作れるので持たない
 public/sfx/
 
+# 声とBGMの置き場所（描画に混ぜるためのコピー）。scripts/prep-audio.mjs が作る
+public/voice/
+public/bgm/
+
 # 書体は node scripts/fonts.mjs で取ってくる
 public/fonts/
 

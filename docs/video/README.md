@@ -53,23 +53,34 @@ node scripts/extract.mjs edl/<slug>.json
 # ⑤ 絵コンテを出して、構成を相談する
 node scripts/storyboard.mjs edl/<slug>.json > ../docs/video/storyboards/<slug>.md
 
-# ⑥ 見ながら直す
-npx remotion studio
+# ⑥ 🔴 ブラウザで見ながら直す（**声もBGMも鳴る**。直したらその場で反映）
+npm run studio
 
 # ⑦ 本命の声を録って、映像を声に合わせ直す（読み上げではない → docs/video/atereco.md）
 node scripts/atereco.mjs edl/<slug>.json --extract ~/収録/アテレコ.mov
 node scripts/atereco.mjs edl/<slug>.json --blocks
 node scripts/atereco.mjs edl/<slug>.json --sheet --srt ~/収録/文字起こし.srt
-node scripts/atereco.mjs edl/<slug>.json --cut && node scripts/atereco.mjs edl/<slug>.json --check
+node scripts/atereco.mjs edl/<slug>.json --cut --keep-gaps    # 1本通しならこちら
+node scripts/atereco.mjs edl/<slug>.json --tighten            # 間を詰める（捨てる区間も同時に）
+node scripts/atereco.mjs edl/<slug>.json --check
 
-# ⑧ 書き出す
-npx remotion render src/index.ts Episode out/<slug>.mp4
+# ⑧ 出す前の関所
+node scripts/sync-check.mjs edl/<slug>.json
 
-# ⑧ 確認用の声（VOICEVOX）を乗せる。本命の声も同じコマンド
-docker run -d --rm --name voicevox -p 50021:50021 voicevox/voicevox_engine:cpu-latest
-node scripts/voice.mjs edl/<slug>.json --synth
-node scripts/voice.mjs edl/<slug>.json --mux     # → out/<slug>-voiced.mp4
+# ⑨ 書き出す（声もBGMも入った1本が出る。混ぜる工程は無い）
+npm run draft     # 下書き画質。全体の流れを見るならこれ（半分の解像度）
+npm run build     # 本番画質
 ```
+
+### 🔴 30分待ってから確認、をしない
+
+**`npm run studio` がいちばん速い確認手段。** ブラウザで開いて、再生位置を掴んで動かせる。
+EDL（`edl/*.json`）を直すと**その場で反映**される。声・BGM・効果音もすべて鳴る
+（`scripts/prep-audio.mjs` が `public/` へ用意する）。
+
+- **1か所を直したいとき** → studio でその時刻へ飛んで確かめる（数秒）
+- **全体の流れを見たいとき** → `npm run draft`（半分の解像度・数分）
+- **人に見せる／出すとき** → `npm run build`（本番画質・30分前後）
 
 ### 素材の開始時刻を実測する
 

@@ -29,12 +29,12 @@ export const C = {
  * 帯は盤面に無い真っ黒＋全幅にして、テレビの字幕の形にする。
  */
 export const SIZE = {
-  chapter: 96,
-  main: 82,
+  chapter: 104,
+  main: 92,
   /** ナレーションの字幕。全文を出すが、小さくすると読まれない */
-  sub: 56,
+  sub: 64,
   number: 160,
-  note: 38,
+  note: 42,
   bar: 30,
   credit: 26,
 } as const;

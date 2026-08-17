@@ -313,10 +313,17 @@ node scripts/timeline.mjs --rec-start "<ISO8601>"     # 開発ログを動画の
 node scripts/extract.mjs edl/<slug>.json              # 必要な区間だけ切り出す（尺の検査つき）
 node scripts/storyboard.mjs edl/<slug>.json           # 絵コンテを出して構成を相談する
 node scripts/sync-check.mjs edl/<slug>.json           # 言っていることと映っているもののズレを機械で見る
-npx remotion render src/index.ts Episode out/<slug>.mp4
+
+npm run studio   # 🔴 ブラウザで見ながら直す。声もBGMも鳴り、直したら即反映
+npm run draft    # 全体の流れを見る（半分の解像度・数分）
+npm run build    # 本番画質（30分前後）
 ```
 
-- **尺は7分**（チャンネルが知られていない間）。素材が49分あっても7分に落とす
+**30分待ってから確認、をしない。** `npm run studio` が最速の確認手段で、
+声・BGM・効果音まで入った状態でスクラブできる（[docs/video/README.md](docs/video/README.md)）。
+
+- **尺は7分**（チャンネルが知られていない間）。ただし**本命の声を乗せたら声が正**なので、
+  そちらに合わせて伸びる（001は喋り10:55 → 10:01）
 - **編集の中身はコードではなく `video/edl/*.json`**。ナレーションは後から乗せて尺を調整する
 - **本命の声は読み上げではない。** 動画を見ながら自由に喋った画面収録が本命で、
   **映像のほうを声に合わせ直す**（[docs/video/atereco.md](docs/video/atereco.md)。声が正、映像が従）

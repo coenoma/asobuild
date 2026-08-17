@@ -7,23 +7,23 @@
     "node": ">=22"
   },
   "scripts": {
-    "studio": "remotion studio",
-    "render": "remotion render src/index.ts Episode out/episode.mp4",
+    "studio": "node scripts/prep-audio.mjs edl/001-nuimichi.json && remotion studio src/index.ts --public-dir=public",
     "timeline": "node scripts/timeline.mjs",
     "extract": "node scripts/extract.mjs",
     "sfx": "node scripts/sfx.mjs",
     "scan": "node scripts/scan-risk.mjs",
     "typecheck": "tsc --noEmit",
     "storyboard": "node scripts/storyboard.mjs",
-    "build": "remotion render src/index.ts Episode out/001-nuimichi.mp4 --public-dir=public --concurrency=3",
-    "mux": "node scripts/voice.mjs edl/001-nuimichi.json --mux"
+    "build": "node scripts/prep-audio.mjs edl/001-nuimichi.json && remotion render src/index.ts Episode out/001-nuimichi.mp4 --public-dir=public --concurrency=3",
+    "prep": "node scripts/prep-audio.mjs edl/001-nuimichi.json",
+    "draft": "node scripts/prep-audio.mjs edl/001-nuimichi.json && remotion render src/index.ts Episode out/001-nuimichi-draft.mp4 --public-dir=public --concurrency=3 --scale=0.5 --crf=32"
   },
   "dependencies": {
-    "@remotion/cli": "4.0.452",
-    "@remotion/google-fonts": "4.0.452",
+    "@remotion/cli": "^4.0.512",
+    "@remotion/google-fonts": "^4.0.512",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "remotion": "4.0.452"
+    "remotion": "^4.0.512"
   },
   "devDependencies": {
     "@types/react": "19.2.7",

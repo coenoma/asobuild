@@ -170,9 +170,9 @@ export interface Edl {
      */
     devOffset?: number;
     /** 下に敷く曲。リポジトリには置かず、手元の video/bgm/ を書き出しのときだけ読む */
-    bgm?: { file: string; peakDb?: number; note?: string };
+    bgm?: { file: string; peakDb?: number; note?: string; gainDb?: number | null; publicFile?: string };
     /** 締めの曲。既定では最後の章の頭から鳴る */
-    endingBgm?: { file: string; peakDb?: number; at?: number; note?: string };
+    endingBgm?: { file: string; peakDb?: number; at?: number; note?: string; gainDb?: number | null; publicFile?: string };
   };
   sources: Record<string, Source>;
   /** 使ってはいけない区間。extract.mjs がここと clips を突き合わせる */

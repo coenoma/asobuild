@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { AbsoluteFill, Audio, Sequence, cancelRender, continueRender, delayRender, staticFile, useVideoConfig } from 'remotion';
+import { AbsoluteFill, Audio, Sequence, useCurrentFrame, cancelRender, continueRender, delayRender, staticFile, useVideoConfig } from 'remotion';
 import { C } from './brand';
 import type { Chapter, Edl, Layer } from './types';
 import { Shot, Black } from './components/Shot';
-import { Telop } from './components/Telop';
+import { Telop, SubtitleTrack } from './components/Telop';
 import { BigNumber, ChapterCard, EndCard, TitleCard } from './components/Cards';
 import { Gate } from './components/Gate';
 import { Checklist } from './components/Checklist';
@@ -30,7 +30,8 @@ const fontFamily = 'NotoSansJPLocal';
 function useLocalFont(): void {
   const [handle] = useState(() => delayRender('書体の読み込み'));
   useEffect(() => {
-    const face = new FontFace(fontFamily, `url(${staticFile('fonts/NotoSansJP.ttf')})`);
+    // 変数フォントなので、**太さの範囲を書かないと 900 が効かない**（400で描かれる）
+    const face = new FontFace(fontFamily, `url(${staticFile('fonts/NotoSansJP.ttf')})`, { weight: '100 900' });
     face
       .load()
       .then(() => {
@@ -188,6 +189,8 @@ const ChapterView: React.FC<{ chapter: Chapter; constraint: string; edl: Edl }> 
       }}
     >
       {chapter.layers.map((layer, i) => {
+        // 字幕は1枚の帯にまとめて出す（下の SubtitleTrack）。ここでは描かない
+        if (layer.type === 'telop' && (layer.style ?? 'main') === 'sub') return null;
         const from = secToFrames(layer.at, fps);
         // 効果音は1回鳴らすだけなので長さを持たない
         const dur = layer.type === 'sfx' ? Math.min(3 * fps, chFrames - from) : secToFrames(layer.dur, fps);
@@ -198,6 +201,13 @@ const ChapterView: React.FC<{ chapter: Chapter; constraint: string; edl: Edl }> 
           </Sequence>
         );
       })}
+
+      <SubtitleTrack
+        subs={chapter.layers
+          .filter((l): l is Extract<Layer, { type: 'telop' }> => l.type === 'telop' && (l.style ?? 'main') === 'sub')
+          .map((l) => ({ at: l.at, dur: l.dur, text: l.text, color: l.color }))}
+        fontFamily={fontFamily}
+      />
 
       {chapter.noBar ? null : (
         <ProgramBar
@@ -215,10 +225,97 @@ const ChapterView: React.FC<{ chapter: Chapter; constraint: string; edl: Edl }> 
   );
 };
 
+/** dB を音量の倍率へ */
+const db = (v: number) => Math.pow(10, v / 20);
+
+/**
+ * 声とBGM。**合成の中に入れる**（あとから ffmpeg で混ぜない）。
+ *
+ * こうしておくと Remotion Studio で**音つきのままスクラブ**でき、
+ * 直したその場で「声と画が合っているか」を確かめられる。
+ * 書き出しも1工程で終わる。
+ *
+ * 置き場所は `public/voice/<章ID>.wav` と `public/bgm/`。
+ * どちらも `node scripts/prep-audio.mjs` が用意する（リポジトリには持たない）。
+ */
+const Sound: React.FC<{ edl: Edl; total: number }> = ({ edl, total }) => {
+  const { fps } = useVideoConfig();
+  const bgm = edl.meta.bgm;
+  const ending = edl.meta.endingBgm;
+  const endAt = ending?.at ?? total / fps;
+  const fadeOutAt = Math.max(0, endAt - 2.5);
+
+  let cursor = 0;
+  const voices = edl.chapters.map((ch) => {
+    const from = cursor;
+    const dur = secToFrames(ch.dur, fps);
+    cursor += dur;
+    return { id: ch.id, from, dur };
+  });
+
+  /**
+   * BGM は**長さを決めて並べる**（`loop` は使わない）。
+   * Studio のタイムラインは音の波形を描くので、長さの決まらない音があると
+   * 幅0のまま描こうとして落ちる（IndexSizeError）。並べれば長さが決まる。
+   */
+  const BGM_LEN = 84; // bgm/main.mp3 の長さ（秒）
+  const loops = bgm?.publicFile ? Math.ceil(endAt / BGM_LEN) : 0;
+
+  return (
+    <>
+      {voices.map((v) => (
+        <Sequence key={v.id} from={v.from} durationInFrames={v.dur} name={`声 ${v.id}`} layout="none">
+          <Audio src={staticFile(`voice/${v.id}.wav`)} />
+        </Sequence>
+      ))}
+
+      {bgm?.publicFile && bgm.gainDb != null
+        ? Array.from({ length: loops }, (_, i) => {
+            const start = i * BGM_LEN;
+            const len = Math.min(BGM_LEN, endAt - start);
+            if (len <= 0) return null;
+            return (
+              <Sequence
+                key={`bgm${i}`}
+                from={Math.round(start * fps)}
+                durationInFrames={Math.round(len * fps)}
+                name={`BGM ${i + 1}`}
+                layout="none"
+              >
+                <Audio
+                  src={staticFile(bgm.publicFile as string)}
+                  volume={(f) => {
+                    const t = start + f / fps;
+                    // 頭2秒で入り、締めの曲の手前2.5秒で消える
+                    const inGain = Math.min(1, t / 2);
+                    const outGain = t < fadeOutAt ? 1 : Math.max(0, 1 - (t - fadeOutAt) / 2.5);
+                    return db(bgm.gainDb as number) * inGain * outGain;
+                  }}
+                />
+              </Sequence>
+            );
+          })
+        : null}
+
+      {ending?.publicFile && ending.gainDb != null ? (
+        <Sequence
+          from={Math.round(endAt * fps)}
+          durationInFrames={Math.max(1, total - Math.round(endAt * fps))}
+          name="締めの曲"
+          layout="none"
+        >
+          <Audio src={staticFile(ending.publicFile)} volume={db(ending.gainDb)} />
+        </Sequence>
+      ) : null}
+    </>
+  );
+};
+
 export const Episode: React.FC<{ edl: Edl }> = ({ edl }) => {
   useLocalFont();
   const { fps } = useVideoConfig();
   let cursor = 0;
+  const total = totalFrames(edl, fps);
   return (
     <AbsoluteFill style={{ background: '#000' }}>
       {edl.chapters.map((ch) => {
@@ -231,6 +328,7 @@ export const Episode: React.FC<{ edl: Edl }> = ({ edl }) => {
           </Sequence>
         );
       })}
+      <Sound edl={edl} total={total} />
     </AbsoluteFill>
   );
 };

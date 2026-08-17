@@ -109,11 +109,41 @@ node scripts/atereco.mjs edl/<slug>.json --sheet --srt ~/収録/文字起こし.
 捨てるブロックは `"skip"`。**動画を止めて喋っていた区間は `paused: true` も書く。**
 
 ```bash
-node scripts/atereco.mjs edl/<slug>.json --cut     # 章ごとの human/<章ID>.wav に切り出す
-node scripts/atereco.mjs edl/<slug>.json --check   # 声の長さと映像の尺を見比べる
+node scripts/atereco.mjs edl/<slug>.json --cut --keep-gaps   # 章ごとの human/<章ID>.wav に切り出す
+node scripts/atereco.mjs edl/<slug>.json --tighten           # 間を詰める（下記）
+node scripts/atereco.mjs edl/<slug>.json --check             # 声の長さと映像の尺を見比べる
 ```
 
-`--cut` の出力は既存の仕組みにそのまま刺さる（`voice.mjs --mux` は human があれば優先する）。
+`--cut` の出力は `voice/<slug>/human/<章ID>.wav`。
+`npm run studio` / `npm run build` が **`prep-audio.mjs` 経由で合成に混ぜる**ので、
+ブラウザでも書き出しでも、そのまま人の声で鳴る。
+
+## 間（ま）を詰める
+
+1本通しで喋ると必ず間ができる。喋るぶんには自然でも、動画にすると**テンポが悪い**。
+
+```bash
+node scripts/atereco.mjs edl/<slug>.json --tighten --keep 0.22 --min 0.35
+```
+
+- `--min` より長い無音を `--keep` まで縮める。**喋りは1文字も削らない**
+- 「元の時刻 → 詰めたあとの時刻」の対応表（`voice/<slug>.tighten.json`）が出るので、
+  **字幕と映像の時刻を機械的に引き直せる**（別々に直すとズレる）
+- 001の実測: 既定（0.35/0.6）で41秒、強め（0.22/0.35）で**62秒**詰まった。**強めでちょうどよかった**
+
+### 捨てる区間（言い直し・要らない一言）
+
+`voice/<slug>.drops.json` に**章のなかの秒**で書くと、間詰めと同じ回で落ちる。
+
+```json
+{ "brushup": [[28.19, 33.04]], "end": [[0, 3.44]] }
+```
+
+**同じ回で落とすのが肝**（別々にやると時刻の対応が二重になってズレる）。
+捨てた区間の字幕は自動で出なくなる。
+
+編集の芯は Podmate Studio と同じ:
+**雑音は削る、人間味は削らない。言い直し・長い沈黙は詰め、相槌・笑いは残す。**
 
 ### 映像側の調整
 

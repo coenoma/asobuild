@@ -27,6 +27,9 @@ Claude Code 以外のツール（Cursor / Codex など）を使う場合も、�
 | 開発の始め方 | [docs/guides/はじめかた.md](./docs/guides/はじめかた.md) |
 | **収録して YouTube に出す段取り** | [.claude/skills/recording/SKILL.md](./.claude/skills/recording/SKILL.md) |
 | **撮った素材を1本の動画に組み立てる** | [docs/video/README.md](./docs/video/README.md) |
+| **アテレコ（本命の声）と、声に映像を合わせ直す** | [docs/video/atereco.md](./docs/video/atereco.md) |
+| **編集の関所（出す前に必ず通す）** | [docs/video/edit-checklist.md](./docs/video/edit-checklist.md) |
+| 音の設計（どの音が何を意味するか・BGM） | [docs/video/sound-design.md](./docs/video/sound-design.md) |
 | **公開ボタンを押す日の段取り**（概要欄・固定コメント・逆リンク） | [docs/video/publish-checklist.md](./docs/video/publish-checklist.md) |
 | シーズン計画・成功の定義・週次レビュー | [docs/plans/007-first-season/design.md](./docs/plans/007-first-season/design.md) |
 | 動画の原則（誰に・どう見せるか） | [docs/video/video-doctrine.md](./docs/video/video-doctrine.md) |

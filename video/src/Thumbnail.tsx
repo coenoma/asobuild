@@ -21,7 +21,8 @@ const FONT = 'NotoSansJPLocal';
 function useLocalFont(): void {
   const [handle] = useState(() => delayRender('書体の読み込み'));
   useEffect(() => {
-    const face = new FontFace(FONT, `url(${staticFile('fonts/NotoSansJP.ttf')})`);
+    // 変数フォントなので、**太さの範囲を書かないと 900 が効かない**（400で描かれる）
+    const face = new FontFace(FONT, `url(${staticFile('fonts/NotoSansJP.ttf')})`, { weight: '100 900' });
     face
       .load()
       .then(() => {

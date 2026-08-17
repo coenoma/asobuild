@@ -361,6 +361,13 @@ if (process.argv.includes('--check')) {
 if (process.argv.includes('--tighten')) {
   const KEEP = Number(arg('keep') ?? 0.35);
   const MIN = Number(arg('min') ?? 0.6);
+  /**
+   * 捨てる区間（言い直し・言いよどみ・要らない一言）。**章のなかの秒**で書く。
+   *   voice/<slug>.drops.json = { "brushup": [[28.2, 33.1]], "end": [[0, 3.4]] }
+   * 間詰めと同じ回で落とすので、時刻の対応表が1本で済む（別々にやるとズレの元）。
+   */
+  const dropPath = resolve(ROOT, 'voice', `${slug}.drops.json`);
+  const drops = existsSync(dropPath) ? JSON.parse(readFileSync(dropPath, 'utf8')) : {};
   const humanDir = resolve(VOICE_DIR, 'human');
   const maps = {};
   for (const ch of chapterIds) {
@@ -389,7 +396,19 @@ if (process.argv.includes('--tighten')) {
       cur = Math.max(cur, b - KEEP / 2);
     }
     if (dur > cur) keeps.push([cur, dur]);
-    const merged = keeps.filter(([a, b]) => b - a > 0.02);
+
+    // 捨てる区間を抜く（残す区間から引き算する）
+    let kept = keeps;
+    for (const [da, db] of drops[ch] ?? []) {
+      const next = [];
+      for (const [a, b] of kept) {
+        if (b <= da || a >= db) { next.push([a, b]); continue; }
+        if (a < da) next.push([a, da]);
+        if (b > db) next.push([db, b]);
+      }
+      kept = next;
+    }
+    const merged = kept.filter(([a, b]) => b - a > 0.02);
     const total = merged.reduce((x, [a, b]) => x + (b - a), 0);
     if (merged.length <= 1 || dur - total < 0.2) { maps[ch] = { dur, cuts: [] }; continue; }
 
