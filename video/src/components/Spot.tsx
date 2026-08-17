@@ -24,9 +24,15 @@ export const Spot: React.FC<{
   /** 矢印をどちら側に置くか */
   from?: 'left' | 'right' | 'top' | 'bottom';
   color?: 'accent' | 'good' | 'bad' | 'cool';
+  /**
+   * 枠と暗転を出さず、**矢印とラベルだけ**で指す。
+   * 顔に枠を付けると「検出しました」みたいで笑ってしまう（001のFB）。
+   * 人を指すときはこちら。box は「どこを指すか」の位置決めにだけ使う。
+   */
+  noBox?: boolean;
   durFrames: number;
   fontFamily: string;
-}> = ({ box, label, from = 'left', color = 'accent', durFrames, fontFamily }) => {
+}> = ({ box, label, from = 'left', color = 'accent', noBox, durFrames, fontFamily }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const o = fade(f, durFrames, fps);
@@ -61,6 +67,7 @@ export const Spot: React.FC<{
        * 囲んだ場所の**外側を暗くする**（スポットライト）。
        * 枠だけだと画面の情報量に負ける。外が落ちると、視線は嫌でもそこへ行く。
        */}
+      {noBox ? null : (
       <div
         style={{
           position: 'absolute',
@@ -70,6 +77,8 @@ export const Spot: React.FC<{
           clipPath: `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${box.y}%, ${box.x}% ${box.y}%, ${box.x}% ${box.y + box.h}%, ${box.x + box.w}% ${box.y + box.h}%, ${box.x + box.w}% ${box.y}%, 0 ${box.y}%)`,
         }}
       />
+      )}
+      {noBox ? null : (
       <div
         style={{
           position: 'absolute',
@@ -80,13 +89,14 @@ export const Spot: React.FC<{
           boxShadow: `0 0 0 4px rgba(0,0,0,0.7), 0 0 26px ${C[color]}`,
         }}
       />
+      )}
       <div style={{ position: 'absolute', display: 'flex', alignItems: 'center', gap: 12, ...pos }}>
-        <span style={{ fontSize: 76, color: C[color], textShadow: HARD_SHADOW, lineHeight: 1 }}>{arrow}</span>
+        <span style={{ fontSize: noBox ? 110 : 76, color: C[color], textShadow: HARD_SHADOW, lineHeight: 1, fontWeight: 900 }}>{arrow}</span>
         {label ? (
           <span
             style={{
-              fontFamily, fontWeight: 900, fontSize: 44, color: C[color],
-              background: SUB_BG, border: `3px solid ${C[color]}`, padding: '8px 18px',
+              fontFamily, fontWeight: 900, fontSize: noBox ? 56 : 44, color: C[color],
+              background: SUB_BG, border: `4px solid ${C[color]}`, padding: noBox ? '12px 26px' : '8px 18px',
               textShadow: HARD_SHADOW, whiteSpace: 'nowrap',
             }}
           >

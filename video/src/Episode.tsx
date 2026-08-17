@@ -100,6 +100,7 @@ const LayerView: React.FC<{ layer: Layer; durFrames: number }> = ({ layer, durFr
           label={layer.label}
           from={layer.from}
           color={layer.color}
+          noBox={layer.noBox}
           durFrames={durFrames}
           fontFamily={fontFamily}
         />

@@ -83,7 +83,7 @@ export type Layer =
   /** 経過時間の判子。場面が変わったことと、いま何分かを、まとめてバシッと出す */
   | { type: 'timeStamp'; at: number; dur: number; value: string; note?: string; sub?: string; color?: 'accent' | 'good' | 'bad' | 'cool'; variant?: 'stamp' | 'chip' }
   /** 画面のここを見て、と指す（枠＋跳ねる矢印） */
-  | { type: 'spot'; at: number; dur: number; box: Box; label?: string; from?: 'left' | 'right' | 'top' | 'bottom'; color?: 'accent' | 'good' | 'bad' | 'cool' }
+  | { type: 'spot'; at: number; dur: number; box: Box; label?: string; from?: 'left' | 'right' | 'top' | 'bottom'; color?: 'accent' | 'good' | 'bad' | 'cool'; noBox?: boolean }
   /** 下の映像を暗くする。映像を残したまま文字を主役にしたいとき */
   | { type: 'scrim'; at: number; dur: number; amount?: number }
   /** 章タイトル */
