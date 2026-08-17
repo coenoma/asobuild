@@ -14,9 +14,10 @@
     "scan": "node scripts/scan-risk.mjs",
     "typecheck": "tsc --noEmit",
     "storyboard": "node scripts/storyboard.mjs",
-    "build": "node scripts/prep-audio.mjs edl/001-nuimichi.json && remotion render src/index.ts Episode out/001-nuimichi.mp4 --public-dir=public --concurrency=3",
+    "build": "node scripts/prep-audio.mjs edl/001-nuimichi.json && remotion render src/index.ts Episode out/001-nuimichi.mp4 --public-dir=public --concurrency=3 && node scripts/master.mjs out/001-nuimichi.mp4",
     "prep": "node scripts/prep-audio.mjs edl/001-nuimichi.json",
-    "draft": "node scripts/prep-audio.mjs edl/001-nuimichi.json && remotion render src/index.ts Episode out/001-nuimichi-draft.mp4 --public-dir=public --concurrency=3 --scale=0.5 --crf=32"
+    "draft": "node scripts/prep-audio.mjs edl/001-nuimichi.json && remotion render src/index.ts Episode out/001-nuimichi-draft.mp4 --public-dir=public --concurrency=3 --scale=0.5 --crf=32",
+    "master": "node scripts/master.mjs out/001-nuimichi.mp4"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.512",

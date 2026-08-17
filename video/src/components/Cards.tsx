@@ -118,9 +118,14 @@ export const TitleCard: React.FC<{ title: string; sub: string; durFrames: number
  * 見出し → URL → お願いを1行ずつ、と順番に出す。**毎回そのまま使い回す部品**なので、
  * ここを直すと次回以降ぜんぶ良くなる。
  */
-export const EndCard: React.FC<{ url: string; lines?: string[]; durFrames: number; fontFamily: string }> = ({
-  url, lines, durFrames, fontFamily,
-}) => {
+export const EndCard: React.FC<{
+  url: string;
+  lines?: string[];
+  /** 声が「高評価」「登録」と言う瞬間に合わせて出すボタン。at は章内の秒 */
+  buttons?: { at: number; label: string }[];
+  durFrames: number;
+  fontFamily: string;
+}> = ({ url, lines, buttons, durFrames, fontFamily }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const o = fade(f, durFrames, fps);
@@ -172,7 +177,28 @@ export const EndCard: React.FC<{ url: string; lines?: string[]; durFrames: numbe
         字幕と二重になるうえ、声とタイミングが合わない。
         文はナレーション原稿から演出テロップとして出す（＝声と必ず同期する）。
       */}
-      <div style={{ marginTop: 54, display: 'flex', flexDirection: 'column', gap: 22, alignItems: 'center' }}>
+      {/* 声と同期して出るボタン（数万再生クラスの定番。声だけより効く） */}
+      <div style={{ marginTop: 46, display: 'flex', gap: 26 }}>
+        {(buttons ?? []).map((b, i) => {
+          const st = pop(b.at);
+          if (!st) return null;
+          return (
+            <div
+              key={i}
+              style={{
+                ...st,
+                fontFamily, fontWeight: 900, fontSize: 46,
+                color: '#12161c', background: 'rgba(244,246,241,0.97)',
+                border: `6px solid ${C.accent}`, borderRadius: 999,
+                padding: '14px 44px',
+              }}
+            >
+              {b.label}
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ marginTop: 30, display: 'flex', flexDirection: 'column', gap: 22, alignItems: 'center' }}>
         {(lines ?? []).map((l, i) => {
           const st = pop(AT_LINES + i * GAP);
           if (!st) return null;

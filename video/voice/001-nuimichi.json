@@ -5,6 +5,7 @@
     "区切りは scripts/subtitle-chunk.py。捨てた区間（drops）の字幕は出さない。"
   ],
   "chapters": {
+    "cold": [],
     "hook": [
       {
         "at": 0.4,

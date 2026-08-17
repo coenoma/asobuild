@@ -148,7 +148,7 @@ const LayerView: React.FC<{ layer: Layer; durFrames: number }> = ({ layer, durFr
     case 'titleCard':
       return <TitleCard title={layer.title} sub={layer.sub} durFrames={durFrames} fontFamily={fontFamily} />;
     case 'endCard':
-      return <EndCard url={layer.url} lines={layer.lines} durFrames={durFrames} fontFamily={fontFamily} />;
+      return <EndCard url={layer.url} lines={layer.lines} buttons={layer.buttons} durFrames={durFrames} fontFamily={fontFamily} />;
     case 'sfx':
       return <Audio src={staticFile(`sfx/${layer.name}.wav`)} volume={layer.volume ?? 1} />;
     default:

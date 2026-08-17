@@ -101,7 +101,7 @@ export type Layer =
   /** タイトルカード */
   | { type: 'titleCard'; at: number; dur: number; title: string; sub: string }
   /** 締めのカード */
-  | { type: 'endCard'; at: number; dur: number; url: string; lines?: string[] }
+  | { type: 'endCard'; at: number; dur: number; url: string; lines?: string[]; buttons?: { at: number; label: string }[] }
   /**
    * 決めの瞬間（一気に寄る・止まる・音）。記録更新・初めて動いた・即死に使う。
    * **1本に2〜3回まで**（docs/video/structure.md §決めの瞬間）。
