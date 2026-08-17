@@ -52,7 +52,8 @@ export const Spot: React.FC<{
         top: `${box.y + box.h / 2}%`,
         [from === 'left' ? 'right' : 'left']: `${from === 'left' ? 100 - box.x : box.x + box.w}%`,
         transform: `translate(${from === 'left' ? -hop : hop}px, -50%)`,
-        flexDirection: from === 'left' ? 'row' : 'row-reverse',
+        // 矢印はつねに**指す対象の側**に置く（from=right＝対象が左→矢印が先頭）
+        flexDirection: 'row',
       }
     : {
         left: `${box.x + box.w / 2}%`,
