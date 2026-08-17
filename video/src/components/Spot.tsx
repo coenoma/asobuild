@@ -34,7 +34,9 @@ export const Spot: React.FC<{
   // 枠は一回り大きいところから 0.2秒で締まる（見つけた、という動き）
   const grow = interpolate(f, [0, Math.round(fps * 0.2)], [1.35, 1], { extrapolateRight: 'clamp' });
   // 矢印は 0.5秒周期で跳ね続ける
-  const hop = Math.abs(Math.sin((f / fps) * Math.PI * 2)) * 16;
+  const hop = Math.abs(Math.sin((f / fps) * Math.PI * 2)) * 20;
+  // 枠はゆっくり脈打つ（消えない程度に。点滅は目に痛い）
+  const pulse = 0.75 + 0.25 * Math.abs(Math.sin((f / fps) * Math.PI * 1.6));
 
   const horizontal = from === 'left' || from === 'right';
   const arrow = from === 'left' ? '▶' : from === 'right' ? '◀' : from === 'top' ? '▼' : '▲';
@@ -55,17 +57,31 @@ export const Spot: React.FC<{
 
   return (
     <AbsoluteFill style={{ opacity: o }}>
+      {/*
+       * 囲んだ場所の**外側を暗くする**（スポットライト）。
+       * 枠だけだと画面の情報量に負ける。外が落ちると、視線は嫌でもそこへ行く。
+       */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'rgba(0,0,0,0.55)',
+          // 囲んだ範囲だけくり抜く
+          clipPath: `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${box.y}%, ${box.x}% ${box.y}%, ${box.x}% ${box.y + box.h}%, ${box.x + box.w}% ${box.y + box.h}%, ${box.x + box.w}% ${box.y}%, 0 ${box.y}%)`,
+        }}
+      />
       <div
         style={{
           position: 'absolute',
           left: `${box.x}%`, top: `${box.y}%`, width: `${box.w}%`, height: `${box.h}%`,
-          border: `5px solid ${C[color]}`,
+          border: `6px solid ${C[color]}`,
           transform: `scale(${grow})`,
-          boxShadow: `0 0 0 4px rgba(0,0,0,0.55)`,
+          opacity: pulse,
+          boxShadow: `0 0 0 4px rgba(0,0,0,0.7), 0 0 26px ${C[color]}`,
         }}
       />
       <div style={{ position: 'absolute', display: 'flex', alignItems: 'center', gap: 12, ...pos }}>
-        <span style={{ fontSize: 58, color: C[color], textShadow: HARD_SHADOW, lineHeight: 1 }}>{arrow}</span>
+        <span style={{ fontSize: 76, color: C[color], textShadow: HARD_SHADOW, lineHeight: 1 }}>{arrow}</span>
         {label ? (
           <span
             style={{

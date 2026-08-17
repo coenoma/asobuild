@@ -180,6 +180,20 @@ if (existsSync(layoutPath)) {
   warn.push('声の長さが未計測。先に node scripts/voice.mjs <edl> --synth');
 }
 
+// 9. 出しているつもりで一瞬しか出ない層（はみ出しの自動そろえ等で潰れた事故）
+{
+  let t = 0;
+  for (const ch of edl.chapters) {
+    for (const l of ch.layers) {
+      if ((l.type === 'titleCard' || l.type === 'endCard' || l.type === 'timeStamp') && l.dur < 1.5) {
+        const at = t + l.at;
+        bad.push(`${Math.floor(at / 60)}:${(at % 60).toFixed(1).padStart(4, '0')} ${ch.id}/${l.type} が ${l.dur}秒しか出ない（潰れている）`);
+      }
+    }
+    t += ch.dur;
+  }
+}
+
 for (const m of bad) console.log(`✗ ${m}`);
 for (const m of warn) console.log(`△ ${m}`);
 if (!bad.length && !warn.length) console.log('ズレは見つかりませんでした');
