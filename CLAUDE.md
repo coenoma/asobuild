@@ -333,7 +333,7 @@ npm run build    # 本番画質（30分前後）
   （後ろ2つが次回のお題とリピーターを作る）
 - タイトルは「［制約］で、AIは［題材みたいなゲーム］を作れるのか」（疑問形。実測7倍の差）
 - サムネの型は固定: AI名バッジ＋決定的瞬間＋制約の実物＋7文字級の言葉。結果は見せない
-- ショートを毎回3本切る（`video/scripts/shorts.mjs`）。外部調査の精査は [docs/video/research-notes/](docs/video/research-notes/)
+- ショートを毎回3本、レシピ式で組む（**[docs/video/shorts.md](docs/video/shorts.md)** が最低品質の関所）。外部調査の精査は [docs/video/research-notes/](docs/video/research-notes/)
 - **公開ボタンを押す日は [docs/video/publish-checklist.md](docs/video/publish-checklist.md) を必ず通す**
   （概要欄・固定コメント・`meta.video` の逆リンク——ここが視聴→プレイ→コメントのループを作る）
 - シーズン全体の計画・成功の定義・週次レビューは [docs/plans/007-first-season/](docs/plans/007-first-season/design.md)

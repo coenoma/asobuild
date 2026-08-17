@@ -27,7 +27,7 @@ const fontFamily = 'NotoSansJPLocal';
  * モジュールの一番外で delayRender を呼ぶと、コンポジションを数えるだけの工程でも
  * 待ちが発生して描画そのものが止まる（実際に止まった）。
  */
-function useLocalFont(): void {
+export function useLocalFont(): void {
   const [handle] = useState(() => delayRender('書体の読み込み'));
   useEffect(() => {
     // 変数フォントなので、**太さの範囲を書かないと 900 が効かない**（400で描かれる）

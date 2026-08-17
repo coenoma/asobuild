@@ -1,0 +1,169 @@
+{
+  "id": "001-s2-owatta",
+  "title": "あ、終わった（即死）",
+  "hook": "AIのゲーム、\n当たっても死にません",
+  "beats": [
+    {
+      "dur": 1.6,
+      "video": {
+        "clip": "turn-title",
+        "from": 4
+      },
+      "sfx": [
+        {
+          "at": 0.15,
+          "name": "jingleStart"
+        }
+      ]
+    },
+    {
+      "voiceSrc": {
+        "ch": "brushup",
+        "from": 79.02,
+        "to": 85
+      },
+      "video": {
+        "clip": "turn-play",
+        "from": 0
+      },
+      "sfx": [
+        {
+          "at": 0.1,
+          "name": "tap"
+        }
+      ],
+      "voice": true,
+      "dur": 6.08,
+      "subs": [
+        {
+          "at": 0.05,
+          "dur": 2.6,
+          "t": "ぶつかっても、死なないんですが"
+        },
+        {
+          "at": 2.72,
+          "dur": 3.2,
+          "t": "いつ終わるのか、分からないゲーム"
+        }
+      ],
+      "noAutoSubs": true
+    },
+    {
+      "voiceSrc": {
+        "ch": "brushup",
+        "from": 85.24,
+        "to": 88.2
+      },
+      "video": {
+        "clip": "turn-play",
+        "from": 6.2
+      },
+      "sfx": [
+        {
+          "at": 0.62,
+          "name": "over",
+          "volume": 0.9
+        },
+        {
+          "at": 0.64,
+          "name": "stampHit",
+          "volume": 0.8
+        }
+      ],
+      "voice": true,
+      "dur": 3.06,
+      "subs": [
+        {
+          "at": 0.05,
+          "dur": 1.5,
+          "t": "でもまあ、面白いですね"
+        },
+        {
+          "at": 1.72,
+          "dur": 1.25,
+          "t": "…急に終わりました"
+        }
+      ],
+      "noAutoSubs": true,
+      "overlays": [
+        {
+          "at": 0.62,
+          "dur": 2.4,
+          "text": "あ、終わった",
+          "color": "bad",
+          "flash": true
+        }
+      ],
+      "punches": [
+        {
+          "at": 0.62
+        }
+      ]
+    },
+    {
+      "voiceSrc": {
+        "ch": "brushup",
+        "from": 88.48,
+        "to": 92.9
+      },
+      "video": {
+        "clip": "turn-play",
+        "from": 9.4
+      },
+      "sfx": [],
+      "voice": true,
+      "dur": 4.52,
+      "subs": [
+        {
+          "at": 0.05,
+          "dur": 2.95,
+          "t": "意外と、やれるんじゃないですかね"
+        },
+        {
+          "at": 3.1,
+          "dur": 2.1,
+          "t": "28分たっても、遊んでます"
+        }
+      ],
+      "noAutoSubs": true
+    },
+    {
+      "dur": 3.2,
+      "video": {
+        "clip": "ship-play",
+        "from": 5,
+        "small": true
+      },
+      "titleLines": [
+        {
+          "t": "あなたは、",
+          "size": 64
+        },
+        {
+          "t": "何点いける？",
+          "size": 132,
+          "marker": true
+        }
+      ],
+      "titleStagger": 0.45,
+      "sfx": [
+        {
+          "at": 0.5,
+          "name": "sting",
+          "volume": 1
+        }
+      ]
+    }
+  ],
+  "loopText": "もう一回",
+  "cta": {
+    "main": "URLはコメント欄に！",
+    "sub": "何点いけたか、コメントで",
+    "fromEnd": 3.1,
+    "bottomPad": 640
+  },
+  "bgm": {
+    "file": "bgm/main.mp3",
+    "gainDb": -35.5
+  }
+}

@@ -73,6 +73,20 @@ https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=pinned&utm
 
 ---
 
+## ショートの固定コメント（3本共通。公開したらすぐ立てる）
+
+ショートは概要欄が読まれないので、**URLはコメント欄で渡す**（CTAでもそう言っている）。
+
+```
+🎮 このゲーム、いま無料で遊べます（登録なし・スマホOK）
+https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=shorts&utm_campaign=ep001-nuimichi
+
+ぼくの自己ベストは560点。何点いけたか、このコメントに返信で教えてください。
+作った過程ぜんぶは本編で → チャンネル「アソビルド」
+```
+
+---
+
 ## サムネの文言（実際に喋った言葉から）
 
 | 案 | 大きい言葉 | 上の条件 |

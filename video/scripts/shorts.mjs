@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 /**
+ * 🚫 廃止（2026-08-17）。素材の等分チョップは2026年のショート環境に全敗した。
+ * いまは レシピ式（edl/shorts/*.json → prep-shorts.mjs → Remotion の Short-* コンポジション）。
+ * 作法と最低品質の関所: docs/video/shorts.md
+ *
  * ショート（縦 1080×1920）を素材から切り出す。**毎回3本**が目安。
  *
  *   node scripts/shorts.mjs edl/001-nuimichi.json <クリップ名> [--from 秒] [--dur 秒] \

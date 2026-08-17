@@ -11,6 +11,9 @@ public/sfx/
 public/voice/
 public/bgm/
 
+# ショート用に切り出した声。scripts/prep-shorts.mjs が作る（人の声は置かない）
+public/shorts-voice/
+
 # 書体は node scripts/fonts.mjs で取ってくる
 public/fonts/
 

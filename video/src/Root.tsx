@@ -5,6 +5,10 @@ import { Thumbnail } from './Thumbnail';
 import { LoadingPreview } from './LoadingPreview';
 import type { Edl } from './types';
 import edl from '../edl/001-nuimichi.json';
+import { Short, shortTotalFrames, type ShortRecipe } from './Short';
+import s1 from '../edl/shorts/001-s1-sonja.json';
+import s2 from '../edl/shorts/001-s2-owatta.json';
+import s3 from '../edl/shorts/001-s3-hamaru.json';
 
 /**
  * 編集の中身は edl/*.json にある。ここは「どの EDL を、どの大きさで描くか」だけ。
@@ -25,6 +29,20 @@ export const RemotionRoot: React.FC = () => {
         height={e.meta.height}
         defaultProps={{ edl: e }}
       />
+
+      {/* ショート（縦 1080×1920）。レシピ駆動。docs/video/shorts.md */}
+      {[s1, s2, s3].map((r) => (
+        <Composition
+          key={r.id}
+          id={`Short-${r.id.replace('001-', '')}`}
+          component={Short}
+          durationInFrames={shortTotalFrames(r as unknown as ShortRecipe, 30)}
+          fps={30}
+          width={1080}
+          height={1920}
+          defaultProps={{ recipe: r as unknown as ShortRecipe }}
+        />
+      ))}
 
       {/*
         サムネは案を並べて比べる（1つに決め打ちしない）。

@@ -1,0 +1,177 @@
+{
+  "id": "001-s3-hamaru",
+  "title": "560点（ハマる）",
+  "hook": "AIに作らせたゲームに、\n本人がハマる",
+  "beats": [
+    {
+      "voiceSrc": {
+        "ch": "best",
+        "from": 6.67,
+        "to": 12.7
+      },
+      "video": {
+        "clip": "shape-play",
+        "from": 1
+      },
+      "sfx": [
+        {
+          "at": 0.05,
+          "name": "jingleStart"
+        },
+        {
+          "at": 0.3,
+          "name": "tap",
+          "volume": 0.8
+        }
+      ],
+      "voice": true,
+      "dur": 6.13,
+      "subs": [
+        {
+          "at": 0.05,
+          "dur": 3.25,
+          "t": "表情は、無表情ですが"
+        },
+        {
+          "at": 3.35,
+          "dur": 2.2,
+          "t": "これ、全然楽しんでますね"
+        }
+      ],
+      "noAutoSubs": true
+    },
+    {
+      "voiceSrc": {
+        "ch": "best",
+        "from": 56.57,
+        "to": 65.6
+      },
+      "video": {
+        "clip": "hum-play",
+        "from": 0.5
+      },
+      "sfx": [
+        {
+          "at": 0.2,
+          "name": "score"
+        },
+        {
+          "at": 4,
+          "name": "score"
+        }
+      ],
+      "voice": true,
+      "dur": 9.13,
+      "subs": [
+        {
+          "at": 0.05,
+          "dur": 1.45,
+          "t": "やり込んだら、こんな感じ"
+        },
+        {
+          "at": 1.55,
+          "dur": 1.9,
+          "t": "どんどん、いきますよ"
+        },
+        {
+          "at": 3.5,
+          "dur": 1.45,
+          "t": "スピード、かなり上がってる"
+        },
+        {
+          "at": 5.03,
+          "dur": 2.5,
+          "t": "＋10点、＋10点、自己ベスト更新"
+        },
+        {
+          "at": 7.6,
+          "dur": 1.2,
+          "t": "560点ですよ、これは"
+        }
+      ],
+      "noAutoSubs": true,
+      "punches": [
+        {
+          "at": 5.03
+        },
+        {
+          "at": 7.6
+        }
+      ]
+    },
+    {
+      "dur": 1.3,
+      "bigText": "560点",
+      "bigColor": "accent",
+      "flash": true,
+      "video": {
+        "clip": "hum-res",
+        "from": 1.2
+      },
+      "sfx": [
+        {
+          "at": 0.05,
+          "name": "best"
+        }
+      ]
+    },
+    {
+      "voiceSrc": {
+        "ch": "scary",
+        "from": 78.17,
+        "to": 85.9
+      },
+      "video": {
+        "clip": "ship-play2",
+        "from": 2
+      },
+      "sfx": [
+        {
+          "at": 7.68,
+          "name": "hit",
+          "volume": 0.55
+        }
+      ],
+      "voice": true,
+      "dur": 8.63,
+      "subs": [
+        {
+          "at": 0.05,
+          "dur": 2.15,
+          "t": "元のより、面白いのが"
+        },
+        {
+          "at": 2.23,
+          "dur": 2.45,
+          "t": "できるんじゃないかな、ぐらい"
+        },
+        {
+          "at": 4.71,
+          "dur": 2.9,
+          "t": "一瞬で、AIはやってくれちゃう"
+        },
+        {
+          "at": 7.68,
+          "dur": 1,
+          "t": "おそろしや…"
+        }
+      ],
+      "noAutoSubs": true,
+      "punches": [
+        {
+          "at": 7.68
+        }
+      ]
+    }
+  ],
+  "loopText": "最初は、こうでした",
+  "cta": {
+    "main": "560点、こえられる？",
+    "sub": "遊べるURLはコメント欄に",
+    "fromEnd": 4.6
+  },
+  "bgm": {
+    "file": "bgm/main.mp3",
+    "gainDb": -35.5
+  }
+}
