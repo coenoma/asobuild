@@ -24,10 +24,12 @@
  *  5. 章の切れ目に**行がまたがっていないか**
  *  6. **無音が長すぎないか**（合成済みの長さから算出。もったりの原因はほぼこれ）
  *  7. **開発の時計が戻っていないか**（素材を話の都合で並べ替えると戻る）
- *  8. **字幕が点滅していないか**（隣り合う字幕のすきまが一瞬だと、読めない札が出たように見える）
+ *  8. **声があるのに字幕が無い行間が無いか**（時刻の引き直しで行が巻き添えで消える事故）
+ *  9. **字幕が点滅していないか**（隣り合う字幕のすきまが一瞬だと、読めない札が出たように見える）
  */
 
 import { readFileSync, existsSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -99,6 +101,44 @@ for (const ch of edl.chapters) {
 
     // 5. 章からはみ出していないか（声の長さは voice.mjs 側で見る）
     if (line.at >= ch.dur) bad.push(`${label} at=${line.at} が章の長さ ${ch.dur}秒を超えています`);
+  }
+}
+
+// 10. 声があるのに字幕が無い（引き直しの巻き添えで行が消える事故。001で4か所起きた）
+{
+  const humanDir = resolve(ROOT, 'voice', edl.meta.slug, 'human');
+  if (existsSync(humanDir)) {
+    for (const ch of edl.chapters) {
+      const wav = resolve(humanDir, `${ch.id}.wav`);
+      if (!existsSync(wav)) continue;
+      const lines = (voice.chapters?.[ch.id] ?? []).slice().sort((a, b) => a.at - b.at);
+      const err = spawnSync('ffmpeg', ['-i', wav, '-af', 'silencedetect=noise=-35dB:d=0.4', '-f', 'null', '-'],
+        { encoding: 'utf8' }).stderr;
+      const wavDur = Number(spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', wav], { encoding: 'utf8' }).stdout.trim());
+      const sil = [];
+      let st = null;
+      for (const line of err.split('\n')) {
+        const a = /silence_start: (-?[\d.]+)/.exec(line);
+        const b = /silence_end: ([\d.]+)/.exec(line);
+        if (a) st = Math.max(0, Number(a[1]));
+        if (b && st !== null) { sil.push([st, Number(b[1])]); st = null; }
+      }
+      if (st !== null) sil.push([st, wavDur]);
+      const segs = [];
+      let cur = 0;
+      for (const [a, b] of sil) { if (a > cur) segs.push([cur, a]); cur = b; }
+      if (wavDur > cur) segs.push([cur, wavDur]);
+      const bounds = [[0, lines[0]?.at ?? wavDur]];
+      for (let i = 0; i < lines.length - 1; i++) bounds.push([lines[i].at + lines[i].dur, lines[i + 1].at]);
+      if (lines.length) bounds.push([lines[lines.length - 1].at + lines[lines.length - 1].dur, wavDur]);
+      for (const [a, b] of bounds) {
+        if (b - a < 2.2) continue;
+        const voiced = segs.reduce((x, [s0, s1]) => x + Math.max(0, Math.min(b, s1) - Math.max(a, s0)), 0);
+        if (voiced > 1.8) {
+          bad.push(`${ch.id} ${a.toFixed(1)}〜${b.toFixed(1)}s 字幕が無いのに声がある（${voiced.toFixed(1)}s。行が消えていないか）`);
+        }
+      }
+    }
   }
 }
 

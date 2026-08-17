@@ -19,7 +19,7 @@
       "file": "bgm/ending.wav",
       "peakDb": -8,
       "note": "同 Next Time（短い版）。締めのカードから鳴らす",
-      "at": 604.9,
+      "at": 605.5,
       "gainDb": -3.5,
       "publicFile": "bgm/ending.wav"
     }
@@ -832,14 +832,14 @@
   "chapters": [
     {
       "id": "cold",
-      "dur": 2.8,
+      "dur": 3.4,
       "noBar": true,
-      "mood": "最初の3秒で「？」を作る（完成品は見せない。見せるのは謎のほう）",
+      "mood": "最初の3秒で「？」を作る。問いかけ1行（謎の画＋これ、何に見えます？）",
       "layers": [
         {
           "type": "punch",
           "at": 0,
-          "dur": 2.3,
+          "dur": 2.8,
           "clip": "ugly-play2",
           "frame": 6,
           "box": {
@@ -864,21 +864,21 @@
         },
         {
           "type": "telop",
-          "at": 0.5,
-          "dur": 1.8,
-          "text": "？？？",
+          "at": 0.55,
+          "dur": 2.25,
+          "text": "これ、何に見えます？",
           "place": "center",
           "style": "main",
-          "color": "bad"
+          "color": "ink"
         },
         {
           "type": "black",
-          "at": 2.3,
-          "dur": 0.5
+          "at": 2.8,
+          "dur": 0.6
         },
         {
           "type": "sfx",
-          "at": 2.35,
+          "at": 2.85,
           "name": "tick",
           "volume": 0.7
         }
@@ -1208,8 +1208,17 @@
         {
           "type": "telop",
           "at": 6.82,
-          "dur": 3.31,
+          "dur": 2.83,
           "text": "ころみたいなところを全部送りつけます。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 9.65,
+          "dur": 2.32,
+          "text": "実際にやってみます。",
           "style": "sub",
           "place": "bottom",
           "gen": true
@@ -2483,8 +2492,26 @@
         {
           "type": "telop",
           "at": 4.21,
-          "dur": 3.87,
+          "dur": 3.49,
           "text": "再現っていうのかあれですがちょっとできてますね。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 7.7,
+          "dur": 2.4,
+          "text": "ぼくの表情すごい曖昧ですが",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 10.1,
+          "dur": 2.41,
+          "text": "これ結構楽しんでますね。",
           "style": "sub",
           "place": "bottom",
           "gen": true
@@ -2759,7 +2786,7 @@
         {
           "type": "telop",
           "at": 24.82,
-          "dur": 3.88,
+          "dur": 4.36,
           "text": "糸通しではないかなという感想ですかね。",
           "style": "sub",
           "place": "bottom",
@@ -3088,8 +3115,35 @@
         {
           "type": "telop",
           "at": 40.37,
-          "dur": 2.17,
+          "dur": 1.83,
           "text": "その辺はないのかなとか。",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 42.2,
+          "dur": 2.3,
+          "text": "あとは押して上がって離して下がるのは",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 44.5,
+          "dur": 2,
+          "text": "分かったんですけど",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
+        },
+        {
+          "type": "telop",
+          "at": 46.5,
+          "dur": 2.78,
+          "text": "どうやったらゲームオーバーなのかなとか",
           "style": "sub",
           "place": "bottom",
           "gen": true
@@ -4225,6 +4279,15 @@
           "at": 0,
           "name": "outro",
           "volume": 0.9
+        },
+        {
+          "type": "telop",
+          "at": 0.15,
+          "dur": 3.33,
+          "text": "繰り返しになりますけどこれ概要欄にURLがあって",
+          "style": "sub",
+          "place": "bottom",
+          "gen": true
         },
         {
           "type": "telop",

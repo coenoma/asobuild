@@ -318,7 +318,9 @@ export const Episode: React.FC<{ edl: Edl }> = ({ edl }) => {
   let cursor = 0;
   const total = totalFrames(edl, fps);
   return (
-    <AbsoluteFill style={{ background: '#000' }}>
+    <AbsoluteFill style={{
+      background: '#000'
+    }}>
       {edl.chapters.map((ch) => {
         const from = cursor;
         const dur = secToFrames(ch.dur, fps);
