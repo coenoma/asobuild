@@ -19,7 +19,7 @@
       "file": "bgm/ending.wav",
       "peakDb": -8,
       "note": "同 Next Time（短い版）。締めのカードから鳴らす",
-      "at": 607.0,
+      "at": 607,
       "gainDb": -3.5,
       "publicFile": "bgm/ending.wav"
     }
@@ -1326,7 +1326,7 @@
         },
         {
           "type": "spot",
-          "at": 56.0,
+          "at": 56,
           "dur": 17.55,
           "box": {
             "x": 26,
