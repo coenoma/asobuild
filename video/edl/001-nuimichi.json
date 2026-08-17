@@ -19,7 +19,7 @@
       "file": "bgm/ending.wav",
       "peakDb": -8,
       "note": "同 Next Time（短い版）。締めのカードから鳴らす",
-      "at": 600.83,
+      "at": 600.88,
       "gainDb": -3.5,
       "publicFile": "bgm/ending.wav"
     }
@@ -2012,7 +2012,7 @@
       "id": "appeared",
       "mood": "あ、なんかできてる！／四角と丸……シュール／でも、それっぽくないですか？",
       "label": "できた？",
-      "dur": 49.56,
+      "dur": 50.04,
       "layers": [
         {
           "type": "timeStamp",
@@ -2178,7 +2178,7 @@
           "type": "shot",
           "clip": "retry-36",
           "at": 33.1,
-          "dur": 16.46,
+          "dur": 16.92,
           "fit": "contain",
           "box": {
             "x": 31,
@@ -2191,7 +2191,7 @@
           "type": "shot",
           "clip": "w-r36c",
           "at": 33.1,
-          "dur": 16.46,
+          "dur": 16.92,
           "fit": "cover",
           "box": {
             "x": 81,
@@ -2206,7 +2206,7 @@
           "type": "shot",
           "clip": "w-retry-36",
           "at": 33.1,
-          "dur": 16.46,
+          "dur": 16.92,
           "fit": "cover",
           "box": {
             "x": 81,
@@ -2343,7 +2343,7 @@
         {
           "type": "telop",
           "at": 46.82,
-          "dur": 2.69,
+          "dur": 3.17,
           "text": "糸通しよりも上がってますね。",
           "style": "sub",
           "place": "bottom",
@@ -2355,7 +2355,7 @@
       "id": "itsuppoi",
       "mood": "押すと上がる、離すと落ちる／操作はわかる／なんだかんだ、もう一回",
       "label": "それっぽい",
-      "dur": 12.99,
+      "dur": 12.56,
       "layers": [
         {
           "type": "shot",
@@ -2402,14 +2402,14 @@
         },
         {
           "type": "sfx",
-          "at": 0.4,
+          "at": 0,
           "name": "tap",
           "volume": 0.8
         },
         {
           "type": "shot",
           "clip": "self-play2",
-          "at": 8.31,
+          "at": 7.87,
           "dur": 4.65,
           "fit": "cover",
           "origin": [
@@ -2419,8 +2419,8 @@
         },
         {
           "type": "telop",
-          "at": 0.02,
-          "dur": 4.63,
+          "at": 0,
+          "dur": 4.21,
           "text": "だんだんクリアしていくと速くなってくるとかもうまく再現、",
           "style": "sub",
           "place": "bottom",
@@ -2428,7 +2428,7 @@
         },
         {
           "type": "telop",
-          "at": 4.65,
+          "at": 4.21,
           "dur": 3.87,
           "text": "再現っていうのかあれですがちょっとできてますね。",
           "style": "sub",

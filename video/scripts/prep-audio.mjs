@@ -51,7 +51,17 @@ let n = 0;
 if (existsSync(humanDir)) {
   for (const f of readdirSync(humanDir)) {
     if (extname(f) !== '.wav') continue;
-    copyFileSync(resolve(humanDir, f), resolve(outVoice, f));
+    const src = resolve(humanDir, f);
+    const dst = resolve(outVoice, f);
+    // 章の頭と尻に 40ms のフェードを毎回焼く。
+    // 波形の直切りは章のつなぎで**プツッと鳴る**（001のFB「ぶつ切りみたいになってる」）。
+    // 元ファイルは触らず、描画へ渡すコピーにだけかける
+    const durSec = Number(
+      spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src],
+        { encoding: 'utf8' }).stdout.trim(),
+    );
+    spawnSync('ffmpeg', ['-y', '-v', 'error', '-i', src, '-af',
+      `afade=t=in:st=0:d=0.04,afade=t=out:st=${Math.max(0, durSec - 0.04).toFixed(3)}:d=0.04`, dst]);
     n++;
   }
 }
