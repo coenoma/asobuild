@@ -4,12 +4,17 @@
  *
  *   node scripts/master.mjs out/001-nuimichi.mp4   → out/001-nuimichi-master.mp4
  *
- * **なぜ要るか。** YouTube は -14 LUFS を基準に音量を「下げる」ことはするが「上げてくれない」。
- * うちの書き出しは実測 -20 LUFS 前後で、**他の動画より一段小さく聞こえていた**（数万再生
- * クラスとの客観的な差）。声・BGM・効果音のバランスは保ったまま、全体をまとめて持ち上げる。
+ * YouTube は -14 LUFS 基準で「下げる」ことはするが「上げてくれない」。
+ * うちの書き出しは -20 LUFS 前後で、他の動画より一段小さく聞こえていた。
  *
- * ffmpeg の loudnorm を2回通す（1回目で測り、2回目で線形に当てる）。
- * 映像は再圧縮しない（コピー）。
+ * 🔴 loudnorm フィルタ1本に任せない。持ち上げ幅が頂点の余裕を超えると
+ * **ダイナミックモードに落ちて声がうねる**（001で実際に起き、「声がおかしい」になった。
+ * ついでにサンプルレートも 96kHz に勝手に変わる）。
+ *
+ * so やることを分ける:
+ *   1. loudnorm で**測るだけ**（いま何LUFSか）
+ *   2. 足りないぶんを volume で**一定量**持ち上げる（声の質感は変わらない）
+ *   3. 頂点だけ alimiter で -1 dBTP に収める（効くのはジングルの山の数msだけ）
  */
 import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
@@ -19,18 +24,20 @@ if (!src) { console.error('使い方: node scripts/master.mjs <動画>'); proces
 const inPath = resolve(process.cwd(), src);
 const outPath = inPath.replace(/\.mp4$/, '-master.mp4');
 
-const TARGET = 'I=-14:TP=-1.0:LRA=11';
+const TARGET_I = -14;
 
-// 1回目: 測る
-const p1 = spawnSync('ffmpeg', ['-hide_banner', '-i', inPath, '-af', `loudnorm=${TARGET}:print_format=json`, '-f', 'null', '-'], { encoding: 'utf8' });
+// 1. 測る
+const p1 = spawnSync('ffmpeg', ['-hide_banner', '-i', inPath, '-af', 'loudnorm=print_format=json', '-f', 'null', '-'], { encoding: 'utf8' });
 const jsonText = (p1.stderr.match(/\{[\s\S]*\}/) ?? [null])[0];
-if (!jsonText) { console.error('測定に失敗しました'); console.error(p1.stderr.slice(-800)); process.exit(1); }
+if (!jsonText) { console.error('測定に失敗しました'); process.exit(1); }
 const m = JSON.parse(jsonText);
-console.log(`いま: ${m.input_i} LUFS（頂点 ${m.input_tp} dBTP）→ 目標 -14 LUFS`);
+const gain = Number((TARGET_I - Number(m.input_i)).toFixed(2));
+console.log(`いま: ${m.input_i} LUFS（頂点 ${m.input_tp} dBTP）→ ${gain >= 0 ? '+' : ''}${gain}dB 持ち上げる`);
 
-// 2回目: 線形に当てる（measured_* を渡すと linear=true が効き、音の質感を変えずに持ち上がる）
-const af = `loudnorm=${TARGET}:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}:linear=true`;
-const p2 = spawnSync('ffmpeg', ['-hide_banner', '-v', 'error', '-y', '-i', inPath, '-af', af, '-c:v', 'copy', '-c:a', 'aac', '-b:a', '320k', '-movflags', '+faststart', outPath], { encoding: 'utf8' });
+// 2+3. 一定量持ち上げて、頂点だけ抑える。サンプルレートは 48kHz を保つ
+const af = `volume=${gain}dB,alimiter=level_in=1:level_out=1:limit=0.891:attack=5:release=80:level=false`;
+const p2 = spawnSync('ffmpeg', ['-hide_banner', '-v', 'error', '-y', '-i', inPath, '-af', af,
+  '-ar', '48000', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '320k', '-movflags', '+faststart', outPath], { encoding: 'utf8' });
 if (p2.status !== 0) { console.error(p2.stderr); process.exit(1); }
 
 // 検算
