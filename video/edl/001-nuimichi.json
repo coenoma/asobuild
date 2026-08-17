@@ -19,7 +19,7 @@
       "file": "bgm/ending.wav",
       "peakDb": -8,
       "note": "同 Next Time（短い版）。締めのカードから鳴らす",
-      "at": 605.5,
+      "at": 606.5,
       "gainDb": -3.5,
       "publicFile": "bgm/ending.wav"
     }
@@ -827,58 +827,73 @@
       "crop": "selfWipe",
       "in": 2435,
       "dur": 15.3
+    },
+    "cold-tease": {
+      "src": "screen",
+      "crop": "game",
+      "in": 1268,
+      "dur": 3.2,
+      "note": "0点でプレイ中（白い四角と黄色い丸が動く）"
     }
   },
   "chapters": [
     {
       "id": "cold",
-      "dur": 3.4,
+      "dur": 4.4,
       "noBar": true,
-      "mood": "最初の3秒で「？」を作る。問いかけ1行（謎の画＋これ、何に見えます？）",
+      "mood": "約束とのズレで引く: 頼んだら→謎の画→……糸通し？（完成品は見せない）",
       "layers": [
         {
-          "type": "punch",
-          "at": 0,
-          "dur": 2.8,
-          "clip": "ugly-play2",
-          "frame": 6,
-          "box": {
-            "x": 31,
-            "y": 7,
-            "w": 38,
-            "h": 86
-          },
-          "fit": "contain",
-          "zoom": 1.45,
-          "origin": [
-            0.5,
-            0.45
-          ],
-          "sound": null
-        },
-        {
-          "type": "sfx",
-          "at": 0.08,
-          "name": "hit",
-          "volume": 0.9
-        },
-        {
           "type": "telop",
-          "at": 0.55,
-          "dur": 2.25,
-          "text": "これ、何に見えます？",
+          "at": 0.15,
+          "dur": 1.5,
+          "text": "AIに『糸通し』を頼んだら",
           "place": "center",
           "style": "main",
           "color": "ink"
         },
         {
-          "type": "black",
-          "at": 2.8,
-          "dur": 0.6
+          "type": "sfx",
+          "at": 0.2,
+          "name": "tick",
+          "volume": 0.8
+        },
+        {
+          "type": "shot",
+          "clip": "cold-tease",
+          "at": 1.65,
+          "dur": 2.25,
+          "fit": "contain",
+          "box": {
+            "x": 31,
+            "y": 7,
+            "w": 38,
+            "h": 86
+          }
         },
         {
           "type": "sfx",
-          "at": 2.85,
+          "at": 1.7,
+          "name": "hit",
+          "volume": 0.9
+        },
+        {
+          "type": "telop",
+          "at": 2,
+          "dur": 1.9,
+          "text": "……糸通し？",
+          "place": "center",
+          "style": "main",
+          "color": "bad"
+        },
+        {
+          "type": "black",
+          "at": 3.9,
+          "dur": 0.5
+        },
+        {
+          "type": "sfx",
+          "at": 3.95,
           "name": "tick",
           "volume": 0.7
         }
