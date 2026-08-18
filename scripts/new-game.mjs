@@ -240,6 +240,12 @@ if (genre !== 'action') {
   console.log(`   ${genre} の作りは docs/design/genre-map.md を読んでから step/draw/bot を書き換えてください。`);
   console.log(`   型が変わると、面白さゲートが見る項目も変わります。`);
 }
+if (genre === 'oneshot') {
+  // 診断・クイズ・判定もの。まだ1本も作られていない型なので、文法の場所をここで指す
+  console.log(`\n📋 oneshot（診断・クイズ・判定もの）は作法が action と別物です。`);
+  console.log(`   docs/design/oneshot-playbook.md を先に読む（state の形・1ボタンで選ぶ・結果画面が本体・goals で共有文）。`);
+  console.log(`   看板の外のジャンルなら docs/design/genre-crossover.md で「平成風にするか」を先に決めること。`);
+}
 if (platform !== 'keitai') {
   const d = PLATFORM_DIMS[platform];
   console.log(`\n📺 機種: ${platform}（${d.w}×${d.h} 横長）`);
