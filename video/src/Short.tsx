@@ -41,6 +41,8 @@ export type ShortBeat = {
   diagram?: 'thread' | 'shift';
   /** 画面中央のデカ文字（ツッコミ。説明にしない） */
   bigText?: string;
+  /** bigText の文字サイズ（既定120。行が折れるときに下げる） */
+  bigSize?: number;
   bigColor?: 'accent' | 'bad' | 'good' | 'ink';
   /** 声（public/shorts-voice/<id>/beat-N.wav）。prep-shorts.mjs が切り出す */
   voice?: boolean;
@@ -283,7 +285,7 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
         <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', paddingBottom: 120 }}>
           <div
             style={{
-              fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 120,
+              fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: beat.bigSize ?? 120,
               color: beat.bigColor && beat.bigColor !== 'ink' ? C[beat.bigColor] : SUB_INK,
               background: SUB_BG, border: `10px solid ${beat.bigColor ? C[beat.bigColor] : SUB_EDGE}`,
               outline: `6px solid ${SUB_EDGE}`,

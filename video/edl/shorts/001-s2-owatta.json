@@ -1,18 +1,87 @@
 {
   "id": "001-s2-owatta",
   "title": "あ、終わった（即死）",
-  "hook": "AIのゲーム、\n当たっても死にません",
   "beats": [
+    {
+      "dur": 2.3,
+      "video": {
+        "clip": "ugly-play2",
+        "from": 6,
+        "mosaic": true,
+        "small": true,
+        "label": "？？？"
+      },
+      "titleLines": [
+        {
+          "t": "AIに",
+          "size": 60
+        },
+        {
+          "t": "ガラケー伝説ゲーム",
+          "size": 84
+        },
+        {
+          "t": "\"糸通し\"",
+          "size": 148,
+          "marker": true
+        },
+        {
+          "t": "を丸投げしたら…",
+          "size": 72
+        }
+      ],
+      "titleStagger": 0.22,
+      "sfx": [
+        {
+          "at": 0.15,
+          "name": "jingleStart"
+        },
+        {
+          "at": 0.02,
+          "name": "type",
+          "volume": 0.7
+        },
+        {
+          "at": 0.24,
+          "name": "type",
+          "volume": 0.7
+        },
+        {
+          "at": 0.46,
+          "name": "tap",
+          "volume": 0.9
+        },
+        {
+          "at": 0.68,
+          "name": "type",
+          "volume": 0.7
+        }
+      ]
+    },
     {
       "dur": 1.6,
       "video": {
         "clip": "turn-title",
         "from": 4
       },
+      "overlays": [
+        {
+          "at": 0.1,
+          "dur": 1.45,
+          "text": "それっぽいの、できた！",
+          "color": "good"
+        }
+      ],
+      "punches": [
+        {
+          "at": 0.12
+        }
+      ],
       "sfx": [
         {
-          "at": 0.15,
-          "name": "jingleStart"
+          "at": 0.1,
+          "name": "reveal",
+          "volume": 0.9
         }
       ]
     },
@@ -22,31 +91,55 @@
         "from": 79.02,
         "to": 85
       },
+      "voiceDelay": 0.7,
+      "noAutoSubs": true,
       "video": {
         "clip": "turn-play",
         "from": 0
       },
-      "sfx": [
-        {
-          "at": 0.1,
-          "name": "tap"
-        }
-      ],
-      "voice": true,
-      "dur": 6.08,
       "subs": [
         {
           "at": 0.05,
+          "dur": 0.6,
+          "t": "やってみると…"
+        },
+        {
+          "at": 0.75,
           "dur": 2.6,
           "t": "ぶつかっても、死なないんですが"
         },
         {
-          "at": 2.72,
+          "at": 3.42,
           "dur": 3.2,
           "t": "いつ終わるのか、分からないゲーム"
         }
       ],
-      "noAutoSubs": true
+      "overlays": [
+        {
+          "at": 2,
+          "dur": 1.15,
+          "text": "あれ？ 死なない？",
+          "color": "bad"
+        }
+      ],
+      "punches": [
+        {
+          "at": 2
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.08,
+          "name": "tap"
+        },
+        {
+          "at": 2,
+          "name": "hit",
+          "volume": 0.5
+        }
+      ],
+      "voice": true,
+      "dur": 6.78
     },
     {
       "voiceSrc": {
@@ -54,24 +147,11 @@
         "from": 85.24,
         "to": 88.2
       },
+      "noAutoSubs": true,
       "video": {
         "clip": "turn-play",
         "from": 6.2
       },
-      "sfx": [
-        {
-          "at": 0.62,
-          "name": "over",
-          "volume": 0.9
-        },
-        {
-          "at": 0.64,
-          "name": "stampHit",
-          "volume": 0.8
-        }
-      ],
-      "voice": true,
-      "dur": 3.06,
       "subs": [
         {
           "at": 0.05,
@@ -84,7 +164,6 @@
           "t": "…急に終わりました"
         }
       ],
-      "noAutoSubs": true,
       "overlays": [
         {
           "at": 0.62,
@@ -98,49 +177,61 @@
         {
           "at": 0.62
         }
-      ]
+      ],
+      "sfx": [
+        {
+          "at": 0.62,
+          "name": "over",
+          "volume": 0.9
+        },
+        {
+          "at": 0.64,
+          "name": "stampHit",
+          "volume": 0.8
+        }
+      ],
+      "voice": true,
+      "dur": 3.06
     },
     {
-      "voiceSrc": {
-        "ch": "brushup",
-        "from": 88.48,
-        "to": 92.9
-      },
+      "dur": 1.7,
       "video": {
         "clip": "turn-play",
         "from": 9.4
       },
-      "sfx": [],
-      "voice": true,
-      "dur": 4.52,
+      "bigText": "ルール、\n分かりますか…？",
       "subs": [
         {
-          "at": 0.05,
-          "dur": 2.95,
-          "t": "意外と、やれるんじゃないですかね"
-        },
-        {
-          "at": 3.1,
-          "dur": 2.1,
-          "t": "28分たっても、遊んでます"
+          "at": 0.25,
+          "dur": 1.4,
+          "t": "（作った本人も、分かってません）"
         }
       ],
-      "noAutoSubs": true
+      "sfx": [
+        {
+          "at": 0.15,
+          "name": "tick",
+          "volume": 0.9
+        }
+      ],
+      "bigSize": 96
     },
     {
-      "dur": 3.2,
+      "dur": 3.4,
       "video": {
         "clip": "ship-play",
         "from": 5,
-        "small": true
+        "mosaic": true,
+        "small": true,
+        "label": "？？？"
       },
       "titleLines": [
         {
-          "t": "あなたは、",
-          "size": 64
+          "t": "この後、調整したら…",
+          "size": 62
         },
         {
-          "t": "何点いける？",
+          "t": "化けました",
           "size": 132,
           "marker": true
         }
@@ -155,11 +246,10 @@
       ]
     }
   ],
-  "loopText": "もう一回",
   "cta": {
-    "main": "URLはコメント欄に！",
-    "sub": "何点いけたか、コメントで",
-    "fromEnd": 3.1,
+    "main": "つづきは本編へ！",
+    "sub": "遊べるURLはコメント欄に",
+    "fromEnd": 3.3,
     "bottomPad": 640
   },
   "bgm": {
