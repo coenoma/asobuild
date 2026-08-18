@@ -263,5 +263,6 @@
   "bgm": {
     "file": "bgm/main.mp3",
     "gainDb": -35.5
-  }
+  },
+  "out": "S3-560点-フル.mp4"
 }

@@ -226,5 +226,6 @@
   "bgm": {
     "file": "bgm/main.mp3",
     "gainDb": -35.5
-  }
+  },
+  "out": "S1-そうじゃない-フル.mp4"
 }

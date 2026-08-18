@@ -17,7 +17,9 @@
     "scan": "node scripts/scan-risk.mjs",
     "typecheck": "tsc --noEmit",
     "storyboard": "node scripts/storyboard.mjs",
-    "ship": "node scripts/ship-video.mjs"
+    "ship": "node scripts/ship-video.mjs",
+    "shorts": "node scripts/shorts-build.mjs",
+    "shorts:proof": "node scripts/shorts-proof.mjs"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.512",

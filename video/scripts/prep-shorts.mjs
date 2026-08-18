@@ -20,6 +20,37 @@ const ROOT = resolve(HERE, '..');
 const SLUG = '001-nuimichi';
 const voice = JSON.parse(readFileSync(resolve(ROOT, 'voice', `${SLUG}.json`), 'utf8'));
 
+// 語単位の境界検査（scripts/transcribe-words.mjs が作る。無ければ検査なしで進む）
+const wordsPath = resolve(ROOT, 'voice', `${SLUG}.words.json`);
+let WORDS = null;
+try { WORDS = JSON.parse(readFileSync(wordsPath, 'utf8')); } catch { /* まだ作っていない */ }
+
+/**
+ * 切り出し境界が安全かを語タイムスタンプで見る。
+ * 001の実害: 語の途中で切れる（スピードかなり上がっ//て）／
+ * 尻の+0.05秒に次の語頭が混ざる（…ました。**いが**）。
+ * 語中切りが正しい場合もある（フィラーが語に併合されて転記されるとき）ので、
+ * 止めずに⚠️で列挙する。**未確認の⚠️を残したまま出さない**のが運用。
+ */
+const checkBoundary = (id, ch, t, kind) => {
+  const ws = WORDS?.[ch];
+  if (!ws) return 0;
+  let n = 0;
+  const inside = ws.find((w) => w.s + 0.04 < t && t < w.e - 0.04);
+  if (inside) {
+    console.log(`  ⚠️ ${id} ${ch} ${kind}${t}s は「${inside.w}」(${inside.s}〜${inside.e}) の最中。語境界: ${inside.s} / ${inside.e}`);
+    n++;
+  }
+  if (kind === '尻') {
+    const next = ws.find((w) => w.s >= t - 0.01 && w.s < t + 0.07);
+    if (next) {
+      console.log(`  ⚠️ ${id} ${ch} 尻${t}s のすぐ後 ${next.s}s に「${next.w}」の頭。切り出しの+0.05秒で混ざるかも`);
+      n++;
+    }
+  }
+  return n;
+};
+
 const dir = resolve(ROOT, 'edl/shorts');
 for (const f of readdirSync(dir)) {
   if (!f.endsWith('.json')) continue;
@@ -29,9 +60,14 @@ for (const f of readdirSync(dir)) {
   rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
 
+  let warns = 0;
   r.beats.forEach((b, i) => {
     if (!b.voiceSrc) return;
     const { ch, from, to, parts } = b.voiceSrc;
+    for (const seg of parts ?? [{ from, to }]) {
+      warns += checkBoundary(r.id, ch, seg.from, '頭');
+      warns += checkBoundary(r.id, ch, seg.to, '尻');
+    }
     const src = resolve(ROOT, 'voice', SLUG, 'human', `${ch}.wav`);
     const out = resolve(outDir, `beat-${i}.wav`);
     let dur;
@@ -73,5 +109,5 @@ for (const f of readdirSync(dir)) {
 
   writeFileSync(path, `${JSON.stringify(r, null, 2)}\n`, 'utf8');
   const total = r.beats.reduce((a, b) => a + b.dur, 0);
-  console.log(`${r.id}: ${r.beats.length}拍 / ${total.toFixed(1)}秒`);
+  console.log(`${r.id}: ${r.beats.length}拍 / ${total.toFixed(1)}秒${warns ? `（⚠️ 境界の要確認 ${warns}件 — 耳かレンダで確認済みならOK）` : ''}`);
 }

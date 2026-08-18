@@ -103,6 +103,16 @@ ffprobe -v error -show_format 自撮り.MOV | grep creationdate
 
 ---
 
+## ショートをつくる
+
+本編とは別の作り方をする（レシピ式・物語の骨格・専用の関所）。
+**[shorts.md](shorts.md) がすべて**——文法・雛形・道具・公開後の見方まで。
+
+```bash
+npm run shorts:proof -- <id>   # 検査したい瞬間を1枚で見る
+npm run shorts                 # 仕上げ（境界検査〜 -14 LUFS 正規化まで）
+```
+
 ## 設計の考え方（なぜこの形か）
 
 ### 見た目の変遷は `.live/shots/` に貯まっている

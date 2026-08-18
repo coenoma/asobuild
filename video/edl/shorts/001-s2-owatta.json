@@ -252,5 +252,6 @@
   "bgm": {
     "file": "bgm/main.mp3",
     "gainDb": -35.5
-  }
+  },
+  "out": "S2-あ終わった-フル.mp4"
 }

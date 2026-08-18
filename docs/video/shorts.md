@@ -83,18 +83,95 @@
 ```bash
 cd video
 
-# 1. レシピを書く（edl/shorts/001-s1-sonja.json などを下敷きに）
-# 2. 声の切り出し・尺の実測・字幕注入
-node scripts/prep-shorts.mjs
-# 3. 確認しながら直す（音つきでスクラブできる）
-npm run studio        # → Short-s1-sonja 等のコンポジション
-# 4. 書き出し
-npx remotion render src/index.ts Short-s1-sonja /tmp/s1.mp4 --public-dir=public
-# 5. ラウドネス実測 → 正規化（gain = -14 - input_i）
-ffmpeg -i /tmp/s1.mp4 -af loudnorm=I=-14:TP=-1:print_format=json -f null -
-ffmpeg -i /tmp/s1.mp4 -af "volume=<gain>dB,alimiter=level_in=1:level_out=1:limit=0.891:attack=5:release=80:level=false" \
-  -ar 48000 -c:v copy out/shorts/S1-◯◯-フル.mp4
+# 0.（新エピソードで一度だけ）声を語単位で転記 → 以降、境界検査が自動で効く
+node scripts/transcribe-words.mjs <slug>
+
+# 1. レシピを書く（下の雛形をコピーして埋める）
+# 2. 確認しながら直す（音つきでスクラブできる）
+npm run studio                        # → Short-s1-sonja 等のコンポジション
+
+# 3. 検査したい瞬間を1枚で見る（文字の被り・折れ・置き場のミスはここで見つける）
+npm run shorts:proof -- 001-s1-sonja  # → out/shorts/proof-<id>.png
+
+# 4. 仕上げ（prep→境界検査→描画→ラウドネス実測→-14 LUFSへ正規化、まで全部）
+npm run shorts                        # 全部。1本だけなら: npm run shorts -- 001-s1-sonja
 ```
+
+prep が ⚠️ を出したら、それは「語の途中で切っている／次の語が混ざるかも」の印。
+**未確認の⚠️を残したまま出さない**（耳かレンダで確認済みならそのままでよい）。
+
+## レシピの雛形（文法0の骨格そのまま）
+
+```jsonc
+{
+  "id": "002-s1-◯◯",
+  "title": "◯◯（ショートの題）",
+  "out": "S1-◯◯-フル.mp4",
+  "beats": [
+    { // ① 企画を張る（シリーズ共通の冒頭カード。中身はモザイク＋？？？で見せない）
+      "dur": 2.3,
+      "video": { "clip": "◯◯", "from": 0, "mosaic": true, "small": true, "label": "？？？" },
+      "titleLines": [
+        { "t": "AIに", "size": 60 },
+        { "t": "◯◯◯", "size": 84 },
+        { "t": "\"◯◯\"", "size": 148, "marker": true },
+        { "t": "を丸投げしたら…", "size": 72 }
+      ],
+      "titleStagger": 0.22,
+      "sfx": [
+        { "at": 0.15, "name": "jingleStart" },
+        { "at": 0.02, "name": "type", "volume": 0.7 },
+        { "at": 0.24, "name": "type", "volume": 0.7 },
+        { "at": 0.46, "name": "tap", "volume": 0.9 },
+        { "at": 0.68, "name": "type", "volume": 0.7 }
+      ]
+    },
+    { // ② 展開カード（話を進める一言。画面の主役を隠さない: sub か top）
+      "dur": 1.5,
+      "video": { "clip": "◯◯", "from": 0 },
+      "overlays": [{ "at": 0.1, "dur": 1.35, "text": "◯◯が、◯◯", "color": "bad", "pos": "sub" }],
+      "sfx": [{ "at": 0.1, "name": "hit", "volume": 0.7 }]
+    },
+    { // ③ 声は証拠（境界は語タイムスタンプで。字幕は手書き＋noAutoSubs）
+      "voiceSrc": { "ch": "◯◯", "from": 0.0, "to": 0.0 },
+      "noAutoSubs": true,
+      "video": { "clip": "◯◯", "from": 0 },
+      "subs": [{ "at": 0.05, "dur": 2.0, "t": "◯◯、◯◯" }]
+    },
+    { // ④ クライマックス（止めてツッコむ3点セット）
+      "voiceSrc": { "ch": "◯◯", "from": 0.0, "to": 0.0 },
+      "noAutoSubs": true,
+      "video": { "clip": "◯◯", "from": 0 },
+      "subs": [],
+      "overlays": [{ "at": 0.6, "dur": 1.4, "text": "◯◯◯", "color": "bad", "flash": true }],
+      "punches": [{ "at": 0.6 }],
+      "sfx": [{ "at": 0.6, "name": "over", "volume": 0.9 }, { "at": 0.62, "name": "stampHit", "volume": 0.8 }]
+    },
+    { // ⑤ 締めカード（次への期待。本編誘導ならモザイク、行動型なら素で見せる）
+      "dur": 3.4,
+      "video": { "clip": "◯◯", "from": 0, "mosaic": true, "small": true, "label": "？？？" },
+      "titleLines": [
+        { "t": "この後、◯◯したら…", "size": 62 },
+        { "t": "◯◯◯", "size": 132, "marker": true }
+      ],
+      "titleStagger": 0.45,
+      "sfx": [{ "at": 0.5, "name": "sting", "volume": 1.0 }]
+    }
+  ],
+  "cta": { "main": "つづきは本編へ！", "sub": "◯◯は 0:00 から。そこだけでも", "fromEnd": 3.3, "bottomPad": 640 },
+  "bgm": { "file": "bgm/main.mp3", "gainDb": -35.5 }
+}
+```
+
+（JSONにコメントは書けないので、コピーしたら `//` の行は消すこと）
+
+## 道具
+
+| コマンド | 何をするか |
+|---|---|
+| `npm run shorts` | prep→境界検査→描画→ラウドネス実測→-14 LUFS 正規化→`out/shorts/`（レシピid指定可） |
+| `npm run shorts:proof -- <id>` | 検査したい瞬間（拍頭・ツッコミ・パンチ・でか文字・CTA）のコンタクトシート |
+| `node scripts/transcribe-words.mjs <slug>` | 声の語単位転記（境界検査の元データ。章ごとに保存、途中再開可） |
 
 ## レシピの部品
 
@@ -115,6 +192,7 @@ ffmpeg -i /tmp/s1.mp4 -af "volume=<gain>dB,alimiter=level_in=1:level_out=1:limit
 | `beats[].bigTyped` | bigText を1文字ずつタイプライター表示（読点でタメ・2文字ごとにぴこ音）。問いかけ・小粋な間に |
 | `cta` | 締めバナー。`main`（黄・でか）/ `sub`（黒チップ）/ `bottomPad`（位置調整） |
 | `loopText` | 最後0.9秒の「頭に戻る一言」 |
+| `out` | 仕上げ（`npm run shorts`）の出力ファイル名 |
 | `bgm` | `{file: 'bgm/main.mp3', gainDb: -35.5}` |
 
 ## 出す前のチェックリスト（最低品質の関所）
@@ -131,6 +209,15 @@ ffmpeg -i /tmp/s1.mp4 -af "volume=<gain>dB,alimiter=level_in=1:level_out=1:limit
 - [ ] 数字・結果の発話と、画面のその表示が同フレーム
 - [ ] 改行がぜんぶ意味の切れ目にある（自動折り返しに任せた行がない）
 - [ ] **人が音ありで通しで見た**（AIは音の当たり・テンポの体感を確かめられない）
+
+## 公開のあと（アルゴリズムとの付き合い方）
+
+- **関連動画リンクを必ず設定**する（直クリックは少なくても、チャンネル内推薦の橋になる）
+- **固定コメントを最初の1時間内に**立てる。URLは `utm_content` で本ごとに刻む（どの本が効いたか分かるように）
+- **判断は72時間後**。見るのは再生数でなく **完走率・リプレイ率・登録/1000再生・ショート経由の本編流入**
+- ショート視聴者と本編視聴者の重なりは**〜10%**しかない。直接遷移を成功指標にしない。
+  ショートの仕事は 認知・コメント文化（お題と記録）・チャンネル内の橋
+- 締めCTAは型をA/Bして勝ちを既定へ（001: S2=本編誘導型〈瞬間を指す〉 vs S3=行動型〈得点コメント〉）
 
 ## AIに確かめられないこと
 
