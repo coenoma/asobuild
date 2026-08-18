@@ -45,6 +45,8 @@ export type ShortBeat = {
   bigSize?: number;
   /** bigText を1文字ずつタイプライター表示する（読点で少しタメる。2文字ごとにぴこ音） */
   bigTyped?: boolean;
+  /** bigText の置き場。リザルト画面と数字が被るときは 'top'（最上部）へ逃がす */
+  bigPos?: 'center' | 'top';
   bigColor?: 'accent' | 'bad' | 'good' | 'ink';
   /** 声（public/shorts-voice/<id>/beat-N.wav）。prep-shorts.mjs が切り出す */
   voice?: boolean;
@@ -309,7 +311,13 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
         const now = f / fps;
         const shown = beat.bigTyped ? chars.filter((_, i) => times[i] <= now).length : chars.length;
         return (
-        <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', paddingBottom: 120 }}>
+        <AbsoluteFill
+          style={
+            beat.bigPos === 'top'
+              ? { justifyContent: 'flex-start', alignItems: 'center', paddingTop: SAFE_TOP + 30 }
+              : { justifyContent: 'center', alignItems: 'center', paddingBottom: 120 }
+          }
+        >
           <div
             style={{
               position: 'relative',
