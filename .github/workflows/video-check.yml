@@ -41,8 +41,9 @@ jobs:
         run: npm run typecheck
 
       - name: 編集と声のズレ（sync-check）
+        # _ 始まりは作業ファイル（サムネ用の _th.json 等。原稿を持たない）なので見ない
         run: |
-          for f in edl/*.json; do
+          for f in edl/[0-9]*.json; do
             echo "── $f"
             node scripts/sync-check.mjs "$f"
           done
