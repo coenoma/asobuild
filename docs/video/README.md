@@ -13,6 +13,7 @@
 | | 何が書いてあるか | いつ読むか |
 |---|---|---|
 | [video-doctrine.md](./video-doctrine.md) | 誰に、どんな気持ちで見てもらうか。売っているものは何か | **企画の前に必ず** |
+| [formats.md](./formats.md) | 番組の企画フォーマット（IT実験側の型・asobuild に載る/載らないの分け方） | 題材を探すとき |
 | [structure.md](./structure.md) | 章立ては固定しない。心情の流れが構成になる | 編集を始めるとき |
 | [telop-rules.md](./telop-rules.md) | 色・書体・大きさ・言い回し・効果音 | テロップを書くとき |
 | [voice-and-script.md](./voice-and-script.md) | **台本の声（ゆとの喋りかた）。原稿を書く前に** | ナレーション原稿を書くとき |
