@@ -70,7 +70,7 @@
           "dur": 1.45,
           "text": "それっぽいの、\nできた！",
           "color": "good",
-          "pos": "low"
+          "pos": "sub"
         }
       ],
       "punches": [
@@ -147,7 +147,7 @@
       "voiceSrc": {
         "ch": "brushup",
         "from": 85.24,
-        "to": 88.45
+        "to": 88.34
       },
       "noAutoSubs": true,
       "video": {
@@ -193,10 +193,10 @@
         }
       ],
       "voice": true,
-      "dur": 3.31
+      "dur": 3.2
     },
     {
-      "dur": 1.7,
+      "dur": 2.4,
       "video": {
         "clip": "turn-play",
         "from": 9.4
@@ -204,19 +204,14 @@
       "bigText": "ルール、\n分かりますか…？",
       "subs": [
         {
-          "at": 0.25,
-          "dur": 1.4,
+          "at": 1.4,
+          "dur": 0.95,
           "t": "（作った本人も、分かってません）"
         }
       ],
-      "sfx": [
-        {
-          "at": 0.15,
-          "name": "tick",
-          "volume": 0.9
-        }
-      ],
-      "bigSize": 96
+      "sfx": [],
+      "bigSize": 96,
+      "bigTyped": true
     },
     {
       "dur": 3.4,

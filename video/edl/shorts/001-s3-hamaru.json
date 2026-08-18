@@ -71,7 +71,7 @@
           "text": "変なのが、できた",
           "color": "bad",
           "flash": true,
-          "pos": "low"
+          "pos": "sub"
         }
       ],
       "sfx": [
@@ -94,7 +94,7 @@
           "dur": 1.4,
           "text": "けど、すぐ進化！",
           "color": "good",
-          "pos": "low"
+          "pos": "sub"
         }
       ],
       "punches": [

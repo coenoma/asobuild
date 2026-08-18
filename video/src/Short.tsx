@@ -43,6 +43,8 @@ export type ShortBeat = {
   bigText?: string;
   /** bigText の文字サイズ（既定120。行が折れるときに下げる） */
   bigSize?: number;
+  /** bigText を1文字ずつタイプライター表示する（読点で少しタメる。2文字ごとにぴこ音） */
+  bigTyped?: boolean;
   bigColor?: 'accent' | 'bad' | 'good' | 'ink';
   /** 声（public/shorts-voice/<id>/beat-N.wav）。prep-shorts.mjs が切り出す */
   voice?: boolean;
@@ -57,7 +59,7 @@ export type ShortBeat = {
    * 拍の途中に重ねる決めの一言。**声を切らずに**画だけ被せる。
    * （拍を分けて無音を差し込むと、連続した喋りがぶつ切れてテンポが死ぬ）
    */
-  overlays?: { at: number; dur: number; text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' }[];
+  overlays?: { at: number; dur: number; text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' | 'sub' }[];
 };
 
 export type ShortRecipe = {
@@ -81,7 +83,7 @@ export type ShortRecipe = {
 const db = (v: number) => Math.pow(10, v / 20);
 
 /** 拍の途中の決めの一言（声は流れたまま）。白フラッシュ→ドン */
-const Overlay: React.FC<{ text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' }> = ({ text, color = 'bad', flash, still, pos = 'mid' }) => {
+const Overlay: React.FC<{ text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' | 'sub' }> = ({ text, color = 'bad', flash, still, pos = 'mid' }) => {
   const f = useCurrentFrame();
   // still は前の拍から出続けている体で描く（拍をまたいで表示を続けるとき、入りの演出を繰り返さない）
   const fl = flash && !still ? interpolate(f, [0, 1, 4], [0.85, 0.85, 0], { extrapolateRight: 'clamp' }) : 0;
@@ -92,6 +94,9 @@ const Overlay: React.FC<{ text: string; color?: 'accent' | 'bad' | 'good'; flash
         pos === 'low'
           // 低め＝字幕帯のすぐ上。ゲーム画面（その瞬間の主役）を隠さない
           ? { justifyContent: 'flex-end', alignItems: 'center', paddingBottom: SAFE_BOTTOM + 150 }
+          : pos === 'sub'
+          // 字幕の定位置まで下げる。字幕の無い拍の展開カードはここが既定
+          ? { justifyContent: 'flex-end', alignItems: 'center', paddingBottom: SAFE_BOTTOM }
           : { justifyContent: 'center', alignItems: 'center', paddingBottom: 140 }
       }
     >
@@ -288,22 +293,49 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
         </AbsoluteFill>
       ) : null}
 
-      {beat.bigText ? (
+      {beat.bigText ? (() => {
+        // タイプライター: 文字ごとの出現時刻（読点・三点リーダは後に0.18秒のタメ）
+        const chars = [...beat.bigText];
+        const times: number[] = [];
+        let tt = 0.18;
+        for (const ch of chars) {
+          times.push(tt);
+          if (ch !== '\n') tt += 0.085;
+          if (ch === '、' || ch === '…' || ch === '。') tt += 0.18;
+        }
+        const now = f / fps;
+        const shown = beat.bigTyped ? chars.filter((_, i) => times[i] <= now).length : chars.length;
+        return (
         <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', paddingBottom: 120 }}>
           <div
             style={{
+              position: 'relative',
               fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: beat.bigSize ?? 120,
               color: beat.bigColor && beat.bigColor !== 'ink' ? C[beat.bigColor] : SUB_INK,
               background: SUB_BG, border: `10px solid ${beat.bigColor ? C[beat.bigColor] : SUB_EDGE}`,
               outline: `6px solid ${SUB_EDGE}`,
-              padding: '26px 48px', textAlign: 'center', lineHeight: 1.15,
+              padding: '26px 48px', textAlign: beat.bigTyped ? 'left' : 'center', lineHeight: 1.15,
               maxWidth: width - 120, whiteSpace: 'pre-wrap',
             }}
           >
-            {beat.bigText}
+            {/* 枠の大きさは全文で確保し、見える文字だけ上に重ねる（出るたびに箱が動かない） */}
+            <span style={{ opacity: 0 }}>{beat.bigText}</span>
+            <span style={{ position: 'absolute', inset: '26px 48px', whiteSpace: 'pre-wrap' }}>
+              {chars.slice(0, shown).join('')}
+            </span>
           </div>
+          {beat.bigTyped
+            ? chars.map((ch, i) =>
+                ch !== '\n' && i % 2 === 0 ? (
+                  <Sequence key={`bt${i}`} from={secToFrames(times[i], fps)} durationInFrames={Math.round(fps * 0.5)} layout="none">
+                    <Audio src={staticFile('sfx/type.wav')} volume={db(-6) * 0.5} />
+                  </Sequence>
+                ) : null,
+              )
+            : null}
         </AbsoluteFill>
-      ) : null}
+        );
+      })() : null}
 
       {beat.voice ? (
         <Sequence from={secToFrames(beat.voiceDelay ?? 0, fps)} layout="none">
