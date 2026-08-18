@@ -70,7 +70,7 @@
           "dur": 1.45,
           "text": "それっぽいの、\nできた！",
           "color": "good",
-          "pos": "sub"
+          "pos": "top"
         }
       ],
       "punches": [
@@ -147,7 +147,7 @@
       "voiceSrc": {
         "ch": "brushup",
         "from": 85.24,
-        "to": 88.34
+        "to": 88.26
       },
       "noAutoSubs": true,
       "video": {
@@ -193,7 +193,7 @@
         }
       ],
       "voice": true,
-      "dur": 3.2
+      "dur": 3.12
     },
     {
       "dur": 2.4,

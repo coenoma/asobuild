@@ -59,7 +59,7 @@ export type ShortBeat = {
    * 拍の途中に重ねる決めの一言。**声を切らずに**画だけ被せる。
    * （拍を分けて無音を差し込むと、連続した喋りがぶつ切れてテンポが死ぬ）
    */
-  overlays?: { at: number; dur: number; text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' | 'sub' }[];
+  overlays?: { at: number; dur: number; text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' | 'sub' | 'top' }[];
 };
 
 export type ShortRecipe = {
@@ -83,7 +83,7 @@ export type ShortRecipe = {
 const db = (v: number) => Math.pow(10, v / 20);
 
 /** 拍の途中の決めの一言（声は流れたまま）。白フラッシュ→ドン */
-const Overlay: React.FC<{ text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' | 'sub' }> = ({ text, color = 'bad', flash, still, pos = 'mid' }) => {
+const Overlay: React.FC<{ text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' | 'sub' | 'top' }> = ({ text, color = 'bad', flash, still, pos = 'mid' }) => {
   const f = useCurrentFrame();
   // still は前の拍から出続けている体で描く（拍をまたいで表示を続けるとき、入りの演出を繰り返さない）
   const fl = flash && !still ? interpolate(f, [0, 1, 4], [0.85, 0.85, 0], { extrapolateRight: 'clamp' }) : 0;
@@ -97,6 +97,9 @@ const Overlay: React.FC<{ text: string; color?: 'accent' | 'bad' | 'good'; flash
           : pos === 'sub'
           // 字幕の定位置まで下げる。字幕の無い拍の展開カードはここが既定
           ? { justifyContent: 'flex-end', alignItems: 'center', paddingBottom: SAFE_BOTTOM }
+          : pos === 'top'
+          // 画面最上部（セーフゾーンの内側）。下で起きていることを全部見せたいとき
+          ? { justifyContent: 'flex-start', alignItems: 'center', paddingTop: SAFE_TOP + 30 }
           : { justifyContent: 'center', alignItems: 'center', paddingBottom: 140 }
       }
     >
