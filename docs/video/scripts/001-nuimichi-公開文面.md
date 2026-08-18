@@ -87,6 +87,29 @@ https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=shorts&utm
 
 ---
 
+## ショートのA/Bテスト（2026-08-18 設計）
+
+ショート→本編の直接遷移は構造的に少ない（視聴者重複〜10%）。その前提で、締めのCTA 2型を比べる。
+
+| 本 | 型 | CTA |
+|---|---|---|
+| S2 あ、終わった | **本編誘導型** | つづきは本編へ！／**本編は10分。2倍速でも面白いです**（時間の不安を先に潰す） |
+| S3 560点 | **行動型** | URLはコメント欄に！／560点こえたら、自慢して |
+
+- 固定コメントのURLは `utm_content` で本ごとに刻む（下記）。1〜2日おきに公開
+- 見る数字（公開72時間後）: ①本編のトラフィックソース「ショート」経由の流入 ②登録/1000ショート再生 ③ゲームURLのクリック（utm_content 別） ④完走率・リプレイ率
+- 勝った型を docs/video/shorts.md の文法6の既定にする
+
+```
+S2用固定コメントURL:
+https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=shorts&utm_campaign=ep001-nuimichi&utm_content=s2-owatta
+
+S3用固定コメントURL:
+https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=shorts&utm_campaign=ep001-nuimichi&utm_content=s3-hamaru
+```
+
+---
+
 ## サムネの文言（実際に喋った言葉から）
 
 | 案 | 大きい言葉 | 上の条件 |
