@@ -3,7 +3,7 @@ import { AbsoluteFill, Audio, OffthreadVideo, Sequence, staticFile, useCurrentFr
 import { C, SUB_BG, SUB_INK, SUB_EDGE, HARD_SHADOW } from './brand';
 import { Diagram } from './components/Diagram';
 import { secToFrames } from './components/common';
-import { useLocalFont } from './Episode';
+import { useLocalFont } from './fonts';
 
 /**
  * ショート（1080×1920）。**本編の切り抜きではなく、ショートとして組み直す**。

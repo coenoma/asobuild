@@ -1,0 +1,51 @@
+name: video-check
+
+# 動画側の機械の関所。ゲーム側（check.yml）と同じ思想で、
+# 「人が手で叩くのを忘れたら抜ける」状態をやめる。
+#
+# ここで見るもの:
+#   ・型（実際に、型が壊れたまま誰も気づいていなかったことがある）
+#   ・sync-check（言っていることと映っているもののズレ・時計・無音）
+#     ※ 声の wav は git に無いので、CI では声由来の項目が減る（EDL と原稿の検査は効く）
+#   ・コンポジションが組めるか（remotion compositions。素材が無くても通るスモーク。
+#     Root の EDL 読み込み・全部品の実行時エラーがここで捕まる）
+#
+# 描画そのもの（npm run build）は素材が git に無いので CI ではできない。
+# 見た目の最終確認は人が studio でやる（docs/video/README.md）。
+
+on:
+  push:
+    branches: [main]
+    paths: ['video/**', '.github/workflows/video-check.yml']
+  pull_request:
+    paths: ['video/**', '.github/workflows/video-check.yml']
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: video
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: video/package-lock.json
+
+      - run: npm ci
+
+      - name: 型チェック
+        run: npm run typecheck
+
+      - name: 編集と声のズレ（sync-check）
+        run: |
+          for f in edl/*.json; do
+            echo "── $f"
+            node scripts/sync-check.mjs "$f"
+          done
+
+      - name: コンポジションが組めるか（素材なしスモーク）
+        run: npx remotion compositions src/index.ts

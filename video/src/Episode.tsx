@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { AbsoluteFill, Audio, Sequence, useCurrentFrame, cancelRender, continueRender, delayRender, staticFile, useVideoConfig } from 'remotion';
+import React from 'react';
+import { AbsoluteFill, Audio, Sequence, staticFile, useVideoConfig } from 'remotion';
+import { fontFamily, useLocalFont } from './fonts';
 import { C } from './brand';
 import type { Chapter, Edl, Layer } from './types';
 import { Shot, Black } from './components/Shot';
@@ -16,34 +17,7 @@ import { Scrim } from './components/Scrim';
 import { ProgramBar } from './components/ProgramBar';
 import { secToFrames } from './components/common';
 
-/**
- * サイト（globals.css の --font-dot）と同じ書体を使う。動画とサイトで見た目を揃える。
- * 実体は node scripts/fonts.mjs が public/fonts/ に置く（リポジトリには入れない）。
- */
-const fontFamily = 'NotoSansJPLocal';
-
-/**
- * 書体の読み込みは**必ずコンポーネントの中でやる**。
- * モジュールの一番外で delayRender を呼ぶと、コンポジションを数えるだけの工程でも
- * 待ちが発生して描画そのものが止まる（実際に止まった）。
- */
-export function useLocalFont(): void {
-  const [handle] = useState(() => delayRender('書体の読み込み'));
-  useEffect(() => {
-    // 変数フォントなので、**太さの範囲を書かないと 900 が効かない**（400で描かれる）
-    const face = new FontFace(fontFamily, `url(${staticFile('fonts/NotoSansJP.ttf')})`, { weight: '100 900' });
-    face
-      .load()
-      .then(() => {
-        document.fonts.add(face);
-        continueRender(handle);
-      })
-      .catch((e) => {
-        // 書体が無いまま描くと別物になるので、黙って進めない
-        cancelRender(new Error(`書体を読めませんでした。先に node scripts/fonts.mjs を実行してください: ${String(e)}`));
-      });
-  }, [handle]);
-}
+// 書体は fonts.ts に1本化してある（コピーを作らない。3か所へコピーされて事故った）
 
 /**
  * 開発の時計は**画面収録の時刻 + devOffset**（EDL の meta で持つ。001は48秒）。

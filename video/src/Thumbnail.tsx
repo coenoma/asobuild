@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import {
-  AbsoluteFill, OffthreadVideo, cancelRender, continueRender, delayRender, staticFile,
-} from 'remotion';
+import React from 'react';
+import { AbsoluteFill, OffthreadVideo, staticFile } from 'remotion';
 import { C } from './brand';
+import { fontFamily as FONT, useLocalFont } from './fonts';
 
 /**
  * サムネイル。型はシリーズで固定する（毎回同じレイアウト＝「また来た」を作る）。
@@ -16,22 +15,7 @@ import { C } from './brand';
  * バッジは文字だけで作る（公式ロゴ画像は使わない。商標の誤認を避ける）。
  */
 
-const FONT = 'NotoSansJPLocal';
-
-function useLocalFont(): void {
-  const [handle] = useState(() => delayRender('書体の読み込み'));
-  useEffect(() => {
-    // 変数フォントなので、**太さの範囲を書かないと 900 が効かない**（400で描かれる）
-    const face = new FontFace(FONT, `url(${staticFile('fonts/NotoSansJP.ttf')})`, { weight: '100 900' });
-    face
-      .load()
-      .then(() => {
-        document.fonts.add(face);
-        continueRender(handle);
-      })
-      .catch((e) => cancelRender(new Error(String(e))));
-  }, [handle]);
-}
+// 書体は fonts.ts に1本化（コピーを作らない）
 
 /**
  * interface ではなく type にしてある。
