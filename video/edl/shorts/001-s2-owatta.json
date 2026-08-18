@@ -68,8 +68,9 @@
         {
           "at": 0.1,
           "dur": 1.45,
-          "text": "それっぽいの、できた！",
-          "color": "good"
+          "text": "それっぽいの、\nできた！",
+          "color": "good",
+          "pos": "low"
         }
       ],
       "punches": [
@@ -119,7 +120,8 @@
           "at": 2,
           "dur": 1.15,
           "text": "あれ？ 死なない？",
-          "color": "bad"
+          "color": "bad",
+          "pos": "low"
         }
       ],
       "punches": [
@@ -145,7 +147,7 @@
       "voiceSrc": {
         "ch": "brushup",
         "from": 85.24,
-        "to": 88.2
+        "to": 88.45
       },
       "noAutoSubs": true,
       "video": {
@@ -160,7 +162,7 @@
         },
         {
           "at": 1.72,
-          "dur": 1.25,
+          "dur": 1.45,
           "t": "…急に終わりました"
         }
       ],
@@ -191,7 +193,7 @@
         }
       ],
       "voice": true,
-      "dur": 3.06
+      "dur": 3.31
     },
     {
       "dur": 1.7,

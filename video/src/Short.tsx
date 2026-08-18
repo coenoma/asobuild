@@ -57,7 +57,7 @@ export type ShortBeat = {
    * 拍の途中に重ねる決めの一言。**声を切らずに**画だけ被せる。
    * （拍を分けて無音を差し込むと、連続した喋りがぶつ切れてテンポが死ぬ）
    */
-  overlays?: { at: number; dur: number; text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean }[];
+  overlays?: { at: number; dur: number; text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' }[];
 };
 
 export type ShortRecipe = {
@@ -81,13 +81,20 @@ export type ShortRecipe = {
 const db = (v: number) => Math.pow(10, v / 20);
 
 /** 拍の途中の決めの一言（声は流れたまま）。白フラッシュ→ドン */
-const Overlay: React.FC<{ text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean }> = ({ text, color = 'bad', flash, still }) => {
+const Overlay: React.FC<{ text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' }> = ({ text, color = 'bad', flash, still, pos = 'mid' }) => {
   const f = useCurrentFrame();
   // still は前の拍から出続けている体で描く（拍をまたいで表示を続けるとき、入りの演出を繰り返さない）
   const fl = flash && !still ? interpolate(f, [0, 1, 4], [0.85, 0.85, 0], { extrapolateRight: 'clamp' }) : 0;
   const sc = still ? 1 : interpolate(f, [0, 3], [1.25, 1], { extrapolateRight: 'clamp' });
   return (
-    <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', paddingBottom: 140 }}>
+    <AbsoluteFill
+      style={
+        pos === 'low'
+          // 低め＝字幕帯のすぐ上。ゲーム画面（その瞬間の主役）を隠さない
+          ? { justifyContent: 'flex-end', alignItems: 'center', paddingBottom: SAFE_BOTTOM + 150 }
+          : { justifyContent: 'center', alignItems: 'center', paddingBottom: 140 }
+      }
+    >
       <div
         style={{
           transform: `scale(${sc})`,
@@ -311,7 +318,7 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
 
       {(beat.overlays ?? []).map((ov, i) => (
         <Sequence key={`o${i}`} from={secToFrames(ov.at, fps)} durationInFrames={secToFrames(ov.dur, fps)} layout="none">
-          <Overlay text={ov.text} color={ov.color} flash={ov.flash} still={ov.still} />
+          <Overlay text={ov.text} color={ov.color} flash={ov.flash} still={ov.still} pos={ov.pos} />
         </Sequence>
       ))}
 
