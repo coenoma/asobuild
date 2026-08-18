@@ -188,6 +188,7 @@ npm run status        # 「これまでに遊んで出た指摘」が出る
 - **実際に遊ぶ** — ブラウザ自動化では、タブが裏に回ると `requestAnimationFrame` が止まる。動きのあるものに触れない
 - **見た目の良し悪しを決める** — 静止画は撮れるが、それは機能確認であって品質判断ではない
 - **`playtest` の記録をつける** — 遊んでいないので答える資格がない
+- **動画の公開前チェックに答える**（`video` の `npm run ship -- <slug> --record`）— 映り込みと権利の最終判断は人の目。同上
 
 「実機で確認しました」と書けるのは、人が触ったときだけ。
 AIは**「ここまでは確かめた／ここからは確かめていない」を必ず分けて**報告する。
@@ -354,7 +355,8 @@ npm run build    # 本番画質（30分前後）
 - サムネの型は固定: AI名バッジ＋決定的瞬間＋制約の実物＋7文字級の言葉。結果は見せない
 - ショートを毎回3本、レシピ式で組む（**[docs/video/shorts.md](docs/video/shorts.md)** が最低品質の関所）。外部調査の精査は [docs/video/research-notes/](docs/video/research-notes/)
 - **公開ボタンを押す日は [docs/video/publish-checklist.md](docs/video/publish-checklist.md) を必ず通す**
-  （概要欄・固定コメント・`meta.video` の逆リンク——ここが視聴→プレイ→コメントのループを作る）
+  （概要欄・固定コメント・`meta.video` の逆リンク——ここが視聴→プレイ→コメントのループを作る）。
+  前日までに `video` で `npm run ship -- <slug>`（型・sync-check・人手チェックの記録を1コマンドで照合）
 - シーズン全体の計画・成功の定義・週次レビューは [docs/plans/007-first-season/](docs/plans/007-first-season/design.md)
 
 **🔴 リポジトリの工夫（面白さゲート・共通シェル・公開前チェック等）は、動画に一切出さない。**

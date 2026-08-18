@@ -16,7 +16,8 @@
     "sfx": "node scripts/sfx.mjs",
     "scan": "node scripts/scan-risk.mjs",
     "typecheck": "tsc --noEmit",
-    "storyboard": "node scripts/storyboard.mjs"
+    "storyboard": "node scripts/storyboard.mjs",
+    "ship": "node scripts/ship-video.mjs"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.512",

@@ -44,6 +44,7 @@ jobs:
         # _ 始まりは作業ファイル（サムネ用の _th.json 等。原稿を持たない）なので見ない
         run: |
           for f in edl/[0-9]*.json; do
+            [ -e "$f" ] || continue   # 1本も無いときに glob 文字列のまま渡さない
             echo "── $f"
             node scripts/sync-check.mjs "$f"
           done

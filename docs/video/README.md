@@ -65,8 +65,8 @@ node scripts/atereco.mjs edl/<slug>.json --cut --keep-gaps    # 1本通しなら
 node scripts/atereco.mjs edl/<slug>.json --tighten            # 間を詰める（捨てる区間も同時に）
 node scripts/atereco.mjs edl/<slug>.json --check
 
-# ⑧ 出す前の関所
-node scripts/sync-check.mjs edl/<slug>.json
+# ⑧ 出す前の関所（型＋sync-check＋人手チェックの記録を1コマンドで）
+npm run ship -- <slug>              # 記録がなければ: npm run ship -- <slug> --record（人が答える）
 
 # ⑨ 書き出す（声もBGMも入った1本が出る。混ぜる工程は無い）
 npm run draft     # 下書き画質。全体の流れを見るならこれ（半分の解像度）

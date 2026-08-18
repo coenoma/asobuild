@@ -10,6 +10,8 @@
 ## 前日まで
 
 - [ ] `npm run ship` が green（ゲームを直したなら遊び直しまで）
+- [ ] **`npm run ship --prefix video -- <slug>` が green**（動画の関所: 型・sync-check・人手チェックの記録。
+      記録がなければ `-- <slug> --record` を**人が**答える。編集を直したら記録は自動で古くなる）
 - [ ] サムネ・タイトルが型どおり（[video-doctrine.md](./video-doctrine.md) §2。疑問形・結果を見せない）
 - [ ] ショート3本を書き出し済み（`video/scripts/shorts.mjs`）
 - [ ] 概要欄の文面を [テンプレ](./description-template.md) から作成（**UTM の ep 番号を今回のものに**）
