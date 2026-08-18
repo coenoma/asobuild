@@ -93,7 +93,7 @@ https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=shorts&utm
 
 | 本 | 型 | CTA |
 |---|---|---|
-| S2 あ、終わった | **本編誘導型** | つづきは本編へ！／**本編は10分。2倍速でも面白いです**（時間の不安を先に潰す） |
+| S2 あ、終わった | **本編誘導型** | つづきは本編へ！／**化けたあとは 7:11 から。そこだけでも**（量を相手に委ね、瞬間を指す） |
 | S3 560点 | **行動型** | URLはコメント欄に！／560点こえたら、自慢して |
 
 - 固定コメントのURLは `utm_content` で本ごとに刻む（下記）。1〜2日おきに公開
@@ -103,6 +103,10 @@ https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=shorts&utm
 ```
 S2用固定コメントURL:
 https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=shorts&utm_campaign=ep001-nuimichi&utm_content=s2-owatta
+
+S2の固定コメントには本編の 7:11 直リンクも添える（化けたあとへ一発で飛べる）:
+https://youtu.be/<本編のID>?t=431
+
 
 S3用固定コメントURL:
 https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=shorts&utm_campaign=ep001-nuimichi&utm_content=s3-hamaru
