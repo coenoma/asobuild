@@ -47,7 +47,7 @@ node scripts/scan-risk.mjs ~/path/画面収録.mov --contact
 # ② 開発ログを動画の時刻に直す（何分何秒に何が起きたか）
 node scripts/timeline.mjs --rec-start "2026-08-12T16:32:09+09:00"
 
-# ③ edl/<slug>.json を書く（唯一の手作業）
+# ③ edl/<slug>.json を書く（唯一の手作業）→ src/episodes.ts に1行足して登録
 # ④ 必要な区間だけ切り出す（尺の検査もここで通る）
 node scripts/extract.mjs edl/<slug>.json
 
@@ -151,7 +151,8 @@ node scripts/storyboard.mjs edl/<slug>.json > ../docs/video/storyboards/<slug>.m
 
 - **ナレーションは後から乗せる。** 声が上がってきたら章の尺を調整して描き直す
 - テロップは画面に映っている事実だけを書くので、**喋りが変わっても作り直さなくてよい**
-- 次の回はコードを触らず、EDL を1つ足すだけ
+- 次の回は EDL を1つ書いて、**`src/episodes.ts`（登録簿）に1行足すだけ**。
+  Root.tsx も package.json も触らない（コマンドは `npm run studio`／`build -- <slug>` が slug から組む）
 
 ### テロップの文言は開発ログから引く
 

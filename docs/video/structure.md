@@ -199,7 +199,7 @@ node scripts/storyboard.mjs edl/<slug>.json > ../docs/video/storyboards/<slug>.m
 
 # 6. 確認して書き出す
 npx remotion studio
-npx remotion render src/index.ts Episode out/<slug>.mp4
+npm run build -- <slug>   # 省略で最新の回
 ```
 
 書体と効果音は最初の1回だけ（`node scripts/fonts.mjs` / `node scripts/sfx.mjs`）。
@@ -226,7 +226,7 @@ node scripts/voice.mjs edl/<slug>.json --synth
 node scripts/voice.mjs edl/<slug>.json --apply
 
 # 4. 描画して、声を混ぜる（映像はコピーなので mux は数秒）
-npx remotion render src/index.ts Episode out/<slug>.mp4
+npm run build -- <slug>   # 省略で最新の回
 node scripts/voice.mjs edl/<slug>.json --mux      # → out/<slug>-voiced.mp4
 ```
 
@@ -241,4 +241,5 @@ node scripts/voice.mjs edl/<slug>.json --mux      # → out/<slug>-voiced.mp4
 | **本命** | 撮った人の声 | 章ごとに録った wav を `voice/<slug>/human/<章ID>.wav` に置く。**--mux がそちらを優先** |
 
 本命に切り替えたら、人の声の間に合わせて**原稿の `at` を直し、`--apply` → 描画**で字幕が追従する。
-録るときは原稿を読み上げればよい（＝原稿がそのまま台本になる）。
+**本命は読み上げではない**——動画を見ながら自由に喋った画面収録が本命で、声に映像を合わせ直す。
+録り方から本ちゃん化までは [atereco.md](./atereco.md)（原稿は撮る前の「予定」で、あとで実際の言葉に書き直す）。

@@ -7,17 +7,16 @@
     "node": ">=22"
   },
   "scripts": {
-    "studio": "node scripts/prep-audio.mjs edl/001-nuimichi.json && remotion studio src/index.ts --public-dir=public",
+    "studio": "node scripts/episode.mjs studio",
+    "draft": "node scripts/episode.mjs draft",
+    "build": "node scripts/episode.mjs build",
+    "prep": "node scripts/episode.mjs prep",
     "timeline": "node scripts/timeline.mjs",
     "extract": "node scripts/extract.mjs",
     "sfx": "node scripts/sfx.mjs",
     "scan": "node scripts/scan-risk.mjs",
     "typecheck": "tsc --noEmit",
-    "storyboard": "node scripts/storyboard.mjs",
-    "build": "node scripts/prep-audio.mjs edl/001-nuimichi.json && remotion render src/index.ts Episode out/001-nuimichi.mp4 --public-dir=public --concurrency=3 && node scripts/master.mjs out/001-nuimichi.mp4",
-    "prep": "node scripts/prep-audio.mjs edl/001-nuimichi.json",
-    "draft": "node scripts/prep-audio.mjs edl/001-nuimichi.json && remotion render src/index.ts Episode out/001-nuimichi-draft.mp4 --public-dir=public --concurrency=3 --scale=0.5 --crf=32",
-    "master": "node scripts/master.mjs out/001-nuimichi.mp4"
+    "storyboard": "node scripts/storyboard.mjs"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.512",

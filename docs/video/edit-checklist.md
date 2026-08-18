@@ -139,7 +139,7 @@ node scripts/voice.mjs edl/<slug>.json --synth # 声の長さと食い込み
 { "type": "spot", "at": 6.6, "dur": 4.0, "box": { "x": 3, "y": 61, "w": 30, "h": 29 }, "from": "right" }
 ```
 
-位置は書き出した1枚を見て測る（`npx remotion still src/index.ts Episode /tmp/x.png --frame=<n>` →
+位置は書き出した1枚を見て測る（`npx remotion still src/index.ts Episode-<slug> /tmp/x.png --frame=<n>` →
 `ffmpeg -i /tmp/x.png -vf drawgrid=w=96:h=54:t=1:c=red@0.6 ...` で方眼を重ねる）。
 **素材が違えば位置も違う。** 同じ寄りでも行の位置がずれるので、1つずつ測る。
 **囲った場所を、テロップで隠さない**（囲うなら文字は反対側へ）。

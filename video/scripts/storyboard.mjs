@@ -150,7 +150,7 @@ out('```bash');
 out('cd video');
 out(`node scripts/extract.mjs ${edlPath}                 # 尺と映り込みの検査つき`);
 out(`node scripts/storyboard.mjs ${edlPath} > ../docs/video/storyboards/${edl.meta.slug}.md`);
-out('npx remotion render src/index.ts Episode out/<slug>.mp4');
+out('npm run build -- <slug>   # 省略で最新の回。id は Episode-<slug>');
 out('```');
 
 console.log(L.join('\n'));

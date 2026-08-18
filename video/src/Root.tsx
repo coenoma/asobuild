@@ -3,45 +3,44 @@ import { Composition } from 'remotion';
 import { Episode, totalFrames } from './Episode';
 import { Thumbnail } from './Thumbnail';
 import { LoadingPreview } from './LoadingPreview';
-import type { Edl } from './types';
-import edl from '../edl/001-nuimichi.json';
-import { Short, shortTotalFrames, type ShortRecipe } from './Short';
-import s1 from '../edl/shorts/001-s1-sonja.json';
-import s2 from '../edl/shorts/001-s2-owatta.json';
-import s3 from '../edl/shorts/001-s3-hamaru.json';
+import { episodes } from './episodes';
+import { Short, shortTotalFrames } from './Short';
 
 /**
  * 編集の中身は edl/*.json にある。ここは「どの EDL を、どの大きさで描くか」だけ。
  *
- * 回が増えたら Composition を足す（EDL を差し替える）。
- * コードは触らない設計にしてある: docs/video/structure.md
+ * **回が増えたら episodes.ts（登録簿）に1行足す。このファイルは触らない。**
+ * 本編のコンポジション id は `Episode-<slug>`（scripts/episode.mjs が同じ規則で組み立てる）。
  */
 export const RemotionRoot: React.FC = () => {
-  const e = edl as unknown as Edl;
   return (
     <>
-      <Composition
-        id="Episode"
-        component={Episode}
-        durationInFrames={totalFrames(e, e.meta.fps)}
-        fps={e.meta.fps}
-        width={e.meta.width}
-        height={e.meta.height}
-        defaultProps={{ edl: e }}
-      />
+      {episodes.map(({ edl: e, shorts }) => (
+        <React.Fragment key={e.meta.slug}>
+          <Composition
+            id={`Episode-${e.meta.slug}`}
+            component={Episode}
+            durationInFrames={totalFrames(e, e.meta.fps)}
+            fps={e.meta.fps}
+            width={e.meta.width}
+            height={e.meta.height}
+            defaultProps={{ edl: e }}
+          />
 
-      {/* ショート（縦 1080×1920）。レシピ駆動。docs/video/shorts.md */}
-      {[s1, s2, s3].map((r) => (
-        <Composition
-          key={r.id}
-          id={`Short-${r.id.replace('001-', '')}`}
-          component={Short}
-          durationInFrames={shortTotalFrames(r as unknown as ShortRecipe, 30)}
-          fps={30}
-          width={1080}
-          height={1920}
-          defaultProps={{ recipe: r as unknown as ShortRecipe }}
-        />
+          {/* ショート（縦 1080×1920）。レシピ駆動。docs/video/shorts.md */}
+          {shorts.map((r) => (
+            <Composition
+              key={r.id}
+              id={`Short-${r.id.replace(/^\d+-/, '')}`}
+              component={Short}
+              durationInFrames={shortTotalFrames(r, 30)}
+              fps={30}
+              width={1080}
+              height={1920}
+              defaultProps={{ recipe: r }}
+            />
+          ))}
+        </React.Fragment>
       ))}
 
       {/*
