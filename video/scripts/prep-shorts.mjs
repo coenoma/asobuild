@@ -10,7 +10,7 @@
  *
  *   node scripts/prep-shorts.mjs
  */
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,6 +18,12 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..');
 const SLUG = '001-nuimichi';
+
+// ずんだもんナレ（VOICEVOX ローカルエンジン）。
+// 起動: docker run -d --rm --name voicevox -p 50021:50021 voicevox/voicevox_engine:cpu-latest
+// 公開時は「VOICEVOX:ずんだもん」のクレジット表記が必須（利用規約）
+const TTS_URL = 'http://127.0.0.1:50021';
+const TTS_SPEAKER = 3; // ずんだもん ノーマル
 const voice = JSON.parse(readFileSync(resolve(ROOT, 'voice', `${SLUG}.json`), 'utf8'));
 
 // 語単位の境界検査（scripts/transcribe-words.mjs が作る。無ければ検査なしで進む）
@@ -62,7 +68,36 @@ for (const f of readdirSync(dir)) {
 
   let warns = 0;
   r.beats.forEach((b, i) => {
-    if (!b.voiceSrc) return;
+    // テロップだけの拍に、ずんだもんの声を合成して当てる
+    if (!b.voiceSrc && b.tts) {
+      const out = resolve(outDir, `beat-${i}.wav`);
+      let q;
+      try {
+        q = JSON.parse(execFileSync('curl', ['-s', '-m', '10', '-X', 'POST',
+          `${TTS_URL}/audio_query?speaker=${TTS_SPEAKER}&text=${encodeURIComponent(b.tts)}`]).toString());
+      } catch {
+        console.error(`✗ VOICEVOX に繋がらない。起動: docker run -d --rm --name voicevox -p 50021:50021 voicevox/voicevox_engine:cpu-latest`);
+        process.exit(1);
+      }
+      q.speedScale = b.ttsSpeed ?? 1.2;   // ショートの速さに合わせて少し早口
+      q.volumeScale = 0.9;                // 人の声より前に出すぎない
+      q.prePhonemeLength = 0.04;
+      q.postPhonemeLength = 0.06;
+      const raw = resolve(outDir, `tts-${i}-raw.wav`);
+      execFileSync('curl', ['-s', '-X', 'POST', '-H', 'Content-Type: application/json',
+        '-d', JSON.stringify(q), `${TTS_URL}/synthesis?speaker=${TTS_SPEAKER}`, '-o', raw]);
+      execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', raw, '-ar', '48000',
+        '-af', 'afade=t=in:st=0:d=0.02', out]);
+      rmSync(raw);
+      const spoken = Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', out]).toString());
+      b.voice = true;
+      if (spoken > b.dur - 0.06) {
+        console.log(`  ⚠️ ${r.id} 拍${i} のずんだもん「${b.tts}」が ${spoken.toFixed(2)}s で拍(${b.dur}s)からはみ出す。ttsSpeed か dur を調整`);
+        warns++;
+      }
+      return;
+    }
+    if (!b.voiceSrc) { delete b.voice; return; }
     const { ch, from, to, parts } = b.voiceSrc;
     for (const seg of parts ?? [{ from, to }]) {
       warns += checkBoundary(r.id, ch, seg.from, '頭');

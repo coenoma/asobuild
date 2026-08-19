@@ -80,7 +80,9 @@
           "name": "tick",
           "volume": 0.9
         }
-      ]
+      ],
+      "tts": "制限時間は、ソイラテ1杯",
+      "voice": true
     },
     {
       "dur": 2,
@@ -104,7 +106,9 @@
           "name": "swipe",
           "volume": 0.9
         }
-      ]
+      ],
+      "tts": "覚えてることを、ぜんぶ投げた",
+      "voice": true
     },
     {
       "dur": 2,
@@ -128,7 +132,9 @@
           "name": "tick",
           "volume": 0.9
         }
-      ]
+      ],
+      "tts": "11分、コードが1行も出ない",
+      "voice": true
     },
     {
       "dur": 1.6,
@@ -151,7 +157,9 @@
           "name": "reveal",
           "volume": 0.9
         }
-      ]
+      ],
+      "tts": "15分で、出てきたのが…",
+      "voice": true
     },
     {
       "voiceSrc": {
@@ -222,7 +230,9 @@
           "name": "over",
           "volume": 0.6
         }
-      ]
+      ],
+      "tts": "ここでソイラテ、終了",
+      "voice": true
     },
     {
       "dur": 2.2,
@@ -246,7 +256,9 @@
           "name": "combo",
           "volume": 0.8
         }
-      ]
+      ],
+      "tts": "ここから、直しを頼みまくる",
+      "voice": true
     },
     {
       "dur": 1.8,
@@ -274,7 +286,9 @@
           "name": "reveal",
           "volume": 0.9
         }
-      ]
+      ],
+      "tts": "化けた",
+      "voice": true
     },
     {
       "voiceSrc": {
@@ -314,7 +328,7 @@
         {
           "at": 0.1,
           "dur": 1.8,
-          "t": "どんどん伸びて…"
+          "t": "めちゃうまくなった！"
         }
       ],
       "sfx": [
@@ -322,7 +336,9 @@
           "at": 0.3,
           "name": "score"
         }
-      ]
+      ],
+      "tts": "めちゃうまくなった！",
+      "voice": true
     },
     {
       "voiceSrc": {
@@ -409,7 +425,9 @@
           "name": "sting",
           "volume": 1
         }
-      ]
+      ],
+      "tts": "これ全部で、49分",
+      "voice": true
     }
   ],
   "cta": {
