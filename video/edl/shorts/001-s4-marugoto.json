@@ -1,0 +1,400 @@
+{
+  "id": "001-s4-marugoto",
+  "title": "まるごと49分（本編圧縮の実験）",
+  "out": "S4-まるごと-フル.mp4",
+  "beats": [
+    {
+      "dur": 2.3,
+      "video": {
+        "clip": "ugly-play2",
+        "from": 6,
+        "mosaic": true,
+        "small": true,
+        "label": "？？？"
+      },
+      "titleLines": [
+        {
+          "t": "AIに",
+          "size": 60
+        },
+        {
+          "t": "ガラケー伝説ゲーム",
+          "size": 84
+        },
+        {
+          "t": "\"糸通し\"",
+          "size": 148,
+          "marker": true
+        },
+        {
+          "t": "を丸投げしたら…",
+          "size": 72
+        }
+      ],
+      "titleStagger": 0.22,
+      "sfx": [
+        {
+          "at": 0.15,
+          "name": "jingleStart"
+        },
+        {
+          "at": 0.02,
+          "name": "type",
+          "volume": 0.7
+        },
+        {
+          "at": 0.24,
+          "name": "type",
+          "volume": 0.7
+        },
+        {
+          "at": 0.46,
+          "name": "tap",
+          "volume": 0.9
+        },
+        {
+          "at": 0.68,
+          "name": "type",
+          "volume": 0.7
+        }
+      ]
+    },
+    {
+      "dur": 2.2,
+      "video": {
+        "clip": "throw-type",
+        "from": 2,
+        "speed": 3
+      },
+      "overlays": [
+        {
+          "at": 0.08,
+          "dur": 2.05,
+          "text": "覚えてることを、ぜんぶ投げた",
+          "color": "accent",
+          "pos": "sub"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.15,
+          "name": "type",
+          "volume": 0.6
+        },
+        {
+          "at": 0.5,
+          "name": "type",
+          "volume": 0.6
+        },
+        {
+          "at": 0.85,
+          "name": "type",
+          "volume": 0.6
+        }
+      ]
+    },
+    {
+      "dur": 2.2,
+      "video": {
+        "clip": "think-11m",
+        "from": 1,
+        "speed": 3
+      },
+      "overlays": [
+        {
+          "at": 0.08,
+          "dur": 2.05,
+          "text": "11分。コードが、1行も出ない",
+          "color": "bad",
+          "pos": "sub"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.2,
+          "name": "tick",
+          "volume": 0.9
+        }
+      ]
+    },
+    {
+      "dur": 1.6,
+      "video": {
+        "clip": "ugly-play",
+        "from": 4
+      },
+      "overlays": [
+        {
+          "at": 0.08,
+          "dur": 1.45,
+          "text": "15分で、出てきたのが…",
+          "color": "accent",
+          "pos": "sub"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.1,
+          "name": "reveal",
+          "volume": 0.9
+        }
+      ]
+    },
+    {
+      "voiceSrc": {
+        "ch": "appeared",
+        "from": 25.9,
+        "to": 28.1
+      },
+      "noAutoSubs": true,
+      "video": {
+        "clip": "ugly-play2",
+        "from": 0
+      },
+      "subs": [
+        {
+          "at": 0.05,
+          "dur": 2.1,
+          "t": "……糸通しではないですね"
+        }
+      ],
+      "overlays": [
+        {
+          "at": 1.15,
+          "dur": 1.2,
+          "text": "そうじゃない",
+          "color": "bad",
+          "flash": true
+        }
+      ],
+      "punches": [
+        {
+          "at": 1.15
+        }
+      ],
+      "sfx": [
+        {
+          "at": 1.15,
+          "name": "stampHit",
+          "volume": 1
+        },
+        {
+          "at": 1.18,
+          "name": "hit",
+          "volume": 0.7
+        }
+      ],
+      "voice": true,
+      "dur": 2.3
+    },
+    {
+      "dur": 2,
+      "video": {
+        "clip": "drink-end",
+        "from": 6,
+        "speed": 1.5
+      },
+      "overlays": [
+        {
+          "at": 0.08,
+          "dur": 1.85,
+          "text": "ここでソイラテ、終了",
+          "color": "bad",
+          "pos": "sub"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.15,
+          "name": "over",
+          "volume": 0.6
+        }
+      ]
+    },
+    {
+      "dur": 2.4,
+      "video": {
+        "clip": "brush-work",
+        "from": 2,
+        "speed": 4
+      },
+      "overlays": [
+        {
+          "at": 0.08,
+          "dur": 2.25,
+          "text": "ここから、直しを頼みまくる",
+          "color": "accent",
+          "pos": "sub"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.15,
+          "name": "type",
+          "volume": 0.55
+        },
+        {
+          "at": 0.4,
+          "name": "type",
+          "volume": 0.55
+        },
+        {
+          "at": 0.65,
+          "name": "type",
+          "volume": 0.55
+        },
+        {
+          "at": 0.9,
+          "name": "type",
+          "volume": 0.55
+        }
+      ]
+    },
+    {
+      "dur": 1.8,
+      "video": {
+        "clip": "turn-play",
+        "from": 1
+      },
+      "overlays": [
+        {
+          "at": 0.1,
+          "dur": 1.65,
+          "text": "化けた",
+          "color": "good",
+          "pos": "top"
+        }
+      ],
+      "punches": [
+        {
+          "at": 0.12
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.1,
+          "name": "reveal",
+          "volume": 0.9
+        }
+      ]
+    },
+    {
+      "dur": 2,
+      "video": {
+        "clip": "hum-play",
+        "from": 4,
+        "speed": 1.5
+      },
+      "subs": [
+        {
+          "at": 0.1,
+          "dur": 1.8,
+          "t": "どんどん伸びて…"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.3,
+          "name": "score"
+        }
+      ]
+    },
+    {
+      "voiceSrc": {
+        "ch": "best",
+        "from": 61.94,
+        "to": 64.28
+      },
+      "noAutoSubs": true,
+      "bigText": "560点",
+      "bigColor": "accent",
+      "bigPos": "top",
+      "bigSize": 150,
+      "flash": true,
+      "video": {
+        "clip": "hum-res",
+        "from": 0.15
+      },
+      "subs": [
+        {
+          "at": 0.05,
+          "dur": 2.3,
+          "t": "自己ベスト、560点ですよ！"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.05,
+          "name": "best"
+        }
+      ],
+      "voice": true,
+      "dur": 2.44
+    },
+    {
+      "voiceSrc": {
+        "ch": "brushup",
+        "from": 88.24,
+        "to": 90.5
+      },
+      "noAutoSubs": true,
+      "video": {
+        "clip": "ship-play2",
+        "from": 2
+      },
+      "subs": [
+        {
+          "at": 0.05,
+          "dur": 2.25,
+          "t": "意外と、やれるんじゃないですかね"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.1,
+          "name": "tap",
+          "volume": 0.8
+        }
+      ],
+      "voice": true,
+      "dur": 2.36
+    },
+    {
+      "dur": 3.2,
+      "video": {
+        "clip": "ship-play",
+        "from": 8,
+        "small": true
+      },
+      "titleLines": [
+        {
+          "t": "これ全部で、",
+          "size": 64
+        },
+        {
+          "t": "49分",
+          "size": 150,
+          "marker": true
+        }
+      ],
+      "titleStagger": 0.45,
+      "sfx": [
+        {
+          "at": 0.5,
+          "name": "sting",
+          "volume": 1
+        }
+      ]
+    }
+  ],
+  "cta": {
+    "main": "フルは本編で！",
+    "sub": "遊べるURLはコメント欄に",
+    "fromEnd": 3.1,
+    "bottomPad": 640
+  },
+  "bgm": {
+    "file": "bgm/main.mp3",
+    "gainDb": -35.5
+  }
+}

@@ -25,7 +25,9 @@ export type ShortBeat = {
   /** 拍の長さ（秒） */
   dur: number;
   /** ゲーム映像（public/footage/<clip>.mp4）。from=クリップ内の開始秒 */
-  video?: { clip: string; from?: number; scale?: number; y?: number; mosaic?: boolean; small?: boolean; label?: string };
+  video?: { clip: string; from?: number; scale?: number; y?: number; mosaic?: boolean; small?: boolean; label?: string;
+    /** 早送り（2=2倍速）。丸投げ・思考待ち・修正連打を「過程は見せるが待たせない」ために使う */
+    speed?: number };
   /** でかいタイトルカード（フックの上位版）。3行までの \n 区切り */
   titleText?: string;
   /**
@@ -206,6 +208,7 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
             <OffthreadVideo
               src={staticFile(`footage/${beat.video.clip}.mp4`)}
               startFrom={Math.round((beat.video.from ?? 0) * fps)}
+              playbackRate={beat.video.speed ?? 1}
               style={{
                 width: '100%', height: '100%', objectFit: beat.video.small ? 'cover' : 'contain',
                 transform: `scale(${beat.video.mosaic ? scale * 1.06 : scale})`,

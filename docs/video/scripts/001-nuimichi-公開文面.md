@@ -95,6 +95,10 @@ https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=shorts&utm
 |---|---|---|
 | S2 あ、終わった | **本編誘導型** | つづきは本編へ！／**化けたあとは 7:11 から。そこだけでも**（量を相手に委ね、瞬間を指す） |
 | S3 560点 | **行動型** | URLはコメント欄に！／560点こえたら、自慢して |
+| S4 まるごと49分 | **構成の実験（本編まるごと圧縮・27秒）** | フルは本編で！／遊べるURLはコメント欄に |
+
+S4 は CTA でなく**構成そのもののテスト**（切り抜き型 S1〜S3 に対する、物語まるごと圧縮型）。
+完走率と本編流入を S1〜S3 と比べる。
 
 - 固定コメントのURLは `utm_content` で本ごとに刻む（下記）。1〜2日おきに公開
 - 見る数字（公開72時間後）: ①本編のトラフィックソース「ショート」経由の流入 ②登録/1000ショート再生 ③ゲームURLのクリック（utm_content 別） ④完走率・リプレイ率
@@ -110,6 +114,9 @@ https://youtu.be/<本編のID>?t=431
 
 S3用固定コメントURL:
 https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=shorts&utm_campaign=ep001-nuimichi&utm_content=s3-hamaru
+
+S4用固定コメントURL:
+https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=shorts&utm_campaign=ep001-nuimichi&utm_content=s4-marugoto
 ```
 
 ---
