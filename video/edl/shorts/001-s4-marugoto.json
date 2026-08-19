@@ -100,19 +100,9 @@
       ],
       "sfx": [
         {
-          "at": 0.15,
-          "name": "type",
-          "volume": 0.6
-        },
-        {
-          "at": 0.5,
-          "name": "type",
-          "volume": 0.6
-        },
-        {
-          "at": 0.85,
-          "name": "type",
-          "volume": 0.6
+          "at": 0.12,
+          "name": "swipe",
+          "volume": 0.9
         }
       ]
     },
@@ -253,23 +243,8 @@
       "sfx": [
         {
           "at": 0.15,
-          "name": "type",
-          "volume": 0.55
-        },
-        {
-          "at": 0.4,
-          "name": "type",
-          "volume": 0.55
-        },
-        {
-          "at": 0.65,
-          "name": "type",
-          "volume": 0.55
-        },
-        {
-          "at": 0.9,
-          "name": "type",
-          "volume": 0.55
+          "name": "combo",
+          "volume": 0.8
         }
       ]
     },
