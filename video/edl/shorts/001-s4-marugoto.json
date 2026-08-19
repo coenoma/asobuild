@@ -60,7 +60,30 @@
       ]
     },
     {
-      "dur": 2.2,
+      "dur": 1.8,
+      "video": {
+        "clip": "hook-cup",
+        "from": 1
+      },
+      "overlays": [
+        {
+          "at": 0.08,
+          "dur": 1.65,
+          "text": "制限時間は、\nソイラテ1杯",
+          "color": "accent",
+          "pos": "sub"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.12,
+          "name": "tick",
+          "volume": 0.9
+        }
+      ]
+    },
+    {
+      "dur": 2,
       "video": {
         "clip": "throw-type",
         "from": 2,
@@ -69,7 +92,7 @@
       "overlays": [
         {
           "at": 0.08,
-          "dur": 2.05,
+          "dur": 1.85,
           "text": "覚えてることを、ぜんぶ投げた",
           "color": "accent",
           "pos": "sub"
@@ -94,7 +117,7 @@
       ]
     },
     {
-      "dur": 2.2,
+      "dur": 2,
       "video": {
         "clip": "think-11m",
         "from": 1,
@@ -103,7 +126,7 @@
       "overlays": [
         {
           "at": 0.08,
-          "dur": 2.05,
+          "dur": 1.85,
           "text": "11分。コードが、1行も出ない",
           "color": "bad",
           "pos": "sub"
@@ -148,8 +171,8 @@
       },
       "noAutoSubs": true,
       "video": {
-        "clip": "ugly-play2",
-        "from": 0
+        "clip": "ugly-play",
+        "from": 5.7
       },
       "subs": [
         {
@@ -212,7 +235,7 @@
       ]
     },
     {
-      "dur": 2.4,
+      "dur": 2.2,
       "video": {
         "clip": "brush-work",
         "from": 2,
@@ -221,7 +244,7 @@
       "overlays": [
         {
           "at": 0.08,
-          "dur": 2.25,
+          "dur": 2.05,
           "text": "ここから、直しを頼みまくる",
           "color": "accent",
           "pos": "sub"
@@ -277,6 +300,33 @@
           "volume": 0.9
         }
       ]
+    },
+    {
+      "voiceSrc": {
+        "ch": "scary",
+        "from": 0,
+        "to": 2.24
+      },
+      "noAutoSubs": true,
+      "video": {
+        "clip": "ship-play",
+        "from": 0
+      },
+      "subs": [
+        {
+          "at": 0.05,
+          "dur": 0.85,
+          "t": "楽しいですね…"
+        },
+        {
+          "at": 0.95,
+          "dur": 1.35,
+          "t": "めちゃめちゃ、ハマってますよ"
+        }
+      ],
+      "sfx": [],
+      "voice": true,
+      "dur": 2.34
     },
     {
       "dur": 2,
