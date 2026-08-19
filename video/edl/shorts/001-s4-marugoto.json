@@ -60,7 +60,7 @@
       ]
     },
     {
-      "dur": 1.8,
+      "dur": 2.67,
       "video": {
         "clip": "hook-cup",
         "from": 1
@@ -68,7 +68,7 @@
       "overlays": [
         {
           "at": 0.08,
-          "dur": 1.65,
+          "dur": 2.51,
           "text": "制限時間は、\nソイラテ1杯",
           "color": "accent",
           "pos": "sub"
@@ -85,7 +85,7 @@
       "voice": true
     },
     {
-      "dur": 2,
+      "dur": 2.45,
       "video": {
         "clip": "throw-type",
         "from": 2,
@@ -94,7 +94,7 @@
       "overlays": [
         {
           "at": 0.08,
-          "dur": 1.85,
+          "dur": 2.29,
           "text": "覚えてることを、ぜんぶ投げた",
           "color": "accent",
           "pos": "sub"
@@ -111,7 +111,7 @@
       "voice": true
     },
     {
-      "dur": 2,
+      "dur": 2.89,
       "video": {
         "clip": "think-11m",
         "from": 1,
@@ -120,7 +120,7 @@
       "overlays": [
         {
           "at": 0.08,
-          "dur": 1.85,
+          "dur": 2.73,
           "text": "11分。コードが、1行も出ない",
           "color": "bad",
           "pos": "sub"
@@ -137,7 +137,7 @@
       "voice": true
     },
     {
-      "dur": 1.6,
+      "dur": 2.36,
       "video": {
         "clip": "ugly-play",
         "from": 4
@@ -145,7 +145,7 @@
       "overlays": [
         {
           "at": 0.08,
-          "dur": 1.45,
+          "dur": 2.2,
           "text": "15分で、出てきたのが…",
           "color": "accent",
           "pos": "sub"
@@ -209,7 +209,7 @@
       "dur": 2.3
     },
     {
-      "dur": 2,
+      "dur": 2.09,
       "video": {
         "clip": "drink-end",
         "from": 6,
@@ -218,7 +218,7 @@
       "overlays": [
         {
           "at": 0.08,
-          "dur": 1.85,
+          "dur": 1.93,
           "text": "ここでソイラテ、終了",
           "color": "bad",
           "pos": "sub"
@@ -235,7 +235,7 @@
       "voice": true
     },
     {
-      "dur": 2.2,
+      "dur": 2.46,
       "video": {
         "clip": "brush-work",
         "from": 2,
@@ -244,7 +244,7 @@
       "overlays": [
         {
           "at": 0.08,
-          "dur": 2.05,
+          "dur": 2.3,
           "text": "ここから、直しを頼みまくる",
           "color": "accent",
           "pos": "sub"

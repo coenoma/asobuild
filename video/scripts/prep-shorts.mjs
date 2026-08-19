@@ -91,9 +91,19 @@ for (const f of readdirSync(dir)) {
       rmSync(raw);
       const spoken = Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', out]).toString());
       b.voice = true;
-      if (spoken > b.dur - 0.06) {
-        console.log(`  ⚠️ ${r.id} 拍${i} のずんだもん「${b.tts}」が ${spoken.toFixed(2)}s で拍(${b.dur}s)からはみ出す。ttsSpeed か dur を調整`);
-        warns++;
+      // 語り終わる前に次のシーンへ行かない。拍のほうを声＋余韻0.32秒まで伸ばす
+      // （⚠️で人に任せる方式は見落とせる。機械が直せるものは機械が直す）
+      const need = Number((spoken + 0.32).toFixed(2));
+      if (need > b.dur) {
+        const old = b.dur;
+        for (const ov of b.overlays ?? []) {
+          if (ov.at + ov.dur > old - 0.25) ov.dur = Number((need - ov.at - 0.08).toFixed(2));
+        }
+        for (const sub of b.subs ?? []) {
+          if (sub.at + sub.dur > old - 0.25) sub.dur = Number((need - sub.at - 0.08).toFixed(2));
+        }
+        b.dur = need;
+        console.log(`  拍${i}: ずんだもん「${b.tts}」(${spoken.toFixed(2)}s) に合わせて ${old}s → ${need}s`);
       }
       return;
     }
