@@ -302,7 +302,8 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
                 fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 46,
                 color: C.accent, background: 'rgba(16,24,32,0.92)',
                 border: `4px solid ${C.accent}`, padding: '10px 24px',
-                textShadow: '3px 3px 0 rgba(0,0,0,0.85)', whiteSpace: 'nowrap',
+                textShadow: '3px 3px 0 rgba(0,0,0,0.85)',
+                whiteSpace: 'pre-line', textAlign: 'center', lineHeight: 1.3,
               }}
             >
               {beat.spot.text}
