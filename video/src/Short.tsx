@@ -54,8 +54,8 @@ export type ShortBeat = {
   voice?: boolean;
   /** 拍の頭に置く無声の間（秒）。フリのテロップを入れるのに使う */
   voiceDelay?: number;
-  /** ワイプ（自撮り小窓）。本編と同じ「本人の顔」を右上に小さく重ねる */
-  wipe?: { clip: string; from?: number; w?: number };
+  /** ワイプ（自撮り小窓）。本編と同じ「本人の顔」を、左右中央・中央より少し上に重ねる */
+  wipe?: { clip: string; from?: number; w?: number; y?: number };
   /** 下帯の字幕（声の全文。at は拍内の秒） */
   subs?: { at: number; dur: number; t: string }[];
   sfx?: { at: number; name: string; volume?: number }[];
@@ -244,7 +244,8 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
       {beat.wipe ? (
         <div
           style={{
-            position: 'absolute', top: SAFE_TOP + 46 + topPad, right: 150,
+            position: 'absolute', top: beat.wipe.y ?? 620, left: '50%',
+            transform: 'translateX(-50%)',
             width: beat.wipe.w ?? 280, height: beat.wipe.w ?? 280,   // ワイプ素材（w-*）は正方形
             overflow: 'hidden',
             // 本編の Shot と同じ窓の作り。縁は border でなく影の輪

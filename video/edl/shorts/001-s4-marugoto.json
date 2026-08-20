@@ -315,7 +315,12 @@
       ],
       "sfx": [],
       "voice": true,
-      "dur": 2.34
+      "dur": 2.34,
+      "wipe": {
+        "clip": "w-play2",
+        "from": 4,
+        "w": 280
+      }
     },
     {
       "dur": 2,
