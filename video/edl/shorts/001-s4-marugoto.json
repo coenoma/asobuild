@@ -318,8 +318,7 @@
       "dur": 2.34,
       "wipe": {
         "clip": "w-play2",
-        "from": 4,
-        "w": 280
+        "from": 4
       }
     },
     {
@@ -346,8 +345,7 @@
       "voice": true,
       "wipe": {
         "clip": "w-shape2",
-        "from": 2,
-        "w": 280
+        "from": 2
       }
     },
     {

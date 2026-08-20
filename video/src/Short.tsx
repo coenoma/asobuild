@@ -20,6 +20,9 @@ import { useLocalFont } from './fonts';
 /** セーフゾーン（実測系ガイドの合意値）。上120px・下350px・右120pxはUIに重なる */
 const SAFE_TOP = 130;
 const SAFE_BOTTOM = 360;
+// ワイプの定位置（左右中央・中央より少し上）。全拍で共通、動かさない
+const WIPE_TOP = 620;
+const WIPE_SIZE = 280;
 
 export type ShortBeat = {
   /** 拍の長さ（秒） */
@@ -54,8 +57,9 @@ export type ShortBeat = {
   voice?: boolean;
   /** 拍の頭に置く無声の間（秒）。フリのテロップを入れるのに使う */
   voiceDelay?: number;
-  /** ワイプ（自撮り小窓）。本編と同じ「本人の顔」を、左右中央・中央より少し上に重ねる */
-  wipe?: { clip: string; from?: number; w?: number; y?: number };
+  /** ワイプ（自撮り小窓）。位置と大きさは**全拍で固定**（部品側の定数）。
+   *  シーンごとに動かせる形にすると必ずズレて安っぽくなるので、レシピからは動かせない */
+  wipe?: { clip: string; from?: number };
   /** 下帯の字幕（声の全文。at は拍内の秒） */
   subs?: { at: number; dur: number; t: string }[];
   sfx?: { at: number; name: string; volume?: number }[];
@@ -244,9 +248,9 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
       {beat.wipe ? (
         <div
           style={{
-            position: 'absolute', top: beat.wipe.y ?? 620, left: '50%',
+            position: 'absolute', top: WIPE_TOP, left: '50%',
             transform: 'translateX(-50%)',
-            width: beat.wipe.w ?? 280, height: beat.wipe.w ?? 280,   // ワイプ素材（w-*）は正方形
+            width: WIPE_SIZE, height: WIPE_SIZE,   // ワイプ素材（w-*）は正方形
             overflow: 'hidden',
             // 本編の Shot と同じ窓の作り。縁は border でなく影の輪
             //（border だと映像が食われて顔が小さくなる）
