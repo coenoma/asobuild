@@ -57,6 +57,9 @@ export type ShortBeat = {
   voice?: boolean;
   /** 拍の頭に置く無声の間（秒）。フリのテロップを入れるのに使う */
   voiceDelay?: number;
+  /** 指差しラベル（跳ねる◀＋一言）。人を指すときは枠を付けない（本編のSpotと同じ流儀）。
+   *  x/y はラベルの位置（画面に対する％）。矢印はラベルの左に付き、左の対象を指す */
+  spot?: { text: string; x: number; y: number; at?: number };
   /** ワイプ（自撮り小窓）。位置と大きさは**全拍で固定**（部品側の定数）。
    *  シーンごとに動かせる形にすると必ずズレて安っぽくなるので、レシピからは動かせない */
   wipe?: { clip: string; from?: number };
@@ -278,6 +281,35 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
           />
         </div>
       ) : null}
+
+      {beat.spot ? (() => {
+        const st = secToFrames(beat.spot.at ?? 0.15, fps);
+        const k = Math.max(0, f - st);
+        const o = f < st ? 0 : interpolate(k, [0, 4], [0, 1], { extrapolateRight: 'clamp' });
+        // 矢印は0.5秒周期で対象へ跳ね続ける（本編のSpotと同じ動き）
+        const hop = Math.abs(Math.sin((k / fps) * Math.PI * 2)) * 16;
+        return (
+          <div
+            style={{
+              position: 'absolute', left: `${beat.spot.x}%`, top: `${beat.spot.y}%`,
+              display: 'flex', alignItems: 'center', gap: 14, opacity: o,
+              transform: `translateX(${-hop}px)`,
+            }}
+          >
+            <span style={{ fontSize: 88, color: C.accent, textShadow: '4px 4px 0 rgba(0,0,0,0.85)', lineHeight: 1, fontWeight: 900 }}>◀</span>
+            <span
+              style={{
+                fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 46,
+                color: C.accent, background: 'rgba(16,24,32,0.92)',
+                border: `4px solid ${C.accent}`, padding: '10px 24px',
+                textShadow: '3px 3px 0 rgba(0,0,0,0.85)', whiteSpace: 'nowrap',
+              }}
+            >
+              {beat.spot.text}
+            </span>
+          </div>
+        );
+      })() : null}
 
       {beat.titleLines ? (
         <AbsoluteFill style={{ alignItems: 'center', paddingTop: SAFE_TOP + 70 }}>

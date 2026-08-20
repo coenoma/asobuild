@@ -63,14 +63,22 @@ for (const f of readdirSync(dir)) {
   const path = resolve(dir, f);
   const r = JSON.parse(readFileSync(path, 'utf8'));
   const outDir = resolve(ROOT, 'public/shorts-voice', r.id);
-  rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
+  // ずんだもんの合成キャッシュ（文面と速さが同じなら作り直さない＝エンジン無しで回せる）
+  const cachePath = resolve(outDir, 'tts-cache.json');
+  let ttsCache = {};
+  try { ttsCache = JSON.parse(readFileSync(cachePath, 'utf8')); } catch { /* 初回 */ }
 
   let warns = 0;
   r.beats.forEach((b, i) => {
     // テロップだけの拍に、ずんだもんの声を合成して当てる
     if (!b.voiceSrc && b.tts) {
       const out = resolve(outDir, `beat-${i}.wav`);
+      const key = `${b.tts}|${b.ttsSpeed ?? 1.2}`;
+      if (ttsCache[i] === key && existsSync(out)) {
+        b.voice = true;
+        return;   // 文面も速さも前回と同じ。合成を使い回す
+      }
       let q;
       try {
         q = JSON.parse(execFileSync('curl', ['-s', '-m', '10', '-X', 'POST',
@@ -90,6 +98,8 @@ for (const f of readdirSync(dir)) {
         '-af', 'afade=t=in:st=0:d=0.02', out]);
       rmSync(raw);
       const spoken = Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', out]).toString());
+      ttsCache[i] = key;
+      writeFileSync(cachePath, JSON.stringify(ttsCache), 'utf8');
       b.voice = true;
       // 語り終わる前に次のシーンへ行かない。拍のほうを声＋余韻0.32秒まで伸ばす
       // （⚠️で人に任せる方式は見落とせる。機械が直せるものは機械が直す）
