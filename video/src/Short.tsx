@@ -58,8 +58,8 @@ export type ShortBeat = {
   /** 拍の頭に置く無声の間（秒）。フリのテロップを入れるのに使う */
   voiceDelay?: number;
   /** 指差しラベル（跳ねる◀＋一言）。人を指すときは枠を付けない（本編のSpotと同じ流儀）。
-   *  x/y はラベルの位置（画面に対する％）。矢印はラベルの左に付き、左の対象を指す */
-  spot?: { text: string; x: number; y: number; at?: number };
+   *  右端から16pxに右揃えで置く（顔に被らせない）。y は上端の位置（％） */
+  spot?: { text: string; y: number; at?: number };
   /** ワイプ（自撮り小窓）。位置と大きさは**全拍で固定**（部品側の定数）。
    *  シーンごとに動かせる形にすると必ずズレて安っぽくなるので、レシピからは動かせない */
   wipe?: { clip: string; from?: number };
@@ -291,7 +291,7 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
         return (
           <div
             style={{
-              position: 'absolute', left: `${beat.spot.x}%`, top: `${beat.spot.y}%`,
+              position: 'absolute', right: 16, top: `${beat.spot.y}%`,
               display: 'flex', alignItems: 'center', gap: 14, opacity: o,
               transform: `translateX(${-hop}px)`,
             }}
