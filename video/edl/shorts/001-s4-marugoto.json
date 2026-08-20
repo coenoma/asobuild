@@ -338,7 +338,11 @@
         }
       ],
       "tts": "めちゃうまくなった！",
-      "voice": true
+      "voice": true,
+      "wipe": {
+        "clip": "self-play2",
+        "from": 4.5
+      }
     },
     {
       "voiceSrc": {
@@ -439,5 +443,9 @@
   "bgm": {
     "file": "bgm/main.mp3",
     "gainDb": -35.5
+  },
+  "pinTitle": {
+    "t": "AIに\"糸通し\"を丸投げしたら…",
+    "from": 2.3
   }
 }

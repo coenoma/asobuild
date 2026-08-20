@@ -54,6 +54,8 @@ export type ShortBeat = {
   voice?: boolean;
   /** 拍の頭に置く無声の間（秒）。フリのテロップを入れるのに使う */
   voiceDelay?: number;
+  /** ワイプ（自撮り小窓）。本編と同じ「本人の顔」を右上に小さく重ねる */
+  wipe?: { clip: string; from?: number; w?: number };
   /** 下帯の字幕（声の全文。at は拍内の秒） */
   subs?: { at: number; dur: number; t: string }[];
   sfx?: { at: number; name: string; volume?: number }[];
@@ -80,6 +82,8 @@ export type ShortRecipe = {
    * fromEnd = 終わりの何秒前から出すか
    */
   cta?: { main?: string; sub?: string; fromEnd?: number; bottomPad?: number };
+  /** 画面上部に出しっぱなしの企画タイトル（途中から見た人への前提）。from=出し始め秒 */
+  pinTitle?: { t: string; from?: number };
   /** BGM（本編と同じ public/bgm/ の曲を同じ頂点で薄く敷く） */
   bgm?: { file: string; gainDb: number };
 };
@@ -87,7 +91,7 @@ export type ShortRecipe = {
 const db = (v: number) => Math.pow(10, v / 20);
 
 /** 拍の途中の決めの一言（声は流れたまま）。白フラッシュ→ドン */
-const Overlay: React.FC<{ text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' | 'sub' | 'top' }> = ({ text, color = 'bad', flash, still, pos = 'mid' }) => {
+const Overlay: React.FC<{ text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' | 'sub' | 'top'; topPad?: number }> = ({ text, color = 'bad', flash, still, pos = 'mid', topPad = 0 }) => {
   const f = useCurrentFrame();
   // still は前の拍から出続けている体で描く（拍をまたいで表示を続けるとき、入りの演出を繰り返さない）
   const fl = flash && !still ? interpolate(f, [0, 1, 4], [0.85, 0.85, 0], { extrapolateRight: 'clamp' }) : 0;
@@ -103,7 +107,7 @@ const Overlay: React.FC<{ text: string; color?: 'accent' | 'bad' | 'good'; flash
           ? { justifyContent: 'flex-end', alignItems: 'center', paddingBottom: SAFE_BOTTOM }
           : pos === 'top'
           // 画面最上部（セーフゾーンの内側）。下で起きていることを全部見せたいとき
-          ? { justifyContent: 'flex-start', alignItems: 'center', paddingTop: SAFE_TOP + 30 }
+          ? { justifyContent: 'flex-start', alignItems: 'center', paddingTop: SAFE_TOP + 30 + topPad }
           : { justifyContent: 'center', alignItems: 'center', paddingBottom: 140 }
       }
     >
@@ -163,8 +167,8 @@ const CtaCard: React.FC<{ main?: string; sub?: string; bottomPad?: number }> = (
   );
 };
 
-const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFrames: number }> = ({
-  beat, recipeId, index, durFrames,
+const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFrames: number; topPad?: number }> = ({
+  beat, recipeId, index, durFrames, topPad = 0,
 }) => {
   const f = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
@@ -232,6 +236,24 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
             ) : null}
           </div>
         </AbsoluteFill>
+      ) : null}
+
+      {beat.wipe ? (
+        <div
+          style={{
+            position: 'absolute', top: SAFE_TOP + 40 + topPad, right: 140,
+            width: beat.wipe.w ?? 300, height: Math.round(((beat.wipe.w ?? 300) * 9) / 16),
+            overflow: 'hidden', border: `4px solid ${C.line}`,
+            boxShadow: '8px 8px 0 rgba(0,0,0,0.7)', background: C.bg,
+          }}
+        >
+          <OffthreadVideo
+            src={staticFile(`footage/${beat.wipe.clip}.mp4`)}
+            startFrom={Math.round((beat.wipe.from ?? 0) * fps)}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            muted
+          />
+        </div>
       ) : null}
 
       {beat.titleLines ? (
@@ -317,7 +339,7 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
         <AbsoluteFill
           style={
             beat.bigPos === 'top'
-              ? { justifyContent: 'flex-start', alignItems: 'center', paddingTop: SAFE_TOP + 30 }
+              ? { justifyContent: 'flex-start', alignItems: 'center', paddingTop: SAFE_TOP + 30 + topPad }
               : { justifyContent: 'center', alignItems: 'center', paddingBottom: 120 }
           }
         >
@@ -364,7 +386,7 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
 
       {(beat.overlays ?? []).map((ov, i) => (
         <Sequence key={`o${i}`} from={secToFrames(ov.at, fps)} durationInFrames={secToFrames(ov.dur, fps)} layout="none">
-          <Overlay text={ov.text} color={ov.color} flash={ov.flash} still={ov.still} pos={ov.pos} />
+          <Overlay text={ov.text} color={ov.color} flash={ov.flash} still={ov.still} pos={ov.pos} topPad={topPad} />
         </Sequence>
       ))}
 
@@ -408,10 +430,28 @@ export const Short: React.FC<{ recipe: ShortRecipe }> = ({ recipe }) => {
         cursor += dur;
         return (
           <Sequence key={i} from={from} durationInFrames={dur} name={`beat ${i}`}>
-            <Beat beat={b} recipeId={recipe.id} index={i} durFrames={dur} />
+            <Beat beat={b} recipeId={recipe.id} index={i} durFrames={dur} topPad={recipe.pinTitle ? 104 : 0} />
           </Sequence>
         );
       })}
+
+      {/* 常時タイトル。途中から見た人にも前提が張られ続ける（まるごと圧縮型で特に効く） */}
+      {recipe.pinTitle ? (
+        <Sequence from={secToFrames(recipe.pinTitle.from ?? 0, fps)} layout="none">
+          <AbsoluteFill style={{ alignItems: 'center', paddingTop: SAFE_TOP + 14 }}>
+            <div
+              style={{
+                fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 44,
+                color: SUB_INK, background: C.accent,
+                border: `4px solid ${SUB_EDGE}`, boxShadow: '6px 6px 0 rgba(0,0,0,0.8)',
+                padding: '8px 26px', whiteSpace: 'nowrap',
+              }}
+            >
+              {recipe.pinTitle.t}
+            </div>
+          </AbsoluteFill>
+        </Sequence>
+      ) : null}
 
       {/* フック。0秒から出しっぱなし → 1.6秒で消える。上部のセーフゾーン内 */}
       {recipe.hook ? (
