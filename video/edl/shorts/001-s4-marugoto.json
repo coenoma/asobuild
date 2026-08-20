@@ -340,8 +340,9 @@
       "tts": "めちゃうまくなった！",
       "voice": true,
       "wipe": {
-        "clip": "self-play2",
-        "from": 4.5
+        "clip": "w-shape2",
+        "from": 2,
+        "w": 280
       }
     },
     {
@@ -457,6 +458,7 @@
         "t": "を丸投げしたら…"
       }
     ],
-    "from": 2.3
+    "from": 2.3,
+    "toEnd": 3.2
   }
 }

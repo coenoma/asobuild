@@ -84,7 +84,9 @@ export type ShortRecipe = {
   cta?: { main?: string; sub?: string; fromEnd?: number; bottomPad?: number };
   /** 画面上部に出しっぱなしの企画タイトル（途中から見た人への前提）。from=出し始め秒。
    *  見た目は冒頭カードのコンパクト版（白地・黒枠・落ち影・marker部分だけ黄マーカー） */
-  pinTitle?: { parts: { t: string; marker?: boolean }[]; from?: number };
+  pinTitle?: { parts: { t: string; marker?: boolean }[]; from?: number;
+    /** 尻から何秒ぶん出さないか（締めカードと被らせない） */
+    toEnd?: number };
   /** BGM（本編と同じ public/bgm/ の曲を同じ頂点で薄く敷く） */
   bgm?: { file: string; gainDb: number };
 };
@@ -242,10 +244,18 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
       {beat.wipe ? (
         <div
           style={{
-            position: 'absolute', top: SAFE_TOP + 40 + topPad, right: 140,
-            width: beat.wipe.w ?? 300, height: Math.round(((beat.wipe.w ?? 300) * 9) / 16),
-            overflow: 'hidden', border: `4px solid ${C.line}`,
-            boxShadow: '8px 8px 0 rgba(0,0,0,0.7)', background: C.bg,
+            position: 'absolute', top: SAFE_TOP + 46 + topPad, right: 150,
+            width: beat.wipe.w ?? 280, height: beat.wipe.w ?? 280,   // ワイプ素材（w-*）は正方形
+            overflow: 'hidden',
+            // 本編の Shot と同じ窓の作り。縁は border でなく影の輪
+            //（border だと映像が食われて顔が小さくなる）
+            borderRadius: 22,
+            boxShadow: [
+              '0 0 0 5px rgba(233,241,228,0.96)',   // 白い輪
+              '0 0 0 8px rgba(16,24,32,0.92)',      // その外に細い黒
+              '0 14px 30px rgba(0,0,0,0.5)',        // 落ち影
+            ].join(', '),
+            background: C.bg,
           }}
         >
           <OffthreadVideo
@@ -253,6 +263,13 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
             startFrom={Math.round((beat.wipe.from ?? 0) * fps)}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             muted
+          />
+          <div
+            style={{
+              position: 'absolute', inset: 0, borderRadius: 22,
+              boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.28), inset 0 -14px 22px rgba(0,0,0,0.28)',
+              pointerEvents: 'none',
+            }}
           />
         </div>
       ) : null}
@@ -438,7 +455,11 @@ export const Short: React.FC<{ recipe: ShortRecipe }> = ({ recipe }) => {
 
       {/* 常時タイトル。途中から見た人にも前提が張られ続ける（まるごと圧縮型で特に効く） */}
       {recipe.pinTitle ? (
-        <Sequence from={secToFrames(recipe.pinTitle.from ?? 0, fps)} layout="none">
+        <Sequence
+          from={secToFrames(recipe.pinTitle.from ?? 0, fps)}
+          durationInFrames={total - secToFrames(recipe.pinTitle.from ?? 0, fps) - secToFrames(recipe.pinTitle.toEnd ?? 0, fps)}
+          layout="none"
+        >
           <AbsoluteFill style={{ alignItems: 'center', paddingTop: SAFE_TOP + 10 }}>
             <div
               style={{
