@@ -82,8 +82,9 @@ export type ShortRecipe = {
    * fromEnd = 終わりの何秒前から出すか
    */
   cta?: { main?: string; sub?: string; fromEnd?: number; bottomPad?: number };
-  /** 画面上部に出しっぱなしの企画タイトル（途中から見た人への前提）。from=出し始め秒 */
-  pinTitle?: { t: string; from?: number };
+  /** 画面上部に出しっぱなしの企画タイトル（途中から見た人への前提）。from=出し始め秒。
+   *  見た目は冒頭カードのコンパクト版（白地・黒枠・落ち影・marker部分だけ黄マーカー） */
+  pinTitle?: { parts: { t: string; marker?: boolean }[]; from?: number };
   /** BGM（本編と同じ public/bgm/ の曲を同じ頂点で薄く敷く） */
   bgm?: { file: string; gainDb: number };
 };
@@ -438,16 +439,29 @@ export const Short: React.FC<{ recipe: ShortRecipe }> = ({ recipe }) => {
       {/* 常時タイトル。途中から見た人にも前提が張られ続ける（まるごと圧縮型で特に効く） */}
       {recipe.pinTitle ? (
         <Sequence from={secToFrames(recipe.pinTitle.from ?? 0, fps)} layout="none">
-          <AbsoluteFill style={{ alignItems: 'center', paddingTop: SAFE_TOP + 14 }}>
+          <AbsoluteFill style={{ alignItems: 'center', paddingTop: SAFE_TOP + 10 }}>
             <div
               style={{
-                fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 44,
-                color: SUB_INK, background: C.accent,
-                border: `4px solid ${SUB_EDGE}`, boxShadow: '6px 6px 0 rgba(0,0,0,0.8)',
-                padding: '8px 26px', whiteSpace: 'nowrap',
+                display: 'flex', alignItems: 'center',
+                fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 54,
+                color: SUB_INK, background: 'rgba(244,246,241,0.97)',
+                border: `6px solid ${SUB_EDGE}`,
+                boxShadow: `8px 8px 0 rgba(0,0,0,0.85), 0 0 0 4px ${C.accent}`,
+                padding: '10px 26px', whiteSpace: 'nowrap', lineHeight: 1.15,
               }}
             >
-              {recipe.pinTitle.t}
+              {recipe.pinTitle.parts.map((pt, i) => (
+                <span
+                  key={i}
+                  style={
+                    pt.marker
+                      ? { background: C.accent, padding: '2px 12px 4px', transform: 'rotate(-1.2deg)', display: 'inline-block' }
+                      : undefined
+                  }
+                >
+                  {pt.t}
+                </span>
+              ))}
             </div>
           </AbsoluteFill>
         </Sequence>
