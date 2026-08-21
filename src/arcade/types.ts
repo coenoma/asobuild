@@ -289,6 +289,15 @@ export interface GameMeta {
   inspiration?: Inspiration;
   /** 一覧カードの背景色（palette のキー名）。省略時はテーマ既定 */
   accent?: string;
+  /**
+   * 終わり方の扱い。育てる型のように「終わり＝失敗ではない」ゲームのためのもの。
+   *
+   * - color: 結果画面で reason() を描く色。既定は 'bad'（死因は赤、という従来の見え方）
+   * - share: 共有文と記録カードに reason() を1行足す。既定は false
+   *   （「ぽちは 92さいで たねになった」のように、終わり方そのものが人に言いたいことになるゲーム用。
+   *   既存ゲームの共有文を変えないため、明示したゲームだけに効く）
+   */
+  ending?: { color?: 'bad' | 'ink' | 'dim' | 'good'; share?: boolean };
 }
 
 /**

@@ -114,6 +114,8 @@ export function GameShell({ game }: { game: AnyGame }) {
       isBest: r.isBest,
       rankLabel: r.rankLabel,
       allCleared: r.allCleared,
+      // 終わり方を人に言いたいゲーム（育てる型）だけ、reason() を共有文に足す
+      detail: game.meta.ending?.share ? r.reason : undefined,
     });
   }, [game]);
 
@@ -386,7 +388,12 @@ export function GameShell({ game }: { game: AnyGame }) {
       painter.text(`${r.score}`, painter.w / 2, 84, { size: 44, align: 'center', color: 'accent' });
       painter.text(game.meta.unit, painter.w / 2, 132, { size: 12, align: 'center', color: 'dim' });
       if (r.reason) {
-        painter.text(r.reason, painter.w / 2, 156, { size: 11, align: 'center', color: 'bad' });
+        // 死因は赤が既定。終わりが失敗でないゲーム（meta.ending.color）はその色で
+        painter.text(r.reason, painter.w / 2, 156, {
+          size: 11,
+          align: 'center',
+          color: game.meta.ending?.color ?? 'bad',
+        });
       }
       // 主役の1行。称号を取った瞬間がいちばん強いので最優先で出す
       const blinkOn = Math.floor(blink * 5) % 2 === 0;
