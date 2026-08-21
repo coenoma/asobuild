@@ -13,10 +13,12 @@ import { meta as hanko } from './hanko/meta';
 import { meta as tamago } from './tamago/meta';
 import { meta as tamatsunagi } from './tamatsunagi/meta';
 import { meta as nuimichi } from './nuimichi/meta';
+import { meta as ippunIssho } from './ippun-issho/meta';
 
-export const metas: GameMeta[] = [hanko, tamago, tamatsunagi, nuimichi];
+export const metas: GameMeta[] = [hanko, tamago, tamatsunagi, nuimichi, ippunIssho];
 
 export const loaders: Record<string, () => Promise<{ default: AnyGame }>> = {
+  'ippun-issho': () => import('./ippun-issho/game'),
   nuimichi: () => import('./nuimichi/game'),
   tamatsunagi: () => import('./tamatsunagi/game'),
   hanko: () => import('./hanko/game'),
