@@ -22,9 +22,9 @@
 | [edit-checklist.md](./edit-checklist.md) | **編集の関所。出す前に必ず通す**（タイミング・可読性・テロップ・ワイプ・締め） | 書き出す前 |
 | [research-notes/](./research-notes/) | 外部調査の精査記録（何を採り、何を外れ値と判断したか） | 企画・型を見直すとき |
 | [safety-checklist.md](./safety-checklist.md) | 映り込みと権利。**出す前に必ず通す** | 書き出す前 |
-| [storyboards/](./storyboards/) | **回ごとの絵コンテ（構成表）。EDLから生成** | **構成を相談するとき** |
-| [footage-notes/](./footage-notes/) | **回ごとの素材の見どころ。「ここ使いたい」を貯める** | **編集を始める前に必ず** |
-| [scripts/](./scripts/) | 回ごとのアテレコ用メモ | 収録を頼むとき |
+| [各回の storyboard.md](../episodes/) | **回ごとの絵コンテ（構成表）。EDLから生成** | **構成を相談するとき** |
+| [各回の footage-notes.md](../episodes/) | **回ごとの素材の見どころ。「ここ使いたい」を貯める** | **編集を始める前に必ず** |
+| [scripts/](../episodes/) | 回ごとのアテレコ用メモ | 収録を頼むとき |
 
 撮るときの段取りは [recording スキル](../../.claude/skills/recording/SKILL.md)、
 番組としての決めごとは [収録レギュレーション](../guides/収録レギュレーション.md)。
@@ -52,7 +52,7 @@ node scripts/timeline.mjs --rec-start "2026-08-12T16:32:09+09:00"
 node scripts/extract.mjs edl/<slug>.json
 
 # ⑤ 絵コンテを出して、構成を相談する
-node scripts/storyboard.mjs edl/<slug>.json > ../docs/video/storyboards/<slug>.md
+node scripts/storyboard.mjs edl/<slug>.json > ../docs/episodes/<slug>/storyboard.md
 
 # ⑥ 🔴 ブラウザで見ながら直す（**声もBGMも鳴る**。直したらその場で反映）
 npm run studio
@@ -133,7 +133,7 @@ cat .live/shots/index.jsonl  # t（エポックms）と slug と score
 撮った本人が言う「あそこ良かった」「この自撮り入れたい」は、
 **チャットで言われたら、そこで消える。** 編集は何度も直すし、別のセッションが続きをやることもある。
 
-だから [footage-notes/](./footage-notes/) に時刻つきで貯める。
+だから [各回の footage-notes.md](../episodes/) に時刻つきで貯める。
 
 - **使う／使わないは EDL 側で決める。** こちらは在庫であって編集台本ではない
 - **使ったものも消さない。** 切り抜きや次のブラッシュアップで効く
@@ -147,7 +147,7 @@ cat .live/shots/index.jsonl  # t（エポックms）と slug と score
 **EDL から絵コンテ（マークダウンの表）を生成**して、まずそこで詰める。
 
 ```bash
-node scripts/storyboard.mjs edl/<slug>.json > ../docs/video/storyboards/<slug>.md
+node scripts/storyboard.mjs edl/<slug>.json > ../docs/episodes/<slug>/storyboard.md
 ```
 
 各行に `[章-番号]` がつくので、**「3-2 の言い回しを変えたい」と番号で指せる**。
@@ -198,4 +198,4 @@ node scripts/storyboard.mjs edl/<slug>.json > ../docs/video/storyboards/<slug>.m
 
 | # | 回 | 尺 | 制約 | 構成 | アテレコ用メモ |
 |---|---|---|---|---|---|
-| 001 | ぬいみち | 7:00 | ソイラテ1杯 | [絵コンテ](./storyboards/001-nuimichi.md) ／ [見どころ](./footage-notes/001-nuimichi.md) | [001-nuimichi.md](./scripts/001-nuimichi.md) |
+| 001 | ぬいみち | 7:00 | ソイラテ1杯 | [絵コンテ](../episodes/001-nuimichi/storyboard.md) ／ [見どころ](../episodes/001-nuimichi/footage-notes.md) | [台本](../episodes/001-nuimichi/script.md) |

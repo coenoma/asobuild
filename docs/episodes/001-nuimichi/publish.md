@@ -1,6 +1,6 @@
 # 001 ぬいみち ── 公開の文面
 
-型は [description-template.md](../description-template.md) のまま。`{}` を埋めたもの。
+型は [description-template.md](../../video/description-template.md) のまま。`{}` を埋めたもの。
 **アテレコの実際の言葉から拾ってある**（言っていないことは書かない）。
 
 ---
@@ -159,6 +159,6 @@ npx remotion still src/index.ts Thumbnail-A out/thumb-A.png
 
 ## 出す前に
 
-- [ ] [publish-checklist.md](../publish-checklist.md) を通す
+- [ ] [publish-checklist.md](../../video/publish-checklist.md) を通す
 - [ ] **概要欄に曲のクレジット（JTLXq）**が入っている
 - [ ] サイト側の `meta.video` に動画URLを入れる（サイト→動画の逆導線）

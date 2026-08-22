@@ -124,7 +124,7 @@ EDL に1行書くだけ（layer type `punch`。クリップ内の何秒の画で
 
 素材から探す。**無ければ章を短くする。** 別の主張で埋めない。
 
-**撮った人が「ここ使いたい」と言った場所は [footage-notes/](./footage-notes/) に時刻つきで貯める。**
+**撮った人が「ここ使いたい」と言った場所は [各回の footage-notes.md](../episodes/) に時刻つきで貯める。**
 言われたその場で書く。書かないと消える。
 
 ### 4. 心情に無いものは入れない
@@ -195,7 +195,7 @@ node scripts/timeline.mjs --rec-start "2026-08-12T16:32:09+09:00"
 node scripts/extract.mjs edl/<slug>.json
 
 # 5. 絵コンテを出して、構成を相談する（映像を待たずに詰められる）
-node scripts/storyboard.mjs edl/<slug>.json > ../docs/video/storyboards/<slug>.md
+node scripts/storyboard.mjs edl/<slug>.json > ../docs/episodes/<slug>/storyboard.md
 
 # 6. 確認して書き出す
 npx remotion studio
