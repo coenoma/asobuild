@@ -18,6 +18,7 @@ import s001a from '../edl/shorts/001-s1-sonja.json';
 import s001b from '../edl/shorts/001-s2-owatta.json';
 import s001c from '../edl/shorts/001-s3-hamaru.json';
 import s001d from '../edl/shorts/001-s4-marugoto.json';
+import s001e from '../edl/shorts/001-s5-marugoto2.json';
 
 export interface EpisodeEntry {
   edl: Edl;
@@ -27,6 +28,6 @@ export interface EpisodeEntry {
 export const episodes: EpisodeEntry[] = [
   {
     edl: e001 as unknown as Edl,
-    shorts: [s001a, s001b, s001c, s001d] as unknown as ShortRecipe[],
+    shorts: [s001a, s001b, s001c, s001d, s001e] as unknown as ShortRecipe[],
   },
 ];
