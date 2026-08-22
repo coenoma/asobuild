@@ -198,6 +198,8 @@ export function GameShell({ game }: { game: AnyGame }) {
     let replaySlow = 0;
     let best = getBest(game.meta.slug);
     let prevScore = 0;
+    /** 呼びかけ（BaseState.cue）の前回値。増えたぶんだけビープを鳴らす */
+    let prevCue = 0;
     let phaseTime = 0;
     let acc = 0;
     let last = performance.now();
@@ -256,6 +258,7 @@ export function GameShell({ game }: { game: AnyGame }) {
       state = game.init(gameRng);
       state.time = 0;
       prevScore = 0;
+      prevCue = state.cue ?? 0;
       incPlays(game.meta.slug);
       sfx.jingleStart();
       gotoPhase('playing');
@@ -516,6 +519,11 @@ export function GameShell({ game }: { game: AnyGame }) {
           if (state.score > prevScore) {
             sfx.combo(state.score - prevScore > 1 ? 4 : Math.min(12, state.score));
             prevScore = state.score;
+          }
+          // 得点は動かないが知らせたい瞬間（育てる型の呼び出し）。ゲームが cue を進めたら鳴らす
+          if ((state.cue ?? 0) > prevCue) {
+            sfx.call();
+            prevCue = state.cue ?? 0;
           }
           if (state.over) {
             sfx.jingleOver();
