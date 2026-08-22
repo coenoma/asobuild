@@ -151,7 +151,37 @@ https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=shorts&utm
 
 S4用固定コメントURL:
 https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=shorts&utm_campaign=ep001-nuimichi&utm_content=s4-marugoto
+
+S5用固定コメントURL:
+https://asobuild.coenoma.com/g/nuimichi?utm_source=youtube&utm_medium=shorts&utm_campaign=ep001-nuimichi&utm_content=s5-marugoto2
 ```
+
+### S5 のタイトルと概要欄（2026-08-22 決定。カバーは A ＝冒頭）
+
+タイトル（一覧で出るのは約15文字。**カバーが「●と■の謎ゲーム」と「劇的改善で、ハマるゲームに」を
+すでに言っている**ので、タイトルは題材と賭けを出す役に徹する。結果は書かない）:
+
+```
+AIに"糸通し"を丸投げした49分
+```
+
+次点: `AIが作った謎ゲームが化けるまで` ／ `コードを1文字も書かずにゲームは作れるのか`
+
+```
+AIに「懐かしの糸通しみたいなゲーム作って」と丸投げしたら、●と■の謎ゲームが出てきました。
+そこから直しを頼み続けた49分を、40秒にまとめています。
+コードはぼくは1文字も書いていません。遊べるURLはコメント欄に。
+
+ナレーション: VOICEVOX:ずんだもん
+音楽: JTLXq
+使ったAI: Claude Code
+
+#AI #ゲーム制作 #ClaudeCode #ずんだもん #レトロゲーム
+```
+
+🔴 S5 もカードのナレにずんだもんを使っている。**`VOICEVOX:ずんだもん` のクレジットが必須**（利用規約）。
+カバーは `S5-カバーA-冒頭.png`（ビフォーしか写っていない＝「サムネに結果を出さない」に従える。
+候補Bは14分／49分の比較で、変化は分かるが結果が写る）。
 
 ---
 
