@@ -126,6 +126,12 @@ export type ShortRecipe = {
    * オチの予告（pinTitle）を兼ねる。両方は出さない——上が混むと画の主役が消える
    */
   steps?: string[];
+  /**
+   * ステップの上に重ねる**約束の一行**（この動画がどこへ行くのか）。
+   * ステップが「現在地」なのに対し、こちらは「行き先」。役割が違うので2段にしてよい。
+   * `steps` があるときだけ効く
+   */
+  topTitle?: { t: string; marker?: boolean }[];
   pinTitle?: { parts: { t: string; marker?: boolean }[]; from?: number;
     /** 尻から何秒ぶん出さないか（締めカードと被らせない） */
     toEnd?: number;
@@ -226,8 +232,8 @@ const CtaCard: React.FC<{ main?: string; sub?: string; bottomPad?: number }> = (
   );
 };
 
-const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFrames: number; topPad?: number; bottomScrim?: boolean | number; steps?: string[] }> = ({
-  beat, recipeId, index, durFrames, topPad = 0, bottomScrim, steps,
+const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFrames: number; topPad?: number; bottomScrim?: boolean | number; steps?: string[]; topTitle?: { t: string; marker?: boolean }[] }> = ({
+  beat, recipeId, index, durFrames, topPad = 0, bottomScrim, steps, topTitle,
 }) => {
   const f = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
@@ -636,6 +642,33 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
        */}
       {steps && steps.length ? (
         <AbsoluteFill style={{ alignItems: 'center', paddingTop: SAFE_TOP + 8 }}>
+          {/* 上段＝約束（この動画がどこへ行くのか）。下段＝現在地。役割が違うので2段にする */}
+          {topTitle && topTitle.length ? (
+            <div
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap',
+                columnGap: 8, rowGap: 4, marginBottom: 10, maxWidth: width - 40,
+                fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 52,
+                color: SUB_INK, background: 'rgba(244,246,241,0.97)',
+                border: `6px solid ${SUB_EDGE}`,
+                boxShadow: `8px 8px 0 rgba(0,0,0,0.85), 0 0 0 4px ${C.accent}`,
+                padding: '8px 22px', lineHeight: 1.15, textAlign: 'center',
+              }}
+            >
+              {topTitle.map((pt, i) => (
+                <span
+                  key={i}
+                  style={
+                    pt.marker
+                      ? { background: C.accent, padding: '2px 12px 4px', transform: 'rotate(-1.2deg)', display: 'inline-block' }
+                      : undefined
+                  }
+                >
+                  {pt.t}
+                </span>
+              ))}
+            </div>
+          ) : null}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, maxWidth: width - 40 }}>
             {steps.map((s, i) => {
               const now = (beat.step ?? 0) === i + 1;
@@ -692,7 +725,7 @@ export const Short: React.FC<{ recipe: ShortRecipe }> = ({ recipe }) => {
         cursor += dur;
         return (
           <Sequence key={i} from={from} durationInFrames={dur} name={`beat ${i}`}>
-            <Beat beat={b} recipeId={recipe.id} index={i} durFrames={dur} topPad={recipe.steps ? 112 : recipe.pinTitle ? (recipe.pinTitle.pad ?? 104) : 0} bottomScrim={recipe.bottomScrim} steps={recipe.steps} />
+            <Beat beat={b} recipeId={recipe.id} index={i} durFrames={dur} topPad={recipe.steps ? (recipe.topTitle ? 206 : 112) : recipe.pinTitle ? (recipe.pinTitle.pad ?? 104) : 0} bottomScrim={recipe.bottomScrim} steps={recipe.steps} topTitle={recipe.topTitle} />
           </Sequence>
         );
       })}

@@ -2,6 +2,21 @@
   "id": "001-s5-marugoto2",
   "title": "まるごと改（外部戦術ぜんぶ入り）",
   "out": "S5-まるごと改-フル.mp4",
+  "topTitle": [
+    {
+      "t": "劇的改善で、"
+    },
+    {
+      "t": "ハマるゲームに",
+      "marker": true
+    }
+  ],
+  "steps": [
+    "たのむ",
+    "出てこない",
+    "直す",
+    "ハマる"
+  ],
   "beats": [
     {
       "dur": 3,
@@ -45,15 +60,6 @@
           "at": 0.68,
           "name": "type",
           "volume": 0.7
-        }
-      ],
-      "overlays": [
-        {
-          "at": 1.35,
-          "dur": 1.5,
-          "text": "ここから\n劇的な改善！",
-          "color": "accent",
-          "pos": "sub"
         }
       ],
       "step": 1
@@ -522,17 +528,11 @@
     "main": "フルは本編で！",
     "sub": "遊べるURLはコメント欄に",
     "fromEnd": 3.1,
-    "bottomPad": 470
+    "bottomPad": 380
   },
   "bgm": {
     "file": "bgm/main.mp3",
     "gainDb": -35.5
   },
-  "bottomScrim": true,
-  "steps": [
-    "たのむ",
-    "出てこない",
-    "直す",
-    "ハマる"
-  ]
+  "bottomScrim": true
 }
