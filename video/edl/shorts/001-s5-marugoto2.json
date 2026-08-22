@@ -1,0 +1,542 @@
+{
+  "id": "001-s5-marugoto2",
+  "title": "まるごと改（外部戦術ぜんぶ入り）",
+  "out": "S5-まるごと改-フル.mp4",
+  "topTitle": [
+    {
+      "t": "劇的改善で、"
+    },
+    {
+      "t": "ハマるゲームに",
+      "marker": true
+    }
+  ],
+  "steps": [
+    "たのむ",
+    "出てこない",
+    "直す",
+    "ハマる"
+  ],
+  "beats": [
+    {
+      "dur": 3,
+      "video": {
+        "clip": "ugly-play2",
+        "from": 6
+      },
+      "titleLines": [
+        {
+          "t": "AIに丸投げで",
+          "size": 52
+        },
+        {
+          "t": "\"糸通し\"開発を任せたら",
+          "size": 56
+        },
+        {
+          "t": "●と■の謎ゲームが…",
+          "size": 80,
+          "marker": true
+        }
+      ],
+      "titleStagger": 0.26,
+      "sfx": [
+        {
+          "at": 0.15,
+          "name": "jingleStart"
+        },
+        {
+          "at": 0.02,
+          "name": "type",
+          "volume": 0.7
+        },
+        {
+          "at": 0.24,
+          "name": "type",
+          "volume": 0.7
+        },
+        {
+          "at": 0.46,
+          "name": "tap",
+          "volume": 0.9
+        },
+        {
+          "at": 0.68,
+          "name": "type",
+          "volume": 0.7
+        }
+      ],
+      "step": 1
+    },
+    {
+      "dur": 2.67,
+      "video": {
+        "clip": "hook-cup",
+        "from": 1
+      },
+      "overlays": [
+        {
+          "at": 0.08,
+          "dur": 2.51,
+          "text": "制限時間は、\nソイラテ1杯",
+          "color": "accent",
+          "pos": "sub"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.12,
+          "name": "tick",
+          "volume": 0.9
+        }
+      ],
+      "tts": "制限時間は、ソイラテ1杯",
+      "voice": true,
+      "spot": {
+        "text": "こいつの\nさじかげん…",
+        "y": 37,
+        "at": 0.3
+      },
+      "step": 1
+    },
+    {
+      "dur": 2.45,
+      "video": {
+        "clip": "throw-type",
+        "from": 2,
+        "speed": 3
+      },
+      "overlays": [
+        {
+          "at": 0.08,
+          "dur": 2.29,
+          "text": "覚えてることを、ぜんぶ投げた",
+          "color": "accent",
+          "pos": "sub"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.12,
+          "name": "swipe",
+          "volume": 0.9
+        }
+      ],
+      "tts": "覚えてることを、ぜんぶ投げた",
+      "voice": true,
+      "step": 1
+    },
+    {
+      "dur": 2.89,
+      "video": {
+        "clip": "think-11m",
+        "from": 1,
+        "speed": 3
+      },
+      "overlays": [
+        {
+          "at": 0.08,
+          "dur": 2.73,
+          "text": "11分。コードが、1行も出ない",
+          "color": "bad",
+          "pos": "sub"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.2,
+          "name": "tick",
+          "volume": 0.9
+        }
+      ],
+      "tts": "11分、コードが1行も出ない",
+      "voice": true,
+      "step": 2
+    },
+    {
+      "dur": 2.36,
+      "video": {
+        "clip": "ugly-play",
+        "from": 4
+      },
+      "overlays": [
+        {
+          "at": 0.08,
+          "dur": 2.2,
+          "text": "15分で、出てきたのが…",
+          "color": "accent",
+          "pos": "sub"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.1,
+          "name": "reveal",
+          "volume": 0.9
+        }
+      ],
+      "tts": "15分で、出てきたのが…",
+      "voice": true,
+      "step": 2
+    },
+    {
+      "voiceSrc": {
+        "ch": "appeared",
+        "from": 25.9,
+        "to": 28.1
+      },
+      "noAutoSubs": true,
+      "video": {
+        "clip": "ugly-play",
+        "from": 5.7
+      },
+      "subs": [
+        {
+          "at": 0.05,
+          "dur": 2.1,
+          "t": "……糸通しではないですね"
+        }
+      ],
+      "overlays": [
+        {
+          "at": 1.15,
+          "dur": 1.2,
+          "text": "そうじゃない",
+          "color": "bad",
+          "flash": true
+        }
+      ],
+      "punches": [
+        {
+          "at": 1.15
+        }
+      ],
+      "sfx": [
+        {
+          "at": 1.15,
+          "name": "stampHit",
+          "volume": 1
+        },
+        {
+          "at": 1.18,
+          "name": "hit",
+          "volume": 0.7
+        }
+      ],
+      "voice": true,
+      "dur": 2.3,
+      "step": 2
+    },
+    {
+      "dur": 2.09,
+      "video": {
+        "clip": "drink-end",
+        "from": 6,
+        "speed": 1.5
+      },
+      "overlays": [
+        {
+          "at": 0.08,
+          "dur": 1.93,
+          "text": "ここでソイラテ、終了",
+          "color": "bad",
+          "pos": "sub"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.15,
+          "name": "over",
+          "volume": 0.6
+        }
+      ],
+      "tts": "ここでソイラテ、終了",
+      "voice": true,
+      "step": 2
+    },
+    {
+      "dur": 2.46,
+      "video": {
+        "clip": "brush-work",
+        "from": 2,
+        "speed": 4
+      },
+      "overlays": [
+        {
+          "at": 0.08,
+          "dur": 2.3,
+          "text": "ここから、直しを頼みまくる",
+          "color": "accent",
+          "pos": "sub"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.15,
+          "name": "combo",
+          "volume": 0.8
+        }
+      ],
+      "tts": "ここから、直しを頼みまくる",
+      "voice": true,
+      "step": 3
+    },
+    {
+      "dur": 1.8,
+      "video": {
+        "clip": "turn-play",
+        "from": 1
+      },
+      "overlays": [
+        {
+          "at": 0.1,
+          "dur": 1.65,
+          "text": "化けた",
+          "color": "good",
+          "pos": "top"
+        }
+      ],
+      "punches": [
+        {
+          "at": 0.12
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.1,
+          "name": "reveal",
+          "volume": 0.9
+        }
+      ],
+      "tts": "化けた",
+      "voice": true,
+      "step": 3
+    },
+    {
+      "dur": 3,
+      "video": {
+        "clip": "ugly-play",
+        "from": 4,
+        "label": "14分",
+        "vs": {
+          "clip": "ship-play",
+          "from": 8,
+          "label": "49分"
+        }
+      },
+      "overlays": [
+        {
+          "at": 0.15,
+          "dur": 2.6,
+          "text": "14分 → 49分",
+          "color": "cool",
+          "pos": "sub"
+        }
+      ],
+      "punches": [
+        {
+          "at": 0.15
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.15,
+          "name": "score",
+          "volume": 0.85
+        }
+      ],
+      "tts": "14分と、49分",
+      "voice": true,
+      "step": 3
+    },
+    {
+      "voiceSrc": {
+        "ch": "scary",
+        "from": 0,
+        "to": 2.24
+      },
+      "noAutoSubs": true,
+      "video": {
+        "clip": "ship-play",
+        "from": 0
+      },
+      "subs": [
+        {
+          "at": 0.05,
+          "dur": 0.85,
+          "t": "楽しいですね…"
+        },
+        {
+          "at": 0.95,
+          "dur": 1.35,
+          "t": "めちゃめちゃ、ハマってますよ"
+        }
+      ],
+      "sfx": [],
+      "voice": true,
+      "dur": 2.34,
+      "wipe": {
+        "clip": "w-play2",
+        "from": 4
+      },
+      "step": 4
+    },
+    {
+      "dur": 2,
+      "video": {
+        "clip": "hum-play",
+        "from": 4,
+        "speed": 1.5
+      },
+      "subs": [
+        {
+          "at": 0.1,
+          "dur": 1.8,
+          "t": "めちゃうまくなった！"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.3,
+          "name": "score"
+        }
+      ],
+      "tts": "めちゃうまくなった！",
+      "voice": true,
+      "wipe": {
+        "clip": "w-shape2",
+        "from": 2
+      },
+      "step": 4
+    },
+    {
+      "voiceSrc": {
+        "ch": "best",
+        "from": 61.94,
+        "to": 64.28
+      },
+      "noAutoSubs": true,
+      "bigText": "560点",
+      "bigColor": "accent",
+      "bigPos": "top",
+      "bigSize": 150,
+      "flash": true,
+      "video": {
+        "clip": "hum-res",
+        "from": 0.15
+      },
+      "subs": [
+        {
+          "at": 0.05,
+          "dur": 2.3,
+          "t": "自己ベスト、560点ですよ！"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.05,
+          "name": "best"
+        }
+      ],
+      "voice": true,
+      "dur": 2.44,
+      "step": 4
+    },
+    {
+      "voiceSrc": {
+        "ch": "brushup",
+        "from": 88.24,
+        "to": 90.5
+      },
+      "noAutoSubs": true,
+      "video": {
+        "clip": "ship-play2",
+        "from": 2
+      },
+      "subs": [
+        {
+          "at": 0.05,
+          "dur": 2.25,
+          "t": "意外と、やれるんじゃないですかね"
+        }
+      ],
+      "sfx": [
+        {
+          "at": 0.1,
+          "name": "tap",
+          "volume": 0.8
+        }
+      ],
+      "voice": true,
+      "dur": 2.36,
+      "step": 4
+    },
+    {
+      "dur": 3.2,
+      "video": {
+        "clip": "ship-play",
+        "from": 8,
+        "small": true
+      },
+      "titleLines": [
+        {
+          "t": "開発時間は、",
+          "size": 64
+        },
+        {
+          "t": "49分",
+          "size": 150,
+          "marker": true
+        }
+      ],
+      "titleStagger": 0.45,
+      "sfx": [
+        {
+          "at": 0.5,
+          "name": "sting",
+          "volume": 1
+        }
+      ],
+      "tts": "開発時間は、49分",
+      "voice": true,
+      "step": 4
+    },
+    {
+      "dur": 3.5,
+      "video": {
+        "clip": "ship-play",
+        "from": 8,
+        "small": true
+      },
+      "summaryCard": {
+        "title": "ぬいみち",
+        "lines": [
+          "自己ベスト 560点",
+          "なみぬい → かがり →\nまつり → おはり名人"
+        ],
+        "note": "同じ盤面で勝負できます"
+      },
+      "sfx": [
+        {
+          "at": 0.2,
+          "name": "jingleGoal",
+          "volume": 0.9
+        }
+      ],
+      "tts": "自己ベストは、560点",
+      "voice": true,
+      "step": 4
+    }
+  ],
+  "cta": {
+    "main": "フルは本編で！",
+    "sub": "遊べるURLはコメント欄に",
+    "fromEnd": 3.1,
+    "bottomPad": 380
+  },
+  "bgm": {
+    "file": "bgm/main.mp3",
+    "gainDb": -35.5
+  },
+  "bottomScrim": true
+}

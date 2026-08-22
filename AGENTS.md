@@ -12,6 +12,8 @@ Claude Code 以外のツール（Cursor / Codex など）を使う場合も、�
 | 知りたいこと | 場所 |
 |---|---|
 | 守るべき規範（全体） | [CLAUDE.md](./CLAUDE.md) |
+| **ドキュメントをどこに置くか**（永続／回ごと／時点。迷ったらまずここ） | [docs/README.md](./docs/README.md) |
+| **なぜそう決めたのか**（過去の判断・ボツの理由） | [docs/decisions.md](./docs/decisions.md) |
 | どの型で作るか（面白さゲートの見る項目が変わる） | [docs/design/genre-map.md](./docs/design/genre-map.md) |
 | **どの機種で作るか**（ケータイ／PCブラウザ／ゲーセン。寸法・入力が変わる） | [docs/design/platforms.md](./docs/design/platforms.md) |
 | ゲーム実装の規約 | [.claude/rules/games.md](./.claude/rules/games.md) |
@@ -36,7 +38,7 @@ Claude Code 以外のツール（Cursor / Codex など）を使う場合も、�
 | **公開ボタンを押す日の段取り**（概要欄・固定コメント・逆リンク） | [docs/video/publish-checklist.md](./docs/video/publish-checklist.md) |
 | シーズン計画・成功の定義・週次レビュー | [docs/plans/007-first-season/design.md](./docs/plans/007-first-season/design.md) |
 | 動画の原則（誰に・どう見せるか） | [docs/video/video-doctrine.md](./docs/video/video-doctrine.md) |
-| **構成を相談する（絵コンテ）** | [docs/video/storyboards/](./docs/video/storyboards/) |
+| **構成を相談する（絵コンテ）** | [docs/episodes/](./docs/episodes/) |
 | 映り込みと権利（出す前に必ず通す） | [docs/video/safety-checklist.md](./docs/video/safety-checklist.md) |
 
 <!-- BEGIN:nextjs-agent-rules -->

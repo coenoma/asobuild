@@ -376,6 +376,6 @@ EDL を直したら、この2つを走らせる。
 ```bash
 cd video
 node scripts/extract.mjs video/edl/001-nuimichi.json                 # 尺と映り込みの検査つき
-node scripts/storyboard.mjs video/edl/001-nuimichi.json > ../docs/video/storyboards/001-nuimichi.md
+node scripts/storyboard.mjs video/edl/001-nuimichi.json > ../docs/episodes/001-nuimichi/storyboard.md
 npx remotion render src/index.ts Episode out/<slug>.mp4
 ```

@@ -23,6 +23,15 @@ const SAFE_BOTTOM = 360;
 // ワイプの定位置（左右中央・中央より少し上）。全拍で共通、動かさない
 const WIPE_TOP = 620;
 const WIPE_SIZE = 280;
+// ビフォーアフター（video.vs）の定位置。固定値にして、拍が変わってもズレない・
+// 下1/3（暗幕とタイトルの場所）に絶対に食い込ませない。
+// ここは1本の中でいちばんの見せ場なので、**横幅を使い切る大きさ**にする
+// （幅で決まる: (1080 - 余白40 - GAP36) / 2 ≒ 500。高さは 500/0.75 ≒ 667）。
+// 検算: VS_TOP 440 ＋ ラベル60 ＋ 隙間12 ＋ 667 ＝ 1179 < 1280（下1/3の境界）
+const VS_TOP = 440;
+const VS_PANEL_W = 500;
+const VS_PANEL_H = Math.round(VS_PANEL_W / 0.75); // ケータイ画面 240×320 と同じ縦横比
+const VS_GAP = 36;
 
 export type ShortBeat = {
   /** 拍の長さ（秒） */
@@ -30,7 +39,16 @@ export type ShortBeat = {
   /** ゲーム映像（public/footage/<clip>.mp4）。from=クリップ内の開始秒 */
   video?: { clip: string; from?: number; scale?: number; y?: number; mosaic?: boolean; small?: boolean; label?: string;
     /** 早送り（2=2倍速）。丸投げ・思考待ち・修正連打を「過程は見せるが待たせない」ために使う */
-    speed?: number };
+    speed?: number;
+    /**
+     * ビフォーアフターの並置。指定すると `video` と `vs` の2つを左右に同時再生する
+     * （静止画ではない）専用レイアウトに切り替わる。`mosaic`/`small` とは併用しない。
+     * このとき `label` は両画面の上に出す小さいキャプション（既存のテロップ様式＝
+     * 白地・黒枠・黒文字の小チップ）になる。`vs` が無いときは `label` は従来どおり
+     * 盤面中央のでか文字（？？？の演出）のまま——**既存4本はここを通らないので無影響**
+     */
+    vs?: { clip: string; from?: number; label?: string };
+  };
   /** でかいタイトルカード（フックの上位版）。3行までの \n 区切り */
   titleText?: string;
   /**
@@ -72,7 +90,18 @@ export type ShortBeat = {
    * 拍の途中に重ねる決めの一言。**声を切らずに**画だけ被せる。
    * （拍を分けて無音を差し込むと、連続した喋りがぶつ切れてテンポが死ぬ）
    */
-  overlays?: { at: number; dur: number; text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' | 'sub' | 'top' }[];
+  overlays?: { at: number; dur: number; text: string; color?: 'accent' | 'bad' | 'good' | 'cool'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' | 'sub' | 'top' }[];
+  /**
+   * まとめカード。情報が詰まった1枚を出す（一時停止を誘発するための拍）。
+   * `CtaCard` と様式を揃える（marker地のタイトル・地の文の箇条書き・チップのnote）。
+   * 🔴 わざと短くして読めなくしない。読み切れる大きさ・長さで出す（shorts.mdの思想）
+   */
+  summaryCard?: { title: string; lines: string[]; note?: string };
+  /**
+   * この拍が、上部のステップ表示のどこに当たるか（1始まり）。
+   * `recipe.steps` があるときだけ効く。書かないとどのステップも光らない
+   */
+  step?: number;
 };
 
 export type ShortRecipe = {
@@ -91,17 +120,43 @@ export type ShortRecipe = {
   cta?: { main?: string; sub?: string; fromEnd?: number; bottomPad?: number };
   /** 画面上部に出しっぱなしの企画タイトル（途中から見た人への前提）。from=出し始め秒。
    *  見た目は冒頭カードのコンパクト版（白地・黒枠・落ち影・marker部分だけ黄マーカー） */
+  /**
+   * 上部に常時出す進行のステップ（例 ["たのむ","出てこない","直す","ハマる"]）。
+   * 現在地は各拍の `step`（1始まり）で決まる。**最後のステップが最初から見えている**ので、
+   * オチの予告（pinTitle）を兼ねる。両方は出さない——上が混むと画の主役が消える
+   */
+  steps?: string[];
+  /**
+   * ステップの上に重ねる**約束の一行**（この動画がどこへ行くのか）。
+   * ステップが「現在地」なのに対し、こちらは「行き先」。役割が違うので2段にしてよい。
+   * `steps` があるときだけ効く
+   */
+  topTitle?: { t: string; marker?: boolean }[];
   pinTitle?: { parts: { t: string; marker?: boolean }[]; from?: number;
     /** 尻から何秒ぶん出さないか（締めカードと被らせない） */
-    toEnd?: number };
+    toEnd?: number;
+    /**
+     * 文字の大きさ（既定 54）。オチの予告として出すときは大きくする。
+     * 大きくすると parts の切れ目で折り返すので、**意味の切れ目で parts を割ること**
+     */
+    size?: number;
+    /** 下の拍を押し下げる量（既定 104）。size を上げて2行になったら一緒に上げる */
+    pad?: number };
   /** BGM（本編と同じ public/bgm/ の曲を同じ頂点で薄く敷く） */
   bgm?: { file: string; gainDb: number };
+  /**
+   * 下1/3の暗幕。YouTubeの一覧でショートに自動で重なる白いタイトル文字を読ませるため、
+   * 全編にわたって画面下1/3に下へ向かって濃くなるグラデーションを敷く。
+   * true = 既定の濃さ、数値（0〜1）= 濃さを指定。重なり順は「映像より上・字幕やカードより下」
+   * （字幕・カードは自前で不透明な地を持つので、暗幕はその下でも隠れない）
+   */
+  bottomScrim?: boolean | number;
 };
 
 const db = (v: number) => Math.pow(10, v / 20);
 
 /** 拍の途中の決めの一言（声は流れたまま）。白フラッシュ→ドン */
-const Overlay: React.FC<{ text: string; color?: 'accent' | 'bad' | 'good'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' | 'sub' | 'top'; topPad?: number }> = ({ text, color = 'bad', flash, still, pos = 'mid', topPad = 0 }) => {
+const Overlay: React.FC<{ text: string; color?: 'accent' | 'bad' | 'good' | 'cool'; flash?: boolean; still?: boolean; pos?: 'mid' | 'low' | 'sub' | 'top'; topPad?: number }> = ({ text, color = 'bad', flash, still, pos = 'mid', topPad = 0 }) => {
   const f = useCurrentFrame();
   // still は前の拍から出続けている体で描く（拍をまたいで表示を続けるとき、入りの演出を繰り返さない）
   const fl = flash && !still ? interpolate(f, [0, 1, 4], [0.85, 0.85, 0], { extrapolateRight: 'clamp' }) : 0;
@@ -177,8 +232,8 @@ const CtaCard: React.FC<{ main?: string; sub?: string; bottomPad?: number }> = (
   );
 };
 
-const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFrames: number; topPad?: number }> = ({
-  beat, recipeId, index, durFrames, topPad = 0,
+const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFrames: number; topPad?: number; bottomScrim?: boolean | number; steps?: string[]; topTitle?: { t: string; marker?: boolean }[] }> = ({
+  beat, recipeId, index, durFrames, topPad = 0, bottomScrim, steps, topTitle,
 }) => {
   const f = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
@@ -205,7 +260,7 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
       <AbsoluteFill
         style={{ backgroundImage: `repeating-linear-gradient(90deg, ${C.bg} 0 34px, ${C.bg2} 34px 36px)` }}
       />
-      {beat.video ? (
+      {beat.video && !beat.video.vs ? (
         <AbsoluteFill style={{ justifyContent: beat.video.small ? 'flex-end' : 'center', alignItems: 'center', transform: `translate(${shakeX}px, ${shakeY}px)` }}>
           <div
             style={{
@@ -244,6 +299,49 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
                 {beat.video.label}
               </div>
             ) : null}
+          </div>
+        </AbsoluteFill>
+      ) : null}
+
+      {/*
+       * ビフォーアフター（video.vs）。2画面を左右に同時再生する専用レイアウト。
+       * 位置は固定定数（VS_TOP等）にして拍が変わってもズレない。下1/3には絶対に届かせない
+       * （VS_TOP + 列の高さ が 1280（画面下1/3の境界）を必ず下回るように定数を選んである）。
+       */}
+      {beat.video?.vs ? (
+        <AbsoluteFill style={{ justifyContent: 'flex-start', alignItems: 'center', paddingTop: VS_TOP, transform: `translate(${shakeX}px, ${shakeY}px)` }}>
+          <div style={{ display: 'flex', flexDirection: 'row', gap: VS_GAP, alignItems: 'flex-start' }}>
+            {[
+              { clip: beat.video.clip, from: beat.video.from, label: beat.video.label },
+              { clip: beat.video.vs.clip, from: beat.video.vs.from, label: beat.video.vs.label },
+            ].map((v, i) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                {v.label ? (
+                  <div
+                    style={{
+                      fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 46,
+                      color: SUB_INK, background: SUB_BG, border: `4px solid ${SUB_EDGE}`,
+                      padding: '8px 24px', whiteSpace: 'nowrap', lineHeight: 1.1,
+                    }}
+                  >
+                    {v.label}
+                  </div>
+                ) : null}
+                <div
+                  style={{
+                    position: 'relative', width: VS_PANEL_W, height: VS_PANEL_H,
+                    overflow: 'hidden', border: `4px solid ${C.line}`, background: C.bg,
+                  }}
+                >
+                  <OffthreadVideo
+                    src={staticFile(`footage/${v.clip}.mp4`)}
+                    startFrom={Math.round((v.from ?? 0) * fps)}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    muted
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </AbsoluteFill>
       ) : null}
@@ -312,8 +410,22 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
         );
       })() : null}
 
+      {/*
+       * 下1/3の暗幕。YouTubeが一覧で自動重ねる白いタイトルを読ませるため、
+       * 映像の上・字幕やカードの下（＝ここ、titleLines/subs/overlays/summaryCardより前）に置く。
+       * 字幕・カードは自前の不透明な地を持つので、暗幕の上に乗っても隠れない
+       */}
+      {bottomScrim ? (
+        <AbsoluteFill
+          style={{
+            pointerEvents: 'none',
+            background: `linear-gradient(to bottom, transparent 0%, transparent 64%, rgba(6,10,14,${(typeof bottomScrim === 'number' ? bottomScrim : 0.62) * 0.55}) 82%, rgba(6,10,14,${typeof bottomScrim === 'number' ? bottomScrim : 0.62}) 100%)`,
+          }}
+        />
+      ) : null}
+
       {beat.titleLines ? (
-        <AbsoluteFill style={{ alignItems: 'center', paddingTop: SAFE_TOP + 70 }}>
+        <AbsoluteFill style={{ alignItems: 'center', paddingTop: SAFE_TOP + 70 + topPad }}>
           <div
             style={{
               background: 'rgba(244,246,241,0.97)',
@@ -429,6 +541,61 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
         );
       })() : null}
 
+      {/*
+       * まとめカード。CtaCard と様式を揃える（marker地の見出し・地の文の箇条書き・チップのnote）。
+       * 一時停止したくなる情報量を1枚に出す拍。titleLines と同じ上寄せ配置＝
+       * この拍の video（small想定）と縦に競合しない
+       */}
+      {beat.summaryCard ? (
+        <AbsoluteFill style={{ alignItems: 'center', paddingTop: SAFE_TOP + 70 + topPad }}>
+          <div
+            style={{
+              background: 'rgba(244,246,241,0.97)',
+              border: `10px solid ${SUB_EDGE}`,
+              boxShadow: `14px 14px 0 rgba(0,0,0,0.85), 0 0 0 6px ${C.accent}`,
+              padding: '34px 44px 30px',
+              textAlign: 'center',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18,
+              maxWidth: width - 90,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 68,
+                color: SUB_INK, background: C.accent,
+                padding: '6px 28px', lineHeight: 1.15, transform: 'rotate(-1.2deg)',
+              }}
+            >
+              {beat.summaryCard.title}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {beat.summaryCard.lines.map((l, i) => (
+                <div
+                  key={i}
+                  style={{
+                    fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 46,
+                    color: SUB_INK, lineHeight: 1.3, whiteSpace: 'pre-wrap',
+                  }}
+                >
+                  {l}
+                </div>
+              ))}
+            </div>
+            {beat.summaryCard.note ? (
+              <div
+                style={{
+                  fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 34,
+                  color: C.ink, background: 'rgba(16,24,32,0.94)',
+                  border: `4px solid ${C.line}`, padding: '8px 24px',
+                }}
+              >
+                {beat.summaryCard.note}
+              </div>
+            ) : null}
+          </div>
+        </AbsoluteFill>
+      ) : null}
+
       {beat.voice ? (
         <Sequence from={secToFrames(beat.voiceDelay ?? 0, fps)} layout="none">
           <Audio src={staticFile(`shorts-voice/${recipeId}/beat-${index}.wav`)} />
@@ -466,6 +633,95 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
         </Sequence>
       ))}
 
+      {/*
+       * 進行のステップ（上部に常時）。いま物語のどこにいるのかを出しっぱなしにする。
+       * チュートリアルの「①②③＋現在地」と同じ役割で、**途中から見た人にも
+       * 前提と、まだ終わっていないことが同時に伝わる**。
+       * 最後のステップ（例「ハマる」）が最初から見えているので、オチの予告も兼ねる。
+       * 🔴 文字は上に置く。下1/3（暗幕＝YouTubeがタイトルを載せる場所）には絶対に入れない。
+       */}
+      {steps && steps.length ? (
+        <AbsoluteFill style={{ alignItems: 'stretch', justifyContent: 'flex-start' }}>
+          {/*
+           * 上部は**帯として切り離す**。ゲーム画面の上に文字を浮かせるだけだと、
+           * 盤面の一部に見えて読み飛ばされる（本編のテロップで同じ失敗をしている
+           * ＝「盤面と同じ色・同じ大きさ帯だと、ゲームの一部に見えて読まれない」）。
+           * 全幅の不透明な地 ＋ 下辺の太い罫 ＋ 硬い影で、番組の枠と盤面をはっきり分ける。
+           * 角丸・ぼかし・グラデーションは使わない（当時の画面に無いので）
+           */}
+          <div
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              background: 'rgba(11,18,25,0.97)',
+              borderBottom: `9px solid ${C.accent}`,
+              boxShadow: '0 12px 0 rgba(0,0,0,0.75)',
+              paddingTop: SAFE_TOP + 10, paddingBottom: 18,
+            }}
+          >
+          {/* 上段＝約束（この動画がどこへ行くのか）。下段＝現在地。役割が違うので2段にする */}
+          {topTitle && topTitle.length ? (
+            <div
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap',
+                columnGap: 8, rowGap: 4, marginBottom: 12, maxWidth: width - 30,
+                fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 68,
+                color: SUB_INK, background: 'rgba(244,246,241,0.97)',
+                border: `7px solid ${SUB_EDGE}`,
+                boxShadow: `11px 11px 0 rgba(0,0,0,0.85), 0 0 0 6px ${C.accent}`,
+                padding: '10px 26px', lineHeight: 1.15, textAlign: 'center',
+              }}
+            >
+              {topTitle.map((pt, i) => (
+                <span
+                  key={i}
+                  style={
+                    pt.marker
+                      ? { background: C.accent, padding: '2px 12px 4px', transform: 'rotate(-1.2deg)', display: 'inline-block' }
+                      : undefined
+                  }
+                >
+                  {pt.t}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, maxWidth: width - 40 }}>
+            {steps.map((s, i) => {
+              const now = (beat.step ?? 0) === i + 1;
+              const done = (beat.step ?? 0) > i + 1;
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {i > 0 ? (
+                    <span
+                      style={{
+                        fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 36,
+                        color: done || now ? C.accent : C.line,
+                      }}
+                    >
+                      ›
+                    </span>
+                  ) : null}
+                  <span
+                    style={{
+                      fontFamily: 'NotoSansJPLocal', fontWeight: 900,
+                      fontSize: now ? 52 : 38, lineHeight: 1.1, whiteSpace: 'nowrap',
+                      color: now || done ? SUB_INK : C.dim,
+                      background: now ? C.accent : done ? 'rgba(244,246,241,0.90)' : 'rgba(16,24,32,0.86)',
+                      border: `5px solid ${now || done ? SUB_EDGE : C.line}`,
+                      boxShadow: now ? '8px 8px 0 rgba(0,0,0,0.85)' : undefined,
+                      padding: now ? '10px 26px' : '7px 17px',
+                    }}
+                  >
+                    {s}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          </div>
+        </AbsoluteFill>
+      ) : null}
+
       {flash > 0 ? <AbsoluteFill style={{ background: `rgba(255,255,255,${flash})` }} /> : null}
     </AbsoluteFill>
   );
@@ -473,7 +729,7 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
 
 export const Short: React.FC<{ recipe: ShortRecipe }> = ({ recipe }) => {
   useLocalFont();   // 本編と同じ書体（Noto Sans JP）。呼ばないと明朝で描かれる
-  const { fps } = useVideoConfig();
+  const { fps, width } = useVideoConfig();
   const f = useCurrentFrame();
   let cursor = 0;
   const total = recipe.beats.reduce((a, b) => a + secToFrames(b.dur, fps), 0);
@@ -486,7 +742,7 @@ export const Short: React.FC<{ recipe: ShortRecipe }> = ({ recipe }) => {
         cursor += dur;
         return (
           <Sequence key={i} from={from} durationInFrames={dur} name={`beat ${i}`}>
-            <Beat beat={b} recipeId={recipe.id} index={i} durFrames={dur} topPad={recipe.pinTitle ? 104 : 0} />
+            <Beat beat={b} recipeId={recipe.id} index={i} durFrames={dur} topPad={recipe.steps ? (recipe.topTitle ? 248 : 130) : recipe.pinTitle ? (recipe.pinTitle.pad ?? 104) : 0} bottomScrim={recipe.bottomScrim} steps={recipe.steps} topTitle={recipe.topTitle} />
           </Sequence>
         );
       })}
@@ -501,12 +757,19 @@ export const Short: React.FC<{ recipe: ShortRecipe }> = ({ recipe }) => {
           <AbsoluteFill style={{ alignItems: 'center', paddingTop: SAFE_TOP + 10 }}>
             <div
               style={{
-                display: 'flex', alignItems: 'center',
-                fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 54,
+                /*
+                 * 既定の 54px は1行に収まる短い企画名を想定した大きさ。
+                 * `size` を上げるときは折り返す前提になるので、flexWrap で
+                 * parts の切れ目（＝意味の切れ目）で折る。自動折り返しに任せない。
+                 */
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap',
+                columnGap: 10, rowGap: 6,
+                fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: recipe.pinTitle.size ?? 54,
                 color: SUB_INK, background: 'rgba(244,246,241,0.97)',
                 border: `6px solid ${SUB_EDGE}`,
                 boxShadow: `8px 8px 0 rgba(0,0,0,0.85), 0 0 0 4px ${C.accent}`,
-                padding: '10px 26px', whiteSpace: 'nowrap', lineHeight: 1.15,
+                padding: '10px 26px', lineHeight: 1.15, textAlign: 'center',
+                maxWidth: width - 60,
               }}
             >
               {recipe.pinTitle.parts.map((pt, i) => (
