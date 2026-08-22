@@ -641,18 +641,34 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
        * 🔴 文字は上に置く。下1/3（暗幕＝YouTubeがタイトルを載せる場所）には絶対に入れない。
        */}
       {steps && steps.length ? (
-        <AbsoluteFill style={{ alignItems: 'center', paddingTop: SAFE_TOP + 8 }}>
+        <AbsoluteFill style={{ alignItems: 'stretch', justifyContent: 'flex-start' }}>
+          {/*
+           * 上部は**帯として切り離す**。ゲーム画面の上に文字を浮かせるだけだと、
+           * 盤面の一部に見えて読み飛ばされる（本編のテロップで同じ失敗をしている
+           * ＝「盤面と同じ色・同じ大きさ帯だと、ゲームの一部に見えて読まれない」）。
+           * 全幅の不透明な地 ＋ 下辺の太い罫 ＋ 硬い影で、番組の枠と盤面をはっきり分ける。
+           * 角丸・ぼかし・グラデーションは使わない（当時の画面に無いので）
+           */}
+          <div
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              background: 'rgba(11,18,25,0.97)',
+              borderBottom: `9px solid ${C.accent}`,
+              boxShadow: '0 12px 0 rgba(0,0,0,0.75)',
+              paddingTop: SAFE_TOP + 10, paddingBottom: 18,
+            }}
+          >
           {/* 上段＝約束（この動画がどこへ行くのか）。下段＝現在地。役割が違うので2段にする */}
           {topTitle && topTitle.length ? (
             <div
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap',
-                columnGap: 8, rowGap: 4, marginBottom: 10, maxWidth: width - 40,
-                fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 52,
+                columnGap: 8, rowGap: 4, marginBottom: 12, maxWidth: width - 30,
+                fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 68,
                 color: SUB_INK, background: 'rgba(244,246,241,0.97)',
-                border: `6px solid ${SUB_EDGE}`,
-                boxShadow: `8px 8px 0 rgba(0,0,0,0.85), 0 0 0 4px ${C.accent}`,
-                padding: '8px 22px', lineHeight: 1.15, textAlign: 'center',
+                border: `7px solid ${SUB_EDGE}`,
+                boxShadow: `11px 11px 0 rgba(0,0,0,0.85), 0 0 0 6px ${C.accent}`,
+                padding: '10px 26px', lineHeight: 1.15, textAlign: 'center',
               }}
             >
               {topTitle.map((pt, i) => (
@@ -678,7 +694,7 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
                   {i > 0 ? (
                     <span
                       style={{
-                        fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 30,
+                        fontFamily: 'NotoSansJPLocal', fontWeight: 900, fontSize: 36,
                         color: done || now ? C.accent : C.line,
                       }}
                     >
@@ -688,12 +704,12 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
                   <span
                     style={{
                       fontFamily: 'NotoSansJPLocal', fontWeight: 900,
-                      fontSize: now ? 40 : 30, lineHeight: 1.1, whiteSpace: 'nowrap',
+                      fontSize: now ? 52 : 38, lineHeight: 1.1, whiteSpace: 'nowrap',
                       color: now || done ? SUB_INK : C.dim,
                       background: now ? C.accent : done ? 'rgba(244,246,241,0.90)' : 'rgba(16,24,32,0.86)',
-                      border: `4px solid ${now || done ? SUB_EDGE : C.line}`,
-                      boxShadow: now ? '6px 6px 0 rgba(0,0,0,0.85)' : undefined,
-                      padding: now ? '8px 22px' : '6px 15px',
+                      border: `5px solid ${now || done ? SUB_EDGE : C.line}`,
+                      boxShadow: now ? '8px 8px 0 rgba(0,0,0,0.85)' : undefined,
+                      padding: now ? '10px 26px' : '7px 17px',
                     }}
                   >
                     {s}
@@ -701,6 +717,7 @@ const Beat: React.FC<{ beat: ShortBeat; recipeId: string; index: number; durFram
                 </div>
               );
             })}
+          </div>
           </div>
         </AbsoluteFill>
       ) : null}
@@ -725,7 +742,7 @@ export const Short: React.FC<{ recipe: ShortRecipe }> = ({ recipe }) => {
         cursor += dur;
         return (
           <Sequence key={i} from={from} durationInFrames={dur} name={`beat ${i}`}>
-            <Beat beat={b} recipeId={recipe.id} index={i} durFrames={dur} topPad={recipe.steps ? (recipe.topTitle ? 206 : 112) : recipe.pinTitle ? (recipe.pinTitle.pad ?? 104) : 0} bottomScrim={recipe.bottomScrim} steps={recipe.steps} topTitle={recipe.topTitle} />
+            <Beat beat={b} recipeId={recipe.id} index={i} durFrames={dur} topPad={recipe.steps ? (recipe.topTitle ? 248 : 130) : recipe.pinTitle ? (recipe.pinTitle.pad ?? 104) : 0} bottomScrim={recipe.bottomScrim} steps={recipe.steps} topTitle={recipe.topTitle} />
           </Sequence>
         );
       })}
