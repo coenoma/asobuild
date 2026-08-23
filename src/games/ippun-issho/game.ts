@@ -10,7 +10,7 @@
  * 7つの原則（設計 §1）:
  *   1. キャラが UI。欲求・体調・育ち・年齢は体・顔・姿勢・動き・持ち物で見せる
  *   2. 毎タップが舵。ごはん→丸く／あそぶ→足が伸びる／なでる→毛が立つ。t=30 に自分が作った形へ名前が付く
- *   3. 本当に死ぬ。たまごを押した子は頼る。放てば7秒で雨、22秒で力尽きる。応えれば必ず助かる
+ *   3. 本当に死ぬ。たまごを押した子は頼る。放てば6秒で雨、18秒で力尽きる。応えれば必ず助かる
  *   4. 読ませる字は3か所（名前・場面の見出し・記念）。キャラの言葉は2つ。手応えは反応と「＋N」
  *   5. 波のテンポ。あさは3回だけ呼ぶ。場面転換と変身は全停止
  *   6. 姿は一目で別物。大きさは年齢（あさ小→ひる中→よる大）。調子は顔・姿勢・雨
@@ -63,7 +63,7 @@ const T_NIGHT = 45;
 const T_BYE = 50;
 
 /** 全停止の長さ: 場面転換／へんしん */
-const PAUSE_BEAT = 1.6;
+const PAUSE_BEAT = 2;
 const PAUSE_MORPH = 2.6;
 /** 名前を大きく出す長さ（孵化の瞬間に1回） */
 const NAME_T = 1.5;
@@ -111,7 +111,7 @@ const P_CLEAN = 15;
 
 /* ---- 画面の決まり（240×320・mono。設計 §4）-------------------- */
 
-const HEAD_Y = 10;
+const HEAD_Y = 26; // 共通シェルが左上 y≈10 に「NNしあわせ」を描くので、その下
 const WIN_X = 8;
 const WIN_Y = 40;
 const WIN_W = 224;
@@ -123,6 +123,9 @@ const FLOOR_Y = 190;
 const CHAR_X = 120;
 /** 吹き出し */
 const BUBBLE_R = 17;
+/** 一番星の位置（bot と draw で同じ値を使う） */
+const STAR_X = CHAR_X + 70;
+const STAR_Y = WIN_Y + 26;
 /** 世話ボタン4つ */
 const BTN_Y = 232;
 const BTN_H = 64;
@@ -280,6 +283,8 @@ export interface IppunIsshoState extends BaseState, FeelState {
   anim: number;
   animT: number;
   petAt: number;
+  /** 応えた・治した直後、次の呼びまでの小休止（この間だけ減りが止まる。連打では止まらない） */
+  restT: number;
 
   /* ひとり遊び: 0=歩く 1=見回す 2=のび 3=くしゃみ 4=はなうた */
   idle: number;
@@ -406,19 +411,11 @@ function bubbles(s: IppunIsshoState): { kind: Kind; lv: number }[] {
 
 /** 年齢＝大きさ（設計 §6）。あさ3・ひる4・よる5 */
 function dotOf(s: IppunIsshoState): number {
-  if (s.phase === 'egg') return 3;
-  if (s.t >= T_NIGHT) return 5;
-  if (s.t >= T_NOON) return 4;
-  return 3;
-}
-
-/** いちばん伸びた軸（ゆめの吹き出しに使う）。-1=まだ何も */
-function topAxis(s: IppunIsshoState): 0 | 1 | 2 | -1 {
-  const m = Math.max(s.maru, s.ashi, s.kenami);
-  if (m <= 0) return -1;
-  if (s.maru === m) return 0;
-  if (s.ashi === m) return 1;
-  return 2;
+  if (s.phase === 'egg') return 4;
+  // へんしんの瞬間は一回り大きく現れて等倍に戻る（「ぽん」）
+  if (s.pause === 'morph' && s.pauseT > PAUSE_MORPH - 0.7 && s.pauseT < PAUSE_MORPH - 0.25) return 6;
+  if (s.t >= T_NOON) return 5;
+  return 4;
 }
 
 function starUp(s: IppunIsshoState): boolean {
@@ -431,10 +428,11 @@ function darkNow(s: IppunIsshoState): boolean {
 
 /** 足の長さ（あし軸。まる≥6 の球は足が無い） */
 function legLen(s: IppunIsshoState): number {
-  if (s.maru >= 6) return 0;
-  const a = Math.min(6, s.ashi);
+  if (s.maru >= 6 || s.pause !== '') return 0; // 球は足が無い。全停止中は座る
+
+  const a = Math.min(8, s.ashi);
   if (a <= 0) return 0;
-  return Math.round(a * 2 * (dotOf(s) / 4));
+  return Math.round(a * 3 * (dotOf(s) / 4));
 }
 
 /** 吹き出しの中心（キャラの頭の右上に追従。2つ目は左上） */
@@ -457,7 +455,8 @@ function hitTest(s: IppunIsshoState, px: number, py: number): { what: HitWhat; i
   const bs = bubbles(s);
   for (let i = 0; i < bs.length; i++) {
     const b = bubbleAt(s, i);
-    if (Math.hypot(px - b.x, py - b.y) <= BUBBLE_R + 6) return { what: 'bubble', i };
+    const r = bs[i].lv === 1 ? 14 : BUBBLE_R + 6;
+    if (Math.hypot(px - b.x, py - b.y) <= r) return { what: 'bubble', i };
   }
   const dot = dotOf(s);
   const h = 16 * dot + legLen(s);
@@ -545,6 +544,7 @@ export default defineGame<IppunIsshoState>({
       anim: 0,
       animT: 0,
       petAt: -99,
+      restT: 0,
 
       idle: 0,
       idleT: 2,
@@ -578,6 +578,7 @@ export default defineGame<IppunIsshoState>({
     n.nameT = Math.max(0, n.nameT - dt);
     n.grewT = Math.max(0, n.grewT - dt);
     n.fullT = Math.max(0, n.fullT - dt);
+    n.restT = Math.max(0, n.restT - dt);
     if (n.pause !== '') {
       n.pauseT = Math.max(0, n.pauseT - dt);
       if (n.pauseT <= 0) n.pause = '';
@@ -609,7 +610,7 @@ export default defineGame<IppunIsshoState>({
     if (s.phase === 'gone') return;
     drawHead(g, s);
     drawWindow(g, s, sx, sy);
-    if (s.phase !== 'bye') drawButtons(g, s);
+    if (s.phase === 'life') drawButtons(g, s);
   },
 
   /**
@@ -640,7 +641,7 @@ export default defineGame<IppunIsshoState>({
     if (pick === 0) return s.fullT > 0 ? idle : btn(0);
     if (pick === 1) return btn(1);
     if (pick === 2) return char;
-    if (starUp(s)) return { press: true, px: CHAR_X + 70, py: WIN_Y + 26 };
+    if (starUp(s)) return { press: true, px: STAR_X, py: STAR_Y };
     return idle;
   },
 
@@ -687,8 +688,9 @@ function drainSpan(s: IppunIsshoState, i: Need): number {
 /** 減り → 呼びの段階 → よわり（雨）→ ぐあいわるい → 力尽きる（設計 §6） */
 function stepNeeds(n: IppunIsshoState, dt: number): void {
   const night = n.t >= T_NIGHT;
-  // 反応アニメ中は減らない（あさの「次の呼びは前の反応が終わってから」）
-  const busy = n.animT > 0 && n.anim >= 1 && n.anim <= 4;
+  // 応えた・治した直後の小休止だけ減らない（「次の呼びは前の反応が終わってから」。
+  // 反応アニメ全般で止めると、なでる連打で永久に呼ばれなくなる＝原則3が壊れる）
+  const busy = n.restT > 0;
   for (const i of [0, 1, 2] as const) {
     if (!night && !n.sick && !busy) {
       const span = drainSpan(n, i);
@@ -717,7 +719,7 @@ function stepNeeds(n: IppunIsshoState, dt: number): void {
       }
       // Lv4 の間、3秒ごとにピピッ
       if (c2 >= LV4_AFTER && Math.floor((c2 - LV4_AFTER) / 3) !== Math.floor((c - LV4_AFTER) / 3)) beep(n);
-      const lv5 = TUNE.graceToDie - SICK_TO_DIE;
+      const lv5 = Math.max(LV4_AFTER + 1, TUNE.graceToDie - SICK_TO_DIE);
       if (!n.sick && c2 >= lv5) makeSick(n);
     } else {
       setCall(n, i, 0);
@@ -776,6 +778,10 @@ function stepPhase(n: IppunIsshoState, rng: Rng): void {
       if (!n.morphed && n.t >= T_MORPH && (n.t >= T_MORPH_MAX || (!n.sick && n.animT <= 0 && n.pause === ''))) {
         n.morphed = true;
         n.form = formOf(n, rng);
+        // 名前が付いた瞬間、その姿を完成形にする（球になる・足が伸びきる・毛が生えそろう）
+        if (n.form === 'koro') n.maru = AXIS_MAX;
+        else if (n.form === 'pyon') n.ashi = AXIS_MAX;
+        else if (n.form === 'mofu') n.kenami = AXIS_MAX;
         gain(n, P_MORPH);
         if (!n.urged) n.score += P_CALM;
         if (n.form === 'kira') {
@@ -800,7 +806,14 @@ function stepPhase(n: IppunIsshoState, rng: Rng): void {
         addPop(n);
         beep(n);
       }
-      if (n.t >= T_BYE) startBye(n, false);
+      // 病気のまま よるの終わりを迎えたら、それは早い別れ（倒れた絵に「たのしかった」を重ねない）
+      if (n.t >= T_BYE) {
+        if (n.sick) {
+          n.endT = n.t;
+          n.alive = false;
+        }
+        startBye(n, n.sick);
+      }
       break;
     }
 
@@ -1003,6 +1016,7 @@ function answer(n: IppunIsshoState, i: Need): void {
   setNeed(n, i, NEED_MAX);
   setCall(n, i, 0);
   setDrain(n, i, 0);
+  n.restT = ANIM_T;
 }
 
 /** 世話ボタン4つ（設計 §5 の反応表。押して無反応になる枝を作らない） */
@@ -1019,6 +1033,8 @@ function doCare(n: IppunIsshoState, kind: Kind): void {
         if (n.overfeed >= OVERFEED_AT) {
           n.overfeed = 0;
           n.fullT = FULL_T;
+          n.hunger = NEED_MAX;
+          setDrain(n, 0, -FULL_T); // 満腹の余韻: しばらく減らない＝「ごはん」を呼びながら断る矛盾を作らない
           animate(n, 7, 1.2);
           addShake(n, 0.2);
           return;
@@ -1060,6 +1076,7 @@ function doCare(n: IppunIsshoState, kind: Kind): void {
         setDrain(n, i, 0);
       }
       gain(n, P_CURE);
+      n.restT = 1.4;
       animate(n, 4, 1.4);
       addPop(n);
       hitStop(n, 0.06);
@@ -1186,7 +1203,7 @@ function drawWindow(g: Painter, s: IppunIsshoState, sx: number, sy: number): voi
     } else {
       drawSky(g, s, ink, hole);
       drawRain(g, s, ink);
-      g.rect(WIN_X + 4, FLOOR_Y, WIN_W - 8, 2, ink);
+      g.rect(WIN_X + 4, FLOOR_Y + 1, WIN_W - 8, 2, ink);
       drawProps(g, s, ink, hole);
       drawCreature(g, s, CHAR_X + s.walkX + sx, FLOOR_Y + sy, ink, hole);
       if (s.pause === '') {
@@ -1225,21 +1242,20 @@ function drawSky(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey):
     }
     return;
   }
+  // 雨の間は雲に隠れる（晴れと雨を同時に出さない）
+  if (worstLevel(s) >= 4 || s.sick) return;
+  // 太陽は左の低い所から昇り、ひるに真上、ゆうがたは右へ下りながら窓の右端の外へ沈む（一日の命の記号）。
+  // キャラや吹き出しの帯（y≥90）には下りてこない
   const p = Math.min(T_NIGHT, s.t) / T_NIGHT;
-  const cx = WIN_X + 24 + p * (WIN_W - 48);
-  const cy = WIN_Y + 30 - Math.sin(p * Math.PI) * 14;
+  const cx = WIN_X + 22 + p * (WIN_W + 4);
+  const top = WIN_Y + 24;
+  const cy = p < 0.5 ? top + 30 - Math.sin(p * Math.PI) * 30 : top + ((p - 0.5) / 0.5) * 34;
   g.circle(cx, cy, 7, ink);
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2 + s.time * 0.3;
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
     g.line(cx + Math.cos(a) * 10, cy + Math.sin(a) * 10, cx + Math.cos(a) * 14, cy + Math.sin(a) * 14, ink, 2);
   }
-  if (s.t >= T_MORPH) {
-    // ゆうがた: 地平線が上がってきて、太陽が沈んでいく（一日の命の記号）
-    const sink = Math.min(1, (s.t - T_MORPH) / (T_NIGHT - T_MORPH));
-    const hy = Math.round(cy - 6 + sink * 12);
-    g.rect(WIN_X + 6, hy, WIN_W - 12, 18, hole);
-    g.rect(WIN_X + 6, hy, WIN_W - 12, 2, ink);
-  }
+  void hole;
 }
 
 /** 雨。よわる（Lv4）で小雨、ぐあいわるい（Lv5）で大雨 */
@@ -1258,7 +1274,8 @@ function drawRain(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
     const x = WIN_X + 10 + ((i * 37) % (WIN_W - 20));
     const span = FLOOR_Y - WIN_Y - 14;
     const y = WIN_Y + 10 + (((s.time * 120 + i * 29) % span) | 0);
-    g.rect(x, y, 2, s.sick ? 10 : 8, ink);
+    const len = s.sick ? 10 : 8;
+    g.line(x + 3, y, x, y + len, ink, 2);
   }
 }
 
@@ -1276,12 +1293,12 @@ function drawProps(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey
   }
   if (s.tucked && s.phase === 'life') {
     // ねむり: 「z」を3つ、斜め上へ（字でなくドット絵。吹き出しや＋N と重ならない左側に）
-    const x0 = CHAR_X + s.walkX - 8 * dotOf(s) - 26;
-    const y0 = FLOOR_Y - 16 * dotOf(s) + 6;
+    const x0 = CHAR_X + s.walkX - 8 * dotOf(s) - 30;
+    const y0 = FLOOR_Y - 16 * dotOf(s) + 10;
     for (let i = 0; i < 3; i++) {
-      const sc = 1 + i;
+      const sc = 2 + i;
       const on = Math.floor(s.time * 1.5 + i) % 3 !== 2;
-      if (on) g.sprite(ZEE, x0 - i * 9, y0 - i * 12, { scale: sc, colors: { X: ink } });
+      if (on) g.sprite(ZEE, x0 - i * 20, y0 - i * 24, { scale: sc, colors: { X: ink } });
     }
   }
 }
@@ -1336,12 +1353,23 @@ function drawCreature(g: Painter, s: IppunIsshoState, cx: number, footY: number,
   const y = Math.round(footY - h + pad - legs - hop - lift + sag);
 
   if (s.sick || s.anim === 7) {
-    // 倒れる（横向き）: 横長の楕円＋×目＋汗
+    // 倒れる（横向き）: 横長の楕円。病気は×目＋汗、げふは目を閉じて汗だけ（病気と同じ絵にしない）
     const ry = Math.round(h * 0.45);
     g.circle(cx, footY - ry + 2, ry, ink);
-    drawFaceAt(g, s, cx, footY - ry - 6, hole, 'kaze', dot);
+    drawFaceAt(g, s, cx, footY - ry - 6, hole, s.sick ? 'kaze' : 'nemu', dot);
     const d = (s.time * 40) % 18;
     g.circle(cx + ry + 8, footY - ry - 4 + d, 3, ink);
+    // 病気中の反応（震え・断る・ん？）も見せる＝無反応にしない
+    const ax2 = cx + ry + 12;
+    const ay2 = footY - ry * 2;
+    if (s.anim === 11 && s.animT > 0) {
+      g.rect(ax2, ay2 + 4, 2, 8, ink);
+      g.rect(ax2 + 5, ay2 + 2, 2, 8, ink);
+    }
+    if ((s.anim === 6 || s.anim === 8) && s.animT > 0) {
+      g.rect(ax2, ay2 - 8, 3, 10, ink);
+      g.rect(ax2, ay2 + 5, 3, 3, ink);
+    }
     return;
   }
 
@@ -1351,8 +1379,18 @@ function drawCreature(g: Painter, s: IppunIsshoState, cx: number, footY: number,
     g.rect(x + 10 * dot, footY - legs, dot, legs, ink);
   }
 
-  /* 体。きら は白抜き（反転発光）＝ ink で一回り大きく描いてから hole で本体 */
-  if (s.form === 'kira') {
+  /* 体。まる≥6 は球（円で描く＝スプライトの丸とは別物に見える）。きら は白抜き（反転発光） */
+  if (ball) {
+    const r = Math.round(8 * dot);
+    const bcx = cx;
+    const bcy = y + h / 2;
+    if (s.form === 'kira') {
+      g.circle(bcx, bcy, r + 2, ink);
+      g.circle(bcx, bcy, r, hole);
+    } else {
+      g.circle(bcx, bcy, r, ink);
+    }
+  } else if (s.form === 'kira') {
     g.sprite(body, x - 1, y - 1, { scale: dot, colors: { X: ink } });
     g.sprite(body, x + 1, y + 1, { scale: dot, colors: { X: ink } });
     g.sprite(body, x, y, { scale: dot, colors: { X: hole } });
@@ -1372,26 +1410,31 @@ function drawCreature(g: Painter, s: IppunIsshoState, cx: number, footY: number,
     const wob = s.kenami >= 8 ? Math.sin(s.time * 6) * 2 : 0;
     // 毛は絵の実寸（16×16 の枠ではなく、塗られている範囲）に沿わせる＝浮いて見せない
     const [bw, bh, bcy] = bodyExtent(body);
-    const rx = (bw / 2) * dot + 1 + wob;
-    const ry = (bh / 2) * dot + 1 + wob;
+    const rx = (bw / 2) * dot + wob;
+    const ry = (bh / 2) * dot + wob;
     const cyb = y + bcy * dot;
     for (let i = 0; i < spikes; i++) {
       const a = (i / spikes) * Math.PI * 2 - Math.PI / 2;
-      const px = cx + Math.cos(a) * rx;
-      const py = cyb + Math.sin(a) * ry;
-      g.rect(px - 3, py - 3, 6, 6, ink);
+      const ca = Math.cos(a);
+      const sa = Math.sin(a);
+      // 底辺は体の縁の内側、先端は外へ 7px
+      const bx = cx + ca * (rx - 5);
+      const by = cyb + sa * (ry - 5);
+      const tx = cx + ca * (rx + 7);
+      const ty = cyb + sa * (ry + 7);
+      g.poly([bx - sa * 4, by + ca * 4, bx + sa * 4, by - ca * 4, tx, ty], ink);
     }
   }
   /* 持ち物 */
   if (s.form === 'tabi') {
-    g.rect(x + 3 * dot, y - 2, 10 * dot, 2 * dot, ink);
-    g.rect(x + 1 * dot, y + dot, 14 * dot, dot, ink);
-    g.rect(x + 2 * dot, y + 11 * dot, 12 * dot, dot + 2, ink);
+    g.rect(x + 5 * dot, y - 4 * dot, 6 * dot, 4 * dot, ink); // 山
+    g.rect(x + 2 * dot, y - dot, 12 * dot, dot, ink); // つば
+    g.rect(x + 2 * dot, y + 11 * dot, 12 * dot, dot + 2, ink); // 首巻き
     g.rect(x + 2 * dot, y + 11 * dot + 1, 12 * dot, 1, hole);
   }
   if (s.bandage) {
-    g.rect(x + 9 * dot, y + 4 * dot, 4 * dot, dot, faceInk);
-    g.rect(x + 10 * dot + 1, y + 3 * dot, dot, 3 * dot, faceInk);
+    g.rect(x + 2 * dot, y + 10 * dot, 4 * dot, dot, faceInk);
+    g.rect(x + 3 * dot + 1, y + 9 * dot, dot, 3 * dot, faceInk);
   }
   if (s.form === 'kira') {
     for (let i = 0; i < 5; i++) {
@@ -1432,18 +1475,7 @@ function drawCreature(g: Painter, s: IppunIsshoState, cx: number, footY: number,
     g.rect(ax, ay + 4, 2, 8, ink);
     g.rect(ax + 5, ay + 2, 2, 8, ink);
   }
-  if (s.anim === 10 && s.animT > 0) g.circle(cx, y + 11 * dot, 2 * dot, faceInk);
-  if (s.tucked && s.phase === 'life' && s.t < T_BYE) {
-    // ゆめ: いちばん多かった世話の絵（記念の伏線）
-    const top = topAxis(s);
-    if (top >= 0) {
-      const bx = cx + 8 * dot + 18;
-      const by = y - 10;
-      g.circle(bx, by, 13, hole);
-      g.circleLine(bx, by, 13, ink, 2);
-      drawIcon(g, NEED_KIND[top], bx, by, 14, ink, hole);
-    }
-  }
+  if (s.anim === 10 && s.animT > 0) g.circle(cx, y + (s.ashi >= 4 ? 7 : 6) * dot + 18, Math.round(dot * 1.2), faceInk);
 }
 
 /** 絵の塗られている範囲（幅・高さ・中心の行）。毛や耳をスプライトの実寸に沿わせるため */
@@ -1477,7 +1509,15 @@ function footPad(pattern: readonly string[]): number {
 
 /** 顔は本体に空けた「穴」で描く。1ビットの液晶はこう見える */
 function drawFaceAt(g: Painter, s: IppunIsshoState, cx: number, ey: number, hole: ColorKey, mood: Mood, dot: number): void {
-  const look = s.lookX !== 0 ? s.lookX * 2 : Math.floor(s.time / 3.2) % 3 === 0 ? 0 : s.walkDir;
+  // 断る（anim 6）は首振り＝目が左右に速く揺れる
+  const look =
+    s.anim === 6 && s.animT > 0
+      ? Math.round(Math.sin(s.time * 28) * 4)
+      : s.lookX !== 0
+        ? s.lookX * 2
+        : Math.floor(s.time / 3.2) % 3 === 0
+          ? 0
+          : s.walkDir;
   const gap = Math.round(dot * 2.5);
   const ex = [cx - gap - 3 + look, cx + gap - 3 + look];
   const narrow = s.kenami >= 8; // もふは目が細い
@@ -1486,10 +1526,15 @@ function drawFaceAt(g: Painter, s: IppunIsshoState, cx: number, ey: number, hole
       case 'nemu':
         g.rect(x - 1, ey + 3, 8, 3, hole);
         break;
-      case 'kaze':
-        g.line(x, ey, x + 6, ey + 7, hole, 3);
-        g.line(x + 6, ey, x, ey + 7, hole, 3);
+      case 'kaze': {
+        // ぎゅっと閉じた目「> <」（×目は「死んだ」に見える）
+        const left = x < cx;
+        const tipX = left ? x + 6 : x;
+        const baseX = left ? x : x + 6;
+        g.line(baseX, ey - 1, tipX, ey + 3, hole, 3);
+        g.line(tipX, ey + 3, baseX, ey + 7, hole, 3);
         break;
+      }
       case 'niko':
         g.rect(x, ey + 4, 6, 3, hole);
         g.rect(x - 1, ey + 1, 2, 3, hole);
@@ -1546,8 +1591,8 @@ function drawBubbles(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorK
 /** ゆうがたの一番星（上振れ）。空の右上でまたたく */
 function drawStar(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
   if (!starUp(s)) return;
-  const cx = CHAR_X + 70;
-  const cy = WIN_Y + 26;
+  const cx = STAR_X;
+  const cy = STAR_Y;
   const r = Math.floor(s.time * 3) % 2 === 0 ? 7 : 4;
   g.rect(cx - 1, cy - r, 3, r * 2 + 1, ink);
   g.rect(cx - r, cy - 1, r * 2 + 1, 3, ink);
@@ -1556,14 +1601,19 @@ function drawStar(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
 /** 手応え「＋N」。キャラの頭上に数字だけ。上に流れて消える。＋5以上は一瞬大きい */
 function drawGain(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
   if (s.gainT <= 0 || s.gain <= 0) return;
+  if (s.nameT > 0) return; // 名前を出している間は譲る（同じ帯に出て重なる）
   const dot = dotOf(s);
-  const rise = (GAIN_T - s.gainT) * 14;
-  const y = FLOOR_Y - 16 * dot - legLen(s) - 14 - rise;
+  const rise = (GAIN_T - s.gainT) * 12;
   const big = s.gain >= 5 && s.gainT > GAIN_T - 0.2;
-  const size = big ? 32 : 26;
+  const size = dot <= 3 ? (big ? 24 : 20) : big ? 30 : 24;
+  // 頭の可視上端（耳・跳ね・浮きぶん 22px を見込む）より上に置く＝下地がキャラを削らない
+  const headTop = FLOOR_Y - 16 * dot - legLen(s) - 22;
+  const y = headTop - size - 4 - rise;
   const x = CHAR_X + s.walkX;
-  g.rect(x - 30, y - 4, 60, size + 6, hole);
-  g.text(`＋${s.gain}`, x, y, { size, align: 'center', color: ink });
+  const text = `＋${s.gain}`;
+  const w = g.measure(text, size) + 10;
+  g.rect(x - w / 2, y - 3, w, size + 6, hole);
+  g.text(text, x, y, { size, align: 'center', color: ink });
 }
 
 /** 名前（孵化の瞬間に1回だけ大きく。字①） */
@@ -1576,31 +1626,32 @@ function drawNameBanner(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: Col
 /** 場面の見出し（全停止中だけ。字②）。下地を必ず敷く。キャラの頭にかからない高さに収める */
 function drawBanner(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
   if (s.pause === '') return;
-  g.rect(WIN_X + 3, WIN_Y + 4, WIN_W - 6, 60, hole);
+  // 帯は y 44〜90。キャラの頭（座っているので dot5 で y≥110）にかからない
+  g.rect(WIN_X + 3, WIN_Y + 4, WIN_W - 6, 46, hole);
   if (s.pause === 'morph') {
     const goals = meta.goals ?? [];
     let title = '';
     for (const goal of goals) if (s.score >= goal.score) title = goal.label;
-    g.text(`${FORM_NAME[s.form]}に なった！`, W / 2, WIN_Y + 10, { size: 18, align: 'center', color: ink });
-    g.text(`しあわせ ${s.score}${title ? `・${title}` : ''}`, W / 2, WIN_Y + 38, {
-      size: 12,
+    g.text(`${NAMES[s.nameId]}は ${FORM_NAME[s.form]}に なった！`, W / 2, WIN_Y + 6, { size: 16, align: 'center', color: ink });
+    g.text(`しあわせ ${s.score}${title ? `・${title}` : ''}`, W / 2, WIN_Y + 30, {
+      size: 11,
       align: 'center',
       color: ink,
     });
     if (s.pauseT > PAUSE_MORPH - 0.25) g.rect(WIN_X + 3, WIN_Y + 3, WIN_W - 6, WIN_H - 6, hole); // 白く光る
     return;
   }
-  const head = s.pause === 'noon' ? 'ひる' : 'よる';
-  g.text(head, W / 2, WIN_Y + 12, { size: 20, align: 'center', color: ink });
   if (s.pause === 'night') {
-    g.text('もうすぐ おわかれ', W / 2, WIN_Y + 40, { size: 11, align: 'center', color: ink });
+    g.text('よる', W / 2, WIN_Y + 6, { size: 18, align: 'center', color: ink });
+    g.text('もうすぐ おわかれ', W / 2, WIN_Y + 30, { size: 11, align: 'center', color: ink });
   } else {
-    const cx = W / 2;
-    const cy = WIN_Y + 48;
-    g.circle(cx, cy, 6, ink);
+    g.text('ひる', 96, WIN_Y + 10, { size: 20, align: 'center', color: ink });
+    const cx = 150;
+    const cy = WIN_Y + 24;
+    g.circle(cx, cy, 7, ink);
     for (let i = 0; i < 8; i++) {
       const a = (i / 8) * Math.PI * 2;
-      g.line(cx + Math.cos(a) * 9, cy + Math.sin(a) * 9, cx + Math.cos(a) * 13, cy + Math.sin(a) * 13, ink, 2);
+      g.line(cx + Math.cos(a) * 10, cy + Math.sin(a) * 10, cx + Math.cos(a) * 14, cy + Math.sin(a) * 14, ink, 2);
     }
   }
 }
@@ -1619,8 +1670,26 @@ function drawEgg(g: Painter, s: IppunIsshoState, sx: number, sy: number): void {
     g.rect(ex - 6, ey + 2, 3, 5, 'bg');
   }
   g.rect(WIN_X + 4, FLOOR_Y, WIN_W - 8, 2, 'ink');
-  // 押す場所を示す「てのひら」の絵が点滅（字ではなく絵）
-  if (waiting && Math.floor(s.time * 2) % 2 === 0) drawIcon(g, 'nade', CHAR_X + 50, FLOOR_Y - 34, 20, 'ink', 'bg');
+  g.rect(WIN_X + 3, FLOOR_Y + 2, WIN_W - 6, WIN_H - (FLOOR_Y + 2 - WIN_Y) - 3, 'bg');
+  // 押す場所を示す「指さし」がたまごを叩く（字ではなく絵。ゆっくり上下して、触れた瞬間に波紋）
+  if (waiting) {
+    const ph = (s.time % 1.2) / 1.2;
+    const down = ph < 0.5 ? ph * 2 : (1 - ph) * 2;
+    // たまごの真上から指さす手（人さし指が下向き・にぎった指が右に並ぶ）。大きく、たまごに触れるまで下りる
+    const fx = CHAR_X + 6;
+    const fy = ey - 104 + down * 30;
+    g.circle(fx, fy + 34, 5, 'ink'); // 指先（丸）
+    g.rect(fx - 5, fy, 10, 36, 'ink'); // 人さし指
+    g.rect(fx + 5, fy + 6, 10, 18, 'ink'); // 中指
+    g.rect(fx + 15, fy + 8, 9, 16, 'ink'); // 薬指
+    g.rect(fx + 24, fy + 10, 7, 13, 'ink'); // 小指
+    g.rect(fx - 5, fy, 36, 8, 'ink'); // 手の甲
+    g.rect(fx - 14, fy + 3, 10, 6, 'ink'); // 親指
+    if (down > 0.9) {
+      g.circleLine(ex, ey - 6, 18, 'ink', 2);
+      g.circleLine(ex, ey - 6, 26, 'ink', 1);
+    }
+  }
 }
 
 /* ---- おわかれ（設計 §8）-------------------------------------------- */
@@ -1681,39 +1750,72 @@ function drawBye(g: Painter, s: IppunIsshoState, sx: number, sy: number, ink: Co
 function drawEpitaph(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
   if (s.epShown <= 0) return;
   const name = NAMES[s.nameId];
-  const lines = [
-    `${name}（${FORM_NAME[s.form]}）は、`,
-    s.early ? 'まっていた' : 'あさから よるまで いっしょだった',
-    FORM_WHY[s.form] || 'うまれたばかりだった',
-  ];
-  g.rect(WIN_X + 3, EPI_Y - 6, WIN_W - 6, EPI_LINE * 3 + 6, hole);
+  const lines = s.early
+    ? [s.form === 'tsubu' ? `${name}は まだ あかちゃんだった` : `${name}は ${FORM_NAME[s.form]}だった`, 'まっていた', `${whenLabel(s.endT)}に おわかれ`]
+    : [`${name}は ${FORM_NAME[s.form]}に なった`, FORM_WHY[s.form], s.form === 'tabi' ? 'ひとりで いきた' : 'あさから よるまで いっしょだった'];
+  g.rect(WIN_X + 3, WIN_Y + 4, WIN_W - 6, EPI_Y + EPI_LINE * 3 - WIN_Y, hole);
   for (let i = 0; i < Math.min(s.epShown, 3); i++) {
     g.text(lines[i], W / 2, EPI_Y + i * EPI_LINE, { size: 11, align: 'center', color: ink });
   }
   if (s.byeT >= BYE_FORMS) {
-    const y = FLOOR_Y - 46;
+    // 6つの姿を小さな影絵で（今回の姿は塗り・ほかは輪郭）。「ほかにもある」＝もう一回の理由
+    const y = FLOOR_Y - 44;
     for (let i = 0; i < FORMS_ALL.length; i++) {
       const f = FORMS_ALL[i];
       const x = 38 + i * 33;
       const mine = f === s.form;
-      if (mine) g.circle(x, y, 9, ink);
-      else g.circleLine(x, y, 8, ink, 1);
-      const c: ColorKey = mine ? hole : ink;
-      if (f === 'koro') g.circle(x, y, 4, c);
-      else if (f === 'pyon') {
-        g.rect(x - 3, y - 4, 2, 9, c);
-        g.rect(x + 1, y - 4, 2, 9, c);
-      } else if (f === 'mofu') {
-        for (let k = 0; k < 6; k++) {
-          const a = (k / 6) * Math.PI * 2;
-          g.rect(x + Math.cos(a) * 4 - 1, y + Math.sin(a) * 4 - 1, 2, 2, c);
-        }
-      } else if (f === 'tabi') g.rect(x - 4, y - 3, 8, 2, c);
-      else if (f === 'kira') {
-        g.rect(x - 1, y - 4, 2, 9, c);
-        g.rect(x - 4, y - 1, 9, 2, c);
-      } else g.rect(x - 1, y - 2, 2, 4, c);
+      drawMiniForm(g, f, x, y, mine, ink, hole);
     }
+  }
+}
+
+/** 姿の影絵（記念の列）。体は丸、姿ごとの特徴を1つだけ足す */
+function drawMiniForm(g: Painter, f: Form, x: number, y: number, solid: boolean, ink: ColorKey, hole: ColorKey): void {
+  const r = f === 'koro' ? 9 : 7;
+  const body = () => {
+    if (solid) g.circle(x, y, r, ink);
+    else g.circleLine(x, y, r, ink, 2);
+  };
+  switch (f) {
+    case 'pyon':
+      g.rect(x - 5, y - r - 5, 2, 6, ink);
+      g.rect(x + 3, y - r - 5, 2, 6, ink);
+      body();
+      g.rect(x - 4, y + r - 1, 2, 7, ink);
+      g.rect(x + 2, y + r - 1, 2, 7, ink);
+      break;
+    case 'mofu':
+      for (let k = 0; k < 8; k++) {
+        const a = (k / 8) * Math.PI * 2;
+        g.rect(x + Math.cos(a) * (r + 2) - 2, y + Math.sin(a) * (r + 2) - 2, 4, 4, ink);
+      }
+      body();
+      break;
+    case 'tabi':
+      body();
+      g.rect(x - 4, y - r - 5, 8, 5, ink);
+      g.rect(x - 8, y - r - 1, 16, 2, ink);
+      break;
+    case 'kira':
+      g.circle(x, y, r + 1, ink);
+      g.circle(x, y, r - 1, hole);
+      if (solid) g.circle(x, y, r - 3, ink);
+      for (let k = 0; k < 4; k++) {
+        const a = k * 1.57 + 0.78;
+        g.rect(x + Math.cos(a) * (r + 6) - 1, y + Math.sin(a) * (r + 6) - 1, 3, 3, ink);
+      }
+      break;
+    case 'koro':
+      body();
+      break;
+    default:
+      body();
+      g.rect(x + 2, y - r - 4, 2, 5, ink);
+  }
+  if (solid) {
+    // 目
+    g.rect(x - 4, y - 2, 2, 3, hole);
+    g.rect(x + 2, y - 2, 2, 3, hole);
   }
 }
 
@@ -1730,12 +1832,14 @@ function drawButtons(g: Painter, s: IppunIsshoState): void {
     const calling = bs.some((b) => b.kind === kind && b.lv >= 2);
     // ぐあいわるい のときは いつでも くすり が光る（キャラが言う）
     const ask = (teach || s.sick) && calling && Math.floor(s.time * 2.5) % 2 === 0;
-    const on = hot || ask;
-    g.rect(x, BTN_Y, BTN_W, BTN_H, on ? 'ink' : 'bg');
-    g.rectLine(x, BTN_Y, BTN_W, BTN_H, 'ink', 2);
+    // 押した瞬間は「へこむ」（2px ずれて枠が太く）。「押して」は反転の点滅。別の見た目にして取り違えない
+    const on = ask;
+    const dx = hot ? 2 : 0;
+    g.rect(x + dx, BTN_Y + dx, BTN_W - dx, BTN_H - dx, on ? 'ink' : 'bg');
+    g.rectLine(x + dx, BTN_Y + dx, BTN_W - dx, BTN_H - dx, 'ink', hot ? 4 : 2);
     const c: ColorKey = on ? 'bg' : live ? 'ink' : 'dim';
-    drawIcon(g, kind, x + BTN_W / 2, BTN_Y + 26, 26, c, on ? 'ink' : 'bg');
-    g.text(BTN_LABEL[i], x + BTN_W / 2, BTN_Y + 46, { size: 9, align: 'center', color: on ? 'bg' : 'dim' });
+    drawIcon(g, kind, x + BTN_W / 2 + dx, BTN_Y + 26 + dx, 26, c, on ? 'ink' : 'bg');
+    g.text(BTN_LABEL[i], x + BTN_W / 2 + dx, BTN_Y + 46 + dx, { size: 9, align: 'center', color: on ? 'bg' : 'dim' });
   }
 }
 
@@ -1745,20 +1849,26 @@ function drawIcon(g: Painter, kind: Kind, cx: number, cy: number, size: number, 
   const u = size / 24;
   switch (kind) {
     case 'gohan':
-      g.poly([cx - 11 * u, cy + 1 * u, cx + 11 * u, cy + 1 * u, cx + 7 * u, cy + 10 * u, cx - 7 * u, cy + 10 * u], c);
-      g.rect(cx - 12 * u, cy - 2 * u, 24 * u, 3 * u, c);
-      g.rect(cx - 6 * u, cy - 10 * u, 2 * u, 6 * u, c);
-      g.rect(cx + 4 * u, cy - 11 * u, 2 * u, 7 * u, c);
+      // ごはんの山（丸の上半分）＋茶碗（台形）＋ふち
+      g.circle(cx, cy - 1 * u, 8 * u, c);
+      g.rect(cx - 12 * u, cy - 1 * u, 24 * u, 3 * u, c);
+      g.poly([cx - 11 * u, cy + 2 * u, cx + 11 * u, cy + 2 * u, cx + 7 * u, cy + 11 * u, cx - 7 * u, cy + 11 * u], c);
+      g.rect(cx - 9 * u, cy + 5 * u, 18 * u, 1.5 * u, hole);
       break;
     case 'asobu':
-      g.circle(cx, cy, 10 * u, c);
-      g.rect(cx - 10 * u, cy - 3 * u, 20 * u, 2 * u, hole);
-      g.rect(cx - 10 * u, cy + 2 * u, 20 * u, 2 * u, hole);
+      // はずむボール: 丸＋つやの点＋下に影（帯は入れない）
+      g.circle(cx, cy - 1 * u, 9 * u, c);
+      g.circle(cx - 3.5 * u, cy - 4.5 * u, 2.2 * u, hole);
+      g.rect(cx - 7 * u, cy + 10 * u, 14 * u, 2 * u, c);
       break;
     case 'nade':
-      g.circle(cx, cy + 4 * u, 7 * u, c);
-      for (let i = 0; i < 4; i++) g.rect(cx - 7 * u + i * 4 * u, cy - 8 * u, 3 * u, 10 * u, c);
-      g.rect(cx - 11 * u, cy - 1 * u, 4 * u, 6 * u, c);
+      // 手のひら＋太い指3本＋親指
+      g.rect(cx - 7 * u, cy - 1 * u, 15 * u, 11 * u, c);
+      g.circle(cx, cy + 8 * u, 7 * u, c);
+      g.rect(cx - 7 * u, cy - 10 * u, 4 * u, 12 * u, c);
+      g.rect(cx - 1.5 * u, cy - 12 * u, 4 * u, 14 * u, c);
+      g.rect(cx + 4 * u, cy - 10 * u, 4 * u, 12 * u, c);
+      g.rect(cx - 12 * u, cy + 1 * u, 6 * u, 4 * u, c);
       break;
     case 'kusuri':
       g.circle(cx - 5 * u, cy + 5 * u, 6 * u, c);
@@ -1793,18 +1903,18 @@ const EGG = [
 const BODY_TSUBU = [
   '................',
   '................',
-  '......XXXX......',
   '.....XXXXXX.....',
-  '....XXXXXXXX....',
   '...XXXXXXXXXX...',
+  '..XXXXXXXXXXXX..',
+  '..XXXXXXXXXXXX..',
+  '.XXXXXXXXXXXXXX.',
+  '.XXXXXXXXXXXXXX.',
+  '.XXXXXXXXXXXXXX.',
+  '..XXXXXXXXXXXX..',
+  '..XXXXXXXXXXXX..',
   '...XXXXXXXXXX...',
-  '...XXXXXXXXXX...',
-  '...XXXXXXXXXX...',
-  '...XXXXXXXXXX...',
-  '....XXXXXXXX....',
   '.....XXXXXX.....',
-  '......XXXX......',
-  '......X..X......',
+  '.....X....X.....',
   '................',
   '................',
 ];
@@ -1872,4 +1982,4 @@ const BODY_MANMARU = [
 /** ハート（なでる の反応） */
 const HEART = ['.X.X.', 'XXXXX', 'XXXXX', '.XXX.', '..X..'];
 /** ねむりの z */
-const ZEE = ['XXXX', '..X.', '.X..', 'XXXX'];
+const ZEE = ['XXXXX', '....X', '..XX.', '.X...', 'XXXXX'];
