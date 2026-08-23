@@ -1,27 +1,26 @@
 /**
- * 一分一生（いっぷんいっしょう）── v4
+ * 一分一生（いっぷんいっしょう）── v5
  *
- * **ひらいて せわして とじる。とじれば 時間がとぶ。ほうっておくと よわる。**
+ * **あさに生まれ、よるに力尽きる。一日だけの命を、そばで看取る。**
  *
- * v1（反射ゲーム化）・v2（「ダメを作らない」応答ゲーム化）はどちらもオーナーの実機評価で却下。
- * v3.1 は「触りたい8/10」まで来たが、依頼の核心「自分が死なせた・ごめん」が来なかった
- * （失敗が全部「とじている間＝手の届かない場所」で起きるため）。オーナー判断（2026-08-22）で
- * 骨格を変えたのが v4（design.md §14）。正解の気持ちは design.md §0:
+ * v4（ひらく→せわ→とじる）を実機で遊んだオーナーの根幹 FB（2026-08-22）で作り直した。
+ * ①「とじる」が分からない ②チカチカを押すだけ ③左上メーターを見て下ボタンを押す往復で
+ * 真ん中のキャラを見ない ④メーターと押すボタンの点滅で視線がガチャつく ⑤1分＝一生の必然性がない。
+ * → オーナー判断（2026-08-23）で v5（design.md §14）:
  *
- * ・見ていない時間 = **気になる**（ポケットの中で鳴っているのに触れない）
- * ・開けて世話する = **ほっとする**（減っていたからあげた。心配が静まる）
- * ・放っておいた   = **しまった、ごめん**（目の前で減り、よわっていくのを見る）
- * ・毎回のとじる   = **面倒だが、やると気持ちいい儀式**（カチッ。自分で目を離す）
- * ・最期           = **ちゃんと見届けた**（ありがと → たね → 芽 → 記念）
+ * ・⑤ 題材を「一日の命」の生き物に。あさ→ひる→ゆうがた→よる を約48秒で流す（儚さが主題）
+ * ・③④ メーターを廃止。おなか・きげん・体調は内部に持ち、キャラの顔・しぐさ・動きだけで見せる
+ * ・①② とじるを廃止。時間は流れ続け、一日をずっとそばで看取る（作業感を消す）
  *
- * v4 の3つの芯:
- *   1. 自動クローズをやめる。とじるのは自分が「とじる」を押したときだけ
- *   2. 開いている間も、目の前でゆっくり減る（`OPEN_DRAIN`＝5秒で1マス）
- *   3. 死ぬ前に予兆。よわると「よぼよぼ…」、直せば必ず助かる。`weak`=6 で死
+ * 正解の気持ち（design.md §0）:
+ * ・生まれたて = **いとおしい**（たよりない子）
+ * ・応えて喜ぶ = **ほっとする**（しぐさで気づいて先に応えると「わかってる！」）
+ * ・見落とした = **しまった**（静かなしぐさを見落とすと ぐあいがわるくなる。気づけば助かる）
+ * ・最期       = **見届けた**（よるに静かに、あるいは早い別れに「ごめん」→ たね → 芽 → 記念）
  *
- * 時間は turn ではなく「孵化からの秒 `t`」で連続的に進む。開いていれば実時間、
- * とじれば `CLOSED_JUMP`=8秒 飛ぶ。段階・年齢・せいちょう・おわかれは `t` で決まる。
- * 設計は docs/plans/008-ippun-issho/design.md（v4）。権利の線引きは §12。
+ * 時間は turn ではなく「生まれてからの秒 `t`」で連続的に進む（とじないので実時間そのもの）。
+ * せいちょう（姿決定）は t=20 の1回。上振れは きら と ゆうがたの一番星の2本。
+ * 設計は docs/plans/008-ippun-issho/design.md（v5）。権利の線引きは §12。
  */
 
 import { defineGame, type BaseState } from '@/arcade/types';
@@ -49,41 +48,32 @@ const { w: W } = PLATFORMS.keitai;
  * （通常のプレイでは変わらない）。
  */
 const TUNE = {
-  /** 開いている間、おなか・きげんが1マス減るのにかかる秒数（v4 の芯：目の前で減る） */
+  /** 開いている間、おなか・きげんが1マス減るのにかかる秒数（目の前でゆっくり減る） */
   openDrain: 5,
-  /** とじる（2.4秒の暗い液晶）のあいだに、ゲーム内時間 `t` が飛ぶ秒数 */
-  closedJump: 8,
-  /** `weak` がいくつ溜まったら死ぬか（世話で 0 に戻るので、直せば必ず助かる） */
-  weakToDie: 6,
+  /** `weak` がいくつ溜まったら力尽きるか（世話で 0 に戻るので、気づけば助かる） */
+  weakToDie: 7,
 };
 
 /* ================================================================== *
  * 一生の時間割（design.md §3）── turn ではなく「孵化からの秒 `t`」で進む
  * ================================================================== */
 
-/** せいちょう①（こども）になる時刻 */
-const GROW_T_CHILD = 12;
-/** せいちょう②（おとな。ここで姿が決まる）になる時刻 */
-const GROW_T_ADULT = 26;
-/** おとしより（何も求めない余白）になる時刻 */
-const T_ELDER = 40;
-/** おわかれ（最期まで生きた）になる時刻 */
+/* 一日の時間割（design.md §3）。生まれてからの秒 `t` で進む。約48秒で一生 */
+/** せいちょう（姿が決まる）＝ひるの中ほど。1回だけ */
+const GROW_AT = 20;
+/** ひる（よちよち→元気）に入る時刻。ここまでが あさ */
+const T_NOON = 12;
+/** ゆうがた（落ち着く。動きがゆっくり・色が淡く）に入る時刻 */
+const T_DUSK = 28;
+/** よる（眠くなる。おやすみで寝かせる）に入る時刻 */
+const T_NIGHT = 42;
+/** よるの終わり＝力尽きる（最期まで生きた） */
 const T_BYE = 48;
 
-/** とじている暗い液晶を見せる秒数（実時間）。ここが「気になる」の長さそのもの */
-const CLOSED_DUR = 2.4;
-/** おなか0 または 病気のまま、開いている間に `weak` が +1 されるまでの秒数 */
+/** おなか0（起きている）／退屈0／ぐあいわるい のまま、`weak` が +1 されるまでの秒数 */
 const WEAK_OPEN = 3;
-/** 開いている間、ひとりでに うんちが出るまでの秒数（放置で うんち→病気 を必ず通す） */
-const POOP_OPEN_EVERY = 11;
-/** 開いている間、うんちを置いたままだと病気になるまでの秒数 */
-const SICK_OPEN_AFTER = 7;
-
-/** とじる（時間が飛ぶ）ときに減る おなか／きげん */
-const DROP_H = 2;
-const DROP_M = 1;
-/** 減り方のゆらぎ。ここが育ちの分かれ目になる（同じ世話でも子によって違う） */
-const DROP_WOBBLE = 0.35;
+/** おなか0 か 退屈0 を放置して、ぐあいがわるくなる（×目）までの秒数 */
+const SICK_ONSET = 6;
 
 /** たまごが孵るまでの秒数 */
 const EGG_AT = 3;
@@ -95,19 +85,12 @@ const EGG_WARM = 0.4;
 const EGG_TAPS = 3;
 /** なまえを選ばずにいると自分で名乗るまでの秒数 */
 const NAME_WAIT = 5;
-/** ひらいてから、とじられるようになるまでの秒数（開けた瞬間の誤爆を防ぐ） */
-const OPEN_LOCK = 1.2;
-/** ひらいた瞬間、大きな「！」を出しておく秒数 */
-const OPEN_BANG = 1.6;
-/** メーターの満タン */
+/** おなか・きげんの満タン（内部だけ。画面には数値を出さない） */
 const METER_MAX = 4;
-/** これ以下で呼び出しが鳴る */
+/** これ以下で「呼んでいる」（頭上に合図＋ピピッ）。応えて +3（P_ANSWER） */
 const CALL_AT = 1;
-/** ごはんをあげた回をとじたとき、うんちが出る確率 */
-const POOP_CLOSE_P = 0.6;
-/** うんちを置いたままとじたときに病気になる確率（昼／夜） */
-const SICK_DAY_P = 0.5;
-const SICK_NIGHT_P = 1;
+/** これなら「かすかに気にする」（呼ぶ前・しぐさだけ）。先に応えると +4（P_AHEAD） */
+const AHEAD_AT = 2;
 
 /* ---- おわかれの時間割（design.md §7）-------------------------------- */
 
@@ -131,23 +114,24 @@ const BYE_END = BYE_SPROUT + EPI_STEP * 3 + BYE_TAIL;
 
 const P_WARM = 1;
 const P_BORN = 2;
-/** 呼び出しに応えた */
+/** 「呼んでいる」に応えた（頭上の合図が出てから） */
 const P_ANSWER = 3;
-/** 呼ばれる前に満たした */
+/** 呼ぶ前の「かすかに気にする」しぐさに、先に気づいて応えた（わかってる！） */
 const P_AHEAD = 4;
-/** なでる（1回の「ひらく」に1回）／「なでて」と呼ばれて なでた */
+/** なでる（1回に1回）／「なでて」とねだられて なでた */
 const P_PET = 1;
 const P_PET_ASKED = 3;
-/** せいちょう①②／おとしより */
+/** せいちょう（姿決定） */
 const P_GROW = 5;
+/** ゆうがたに落ち着いた（余白のしるし） */
 const P_ELDER = 3;
-/** 困りごとが無い状態で手で とじた */
-const P_CLOSE = 2;
-/** きらになったとき */
+/** ゆうがたの一番星をタップした（上振れ②。init 20% の子だけ空に出る） */
+const P_HOSHI = 8;
+/** きらになったとき（上振れ①） */
 const P_KIRA = 15;
 /** きらは以後この倍率で点が入る */
 const KIRA_MULT = 1.5;
-/** 最期まで生きた */
+/** よるまで生きた（最期まで看取れた） */
 const P_LIVED = 10;
 
 /** せいちょうの見出しを出しておく秒数 */
@@ -166,14 +150,6 @@ const WIN_H = 170;
 const WIN_LINE = 2;
 /** 角丸の抜き幅（上から順に、その行で本体色に塗る幅） */
 const CORNER: readonly number[] = [5, 3, 2, 1, 1];
-/** 窓の上辺のアイコン列 */
-const ICON_Y = 55;
-const ICON_X0 = 35;
-const ICON_GAP = 34;
-/** メーター */
-const METER_X = 16;
-const METER_Y1 = 68;
-const METER_Y2 = 82;
 /** 床の線 */
 const FLOOR_Y = 190;
 /** つぶの立ち位置 */
@@ -182,17 +158,11 @@ const CHAR_X = 120;
 const DOT = 4;
 /** 体の高さ（16ドット×DOT） */
 const BODY_H = 16 * DOT;
-/** うんち */
-const POOP_X = 198;
-const POOP_Y = 180;
 /** 液晶の中に出る一言 */
 const SAY_Y = 196;
 /** せいちょうの見出しと理由 */
 const GROW_Y = 96;
 const GROW_WHY_Y = 112;
-/** 「とじる」 */
-const CLOSE_Y = 218;
-const CLOSE_H = 20;
 /** 世話ボタン5つ */
 const BTN_Y = 242;
 const BTN_H = 62;
@@ -207,11 +177,6 @@ const SPROUT_STEP = 20;
 const SPROUT_GAP = 11;
 const SPROUT_X0 = W / 2 - ((SPROUT_MAX - 1) * SPROUT_GAP) / 2;
 const SPROUT_Y = 24;
-/** とじているあいだの札と時計 */
-const CARD_Y = 226;
-const CLOCK_X = 120;
-const CLOCK_Y = 276;
-const CLOCK_R = 22;
 /** なまえのカード */
 const NCARD_Y = 146;
 const NCARD_W = 64;
@@ -226,16 +191,15 @@ const ANIM_T = 0.5;
 
 /* ---- 種類 ------------------------------------------------------------ */
 
-/** 世話の種類。ボタン5つと窓の上辺のアイコン列は同じ並び */
-type Kind = 'gohan' | 'asobu' | 'souji' | 'kusuri' | 'denki' | 'bikkuri';
+/** 世話の種類。ボタン5つと同じ並び。頭上のしぐさアイコンも同じ絵を引用する（design.md §2） */
+type Kind = 'gohan' | 'asobu' | 'nade' | 'kusuri' | 'oyasumi';
 
-const BTN_KINDS: readonly Kind[] = ['gohan', 'asobu', 'souji', 'kusuri', 'denki'];
-const BTN_LABEL: readonly string[] = ['ごはん', 'あそぶ', 'そうじ', 'くすり', 'でんき'];
-/** 窓の上辺のアイコン列。6つめは「！」（なでて） */
-const ICON_KINDS: readonly Kind[] = [...BTN_KINDS, 'bikkuri'];
+const BTN_KINDS: readonly Kind[] = ['gohan', 'asobu', 'nade', 'kusuri', 'oyasumi'];
+const BTN_LABEL: readonly string[] = ['ごはん', 'あそぶ', 'なでる', 'くすり', 'おやすみ'];
 
-type Phase = 'egg' | 'name' | 'open' | 'closed' | 'bye' | 'gone';
-type Stage = 'baby' | 'child' | 'adult' | 'elder';
+type Phase = 'egg' | 'name' | 'open' | 'bye' | 'gone';
+/** 見た目の段階。elder＝ゆうがた以降＝落ち着き（動きがゆっくり・色が淡い） */
+type Stage = 'baby' | 'grown' | 'elder';
 
 /**
  * 姿。**語尾を揃えない**（本家の看板キャラの語幹・命名の癖に寄せないため。design.md §12）。
@@ -310,41 +274,28 @@ const NAMES: readonly string[] = [
   'こむ',
 ];
 
-/* ---- 時間 `t` から段階・年齢・時間帯を出す（design.md §3）------------ */
+/* ---- 時間 `t` から段階・時間帯を出す（design.md §3）------------------ *
+ * 一日を一本道で流す。年齢の数字・「◯にちめ」は出さない（v4 から廃止）。
+ * ------------------------------------------------------------------- */
 
-/** その時刻の段階 */
+/** その時刻の段階（見た目に効く。elder＝ゆうがた以降＝落ち着き） */
 function stageOf(t: number): Stage {
-  if (t < GROW_T_CHILD) return 'baby';
-  if (t < GROW_T_ADULT) return 'child';
-  if (t < T_ELDER) return 'adult';
-  return 'elder';
+  if (t < GROW_AT) return 'baby'; // あさ〜ひる前半（姿が決まる前・よちよち）
+  if (t < T_DUSK) return 'grown'; // 姿が決まってから ゆうがた まで（元気）
+  return 'elder'; // ゆうがた・よる（動きがゆっくり・色が淡い）
 }
 
-/** 年齢。段階内で `t` に比例して連続的に上がる（例: こどもは 2→5） */
-function ageYears(t: number): number {
-  if (t < GROW_T_CHILD) return t / GROW_T_CHILD; // 0→1
-  if (t < GROW_T_ADULT) return 2 + ((t - GROW_T_CHILD) / (GROW_T_ADULT - GROW_T_CHILD)) * 3; // 2→5
-  if (t < T_ELDER) return 6 + ((t - GROW_T_ADULT) / (T_ELDER - GROW_T_ADULT)) * 4; // 6→10
-  if (t < T_BYE) return 11 + ((t - T_ELDER) / (T_BYE - T_ELDER)) * 2; // 11→13
-  return 14;
+/** よるか（人生の終盤。眠くなり、おやすみで寝かせる。Zzz が出る） */
+function isYoru(t: number): boolean {
+  return t >= T_NIGHT;
 }
 
-/** 夜か（こども終盤・おとな終盤に夜がくる）。夜は Zzz が出て、でんきを消すと ぐっすり */
-function isNight(t: number): boolean {
-  return (t >= 20 && t < 26) || (t >= 34 && t < 40);
-}
-
-/** 上の帯・とじている札に出す時間帯 */
+/** 上の帯に出す時間帯 */
 function whenLabel(t: number): string {
-  if (t >= T_ELDER) return 'ゆうがた';
-  if (isNight(t)) return 'よる';
-  if (t < 8) return 'あさ';
-  return 'ひる';
-}
-
-/** 何にちめか */
-function dayNum(t: number): number {
-  return 1 + Math.floor(t / 16);
+  if (t < T_NOON) return 'あさ';
+  if (t < T_DUSK) return 'ひる';
+  if (t < T_NIGHT) return 'ゆうがた';
+  return 'よる';
 }
 
 /* ---- 状態 ------------------------------------------------------------ *
@@ -357,12 +308,10 @@ export interface IppunIsshoState extends BaseState, FeelState {
   phase: Phase;
   /** そのフェーズに入った時刻（ボットが「少し待ってから動く」ために見る） */
   phaseAt: number;
-  /** 孵化からのゲーム内時間（秒）。開いていれば実時間、とじれば飛ぶ。段階・年齢はこれで決まる */
+  /** 生まれてからのゲーム内時間（秒）。とじないので実時間そのもの。段階・せいちょうはこれで決まる */
   t: number;
-  /** ひらいてからの秒 */
+  /** open に入ってからの秒（open では t とほぼ一致する。連打やねだりの間合いに使う） */
   openT: number;
-  /** とじてからの秒 */
-  closedT: number;
   /** おわかれの経過秒 */
   byeT: number;
   /** たまごが孵る時刻 */
@@ -375,97 +324,84 @@ export interface IppunIsshoState extends BaseState, FeelState {
   n2: number;
   name: string;
 
-  /* メーター・そのときの様子 */
+  /* おなか・きげん・体調（画面には数値を出さない。しぐさで見せる。design.md §2） */
   hunger: number;
   mood: number;
-  /** うんち（0/1。画面に1つまで） */
-  poop: number;
   sick: boolean;
-  /** いま夜で眠っているか（`t` から決まる） */
+  /** よるで眠くなっているか（`t` から決まる） */
   asleep: boolean;
-  /** 液晶の明かりが点いているか（ねんね中に消すと ぐっすり） */
-  lit: boolean;
-  /** その ひらく で でんきを消せたか */
-  litDone: boolean;
-  /** ねむれなかった（翌朝のクマ） */
-  kuma: boolean;
+  /** よるに おやすみで寝かせたか（ぐっすり看取れる） */
+  slept: boolean;
   /** 「なでて」とねだっているか */
   wantPet: boolean;
 
-  /* 開いている間の減り・よわりのタイマー（すべてスカラー） */
+  /* 開いている間のタイマー（すべてスカラー） */
   /** おなか・きげんが1マス減るまでの溜め */
   drainT: number;
-  /** よわり（おなか0/病気のまま）の溜め */
+  /** よわり（おなか0/退屈0/ぐあいわるい のまま）の溜め */
   weakT: number;
-  /** ひとりでに うんちが出るまでの溜め */
-  poopClock: number;
-  /** うんち放置で病気になるまでの溜め */
+  /** おなか0か退屈0を放置して ぐあいわるくなるまでの溜め */
   sickClock: number;
 
   /* 累計 */
   weak: number;
   /** 一度でも よわったか（育ちが見る） */
   weakEver: boolean;
+  /** 呼んでいたのに気づけなかった回数（記念・分岐が見る） */
   missed: number;
   fed: number;
   played: number;
-  cleaned: number;
   cured: number;
-  litCount: number;
   petted: number;
   sickDays: number;
 
   /* 育ち */
   form: Form;
-  /** こどものときの姿（おとなの分岐が見る） */
+  /** 姿が決まる前の見た目（つぶ）。分岐の記録にも使う */
   child: Form;
   kira: boolean;
-  /** せいちょう①の時点の missed（こども期の missed を引くため） */
-  missedAtChild: number;
-  /** いくつ育ったか（0=あかちゃん 1=こども 2=おとな 3=おとしより） */
+  /** どこまで育ったか（0=あかちゃん 1=姿が決まった 2=ゆうがたに落ち着いた） */
   growStage: number;
-  /** とじている間に育った分の見出しを、次に開けたときに見せるための予約（0=なし） */
-  growPending: number;
   /** すきなもの（記念の文が見る） */
   fav: 'gohan' | 'asobu' | 'nade';
-  /** かくれた運（非表示） */
+  /** かくれた運（非表示。きらの条件） */
   lucky: boolean;
+  /** ゆうがたに一番星が出る子か（init 20%。上振れ②） */
+  ichiban: boolean;
+  /** その一番星をタップして取ったか */
+  hoshiGot: boolean;
   alive: boolean;
-  /** 早い死か */
+  /** 早い別れか（よるまで生きられなかった） */
   early: boolean;
-  /** 何さいで終わったか */
-  endAge: number;
+  /** 力尽きた時刻（記念・結果の時間帯に使う。よるまで生きたら T_BYE） */
+  endT: number;
 
-  /* その「ひらく」のあいだ */
-  petThisOpen: number;
-  careThisOpen: number;
-  fedThisOpen: boolean;
-  playedThisOpen: boolean;
-  /** その回で最後に手を出した openT（ボットが「1.2秒たったら とじる」を測る） */
-  lastActT: number;
+  /* その回の状態 */
+  /** 最後に なでて点が入った openT（連打では点が入らない） */
+  petAt: number;
 
   /* 演出 */
   say: string;
   sayT: number;
-  /** 0=なし 1=もぐもぐ 2=はねる 3=しゅっ 4=なおった 5=なでた 6=ぐっすり。1〜6 はハートを出す */
+  /** 0=なし 1=もぐもぐ 2=はねる 3=なでた 4=なおった 5=うれしい 6=ぐっすり。1〜6 はハートを出す */
   animKind: number;
   animT: number;
   /** 首を振っている残り */
   noT: number;
-  /** 押したボタン（-1=とじる。反転させる） */
+  /** 押したボタン（反転させる） */
   pressBtn: number;
   pressT: number;
   /** せいちょうの見出し */
   growT: number;
   growText: string;
   growWhy: string;
-  /** でんきを空押ししたときの一瞬の暗転 */
+  /** おやすみ／一番星の空タップの一瞬の演出 */
   blackout: number;
   /** たまごを温めた残り */
   poke: number;
   /** 「ん？」で見る向き（-1/0/1） */
   lookX: number;
-  /** その とじている で何回鳴らしたか */
+  /** そのフェーズで何回鳴らしたか（呼び出し／死の音） */
   beeped: number;
   /** 記念の何行目まで出したか */
   epShown: number;
@@ -494,44 +430,47 @@ function beep(n: IppunIsshoState): void {
   n.cue = (n.cue ?? 0) + 1;
 }
 
-/** いま困っている世話。無ければ空（＝つぶがこちらを見てにこっとする）。おとしよりは何も求めない */
+/**
+ * いま「はっきり困っている」こと＝頭上に合図（ボタンの絵）を出す1件。無ければ空。
+ * design.md §2 の3段のうち「呼んでいる」。呼ぶ前の気配は wishOf（頭上には出さない）。
+ */
 function troubleOf(s: IppunIsshoState): Kind | '' {
   if (s.phase !== 'open') return '';
-  if (stageOf(s.t) === 'elder') return s.wantPet ? 'bikkuri' : '';
   if (s.sick) return 'kusuri';
-  if (s.poop > 0) return 'souji';
-  if (s.asleep && s.lit) return 'denki';
+  if (s.asleep && !s.slept) return 'oyasumi';
   if (s.hunger <= CALL_AT) return 'gohan';
   if (s.mood <= CALL_AT) return 'asobu';
-  if (s.wantPet) return 'bikkuri';
+  if (s.wantPet) return 'nade';
   return '';
 }
 
-/** そのアイコンが「いま欲しいもの」か（窓の上辺で反転して点滅する） */
+/**
+ * 呼ぶ前の「かすかに気にする」気配（頭上アイコンは出さず、姿勢だけで見せる）。
+ * ここで先に気づいて応えると P_AHEAD（わかってる！）。design.md §2 の中段。
+ */
+function wishOf(s: IppunIsshoState): Kind | '' {
+  if (s.phase !== 'open' || s.asleep || troubleOf(s) !== '') return '';
+  if (s.hunger === AHEAD_AT) return 'gohan';
+  if (s.mood === AHEAD_AT) return 'asobu';
+  return '';
+}
+
+/** そのボタンが「いま応えるべきもの」か（下のボタンが反転して点滅する。頭上の合図と同じ1件） */
 function wanted(s: IppunIsshoState, kind: Kind): boolean {
-  // とじているあいだも呼び出しは見える。開けられないから「気になる」
-  if (s.phase === 'closed') {
-    if (kind === 'gohan') return s.hunger <= CALL_AT;
-    if (kind === 'souji') return s.poop > 0;
-    if (kind === 'kusuri') return s.sick;
-    return false;
-  }
   if (s.phase !== 'open') return false;
-  // 上辺は「呼び出し1つだけ」。二重表示を避けるため troubleOf の1件に絞る
   return troubleOf(s) === kind;
 }
 
-/** とじているあいだ、呼び出しが鳴る状態か（おなか・うんち・病気だけ。design.md §3） */
-function calling(s: IppunIsshoState): boolean {
-  return s.hunger <= CALL_AT || s.poop > 0 || s.sick;
-}
-
-/** 液晶が暗いか（ねんねで消灯した／とじている／でんきの空押し／夜に見つけた早い死） */
+/** 液晶が暗いか（よるに寝かせた／おやすみ・空タップの演出／早い別れの暗い画面） */
 function darkNow(s: IppunIsshoState): boolean {
-  if (s.phase === 'closed') return true;
   if (s.blackout > 0) return true;
   if ((s.phase === 'bye' || s.phase === 'gone') && s.early) return true;
-  return s.phase === 'open' && s.asleep && !s.lit;
+  return s.phase === 'open' && s.asleep && s.slept;
+}
+
+/** ゆうがたの空に一番星が出ているか（ichiban の子・まだ取っていない・ゆうがた。上振れ②） */
+function starUp(s: IppunIsshoState): boolean {
+  return s.phase === 'open' && s.ichiban && !s.hoshiGot && s.t >= T_DUSK && s.t < T_NIGHT;
 }
 
 /* ---- 当たり判定 ------------------------------------------------------ *
@@ -539,7 +478,7 @@ function darkNow(s: IppunIsshoState): boolean {
  * ここで使う数値は draw と共有している定数だけ（ずれると押しても効かない）。
  * ------------------------------------------------------------------- */
 
-type HitWhat = 'btn' | 'close' | 'char' | 'window' | 'card' | 'none';
+type HitWhat = 'btn' | 'char' | 'window' | 'card' | 'none';
 
 function hitTest(s: IppunIsshoState, px: number, py: number): { what: HitWhat; i: number } {
   // なまえ中はカードがいちばん上にある
@@ -555,13 +494,11 @@ function hitTest(s: IppunIsshoState, px: number, py: number): { what: HitWhat; i
     const x = BTN_X0 + i * BTN_GAP;
     if (px >= x && px < x + BTN_W && py >= BTN_Y && py < BTN_Y + BTN_H) return { what: 'btn', i };
   }
-  if (px >= WIN_X && px < WIN_X + WIN_W && py >= CLOSE_Y && py < CLOSE_Y + CLOSE_H) {
-    return { what: 'close', i: -1 };
-  }
   // つぶの当たりは体より少し広く取る（ドット絵の隙間で外れると「押したのに」になる）
   if (Math.abs(px - CHAR_X) < 40 && py >= FLOOR_Y - BODY_H - 8 && py < FLOOR_Y + 6) {
     return { what: 'char', i: -1 };
   }
+  // 液晶の中（空をふくむ）。ゆうがたは空の上のほうに一番星（handleTap で判定）
   if (px >= WIN_X && px < WIN_X + WIN_W && py >= WIN_Y && py < WIN_Y + WIN_H) {
     return { what: 'window', i: -1 };
   }
@@ -593,7 +530,6 @@ export default defineGame<IppunIsshoState>({
       phaseAt: 0,
       t: 0,
       openT: 0,
-      closedT: 0,
       byeT: 0,
       hatchAt: EGG_AT,
       eggTaps: 0,
@@ -606,17 +542,13 @@ export default defineGame<IppunIsshoState>({
       // あかちゃん期は呼び出しが多い。おなかは高めから、きげんは早めに減る
       hunger: 3,
       mood: 2,
-      poop: 0,
       sick: false,
       asleep: false,
-      lit: true,
-      litDone: false,
-      kuma: false,
+      slept: false,
       wantPet: false,
 
       drainT: 0,
       weakT: 0,
-      poopClock: 0,
       sickClock: 0,
 
       weak: 0,
@@ -624,29 +556,23 @@ export default defineGame<IppunIsshoState>({
       missed: 0,
       fed: 0,
       played: 0,
-      cleaned: 0,
       cured: 0,
-      litCount: 0,
       petted: 0,
       sickDays: 0,
 
       form: 'tsubu',
-      child: 'poyo',
+      child: 'tsubu',
       kira: false,
-      missedAtChild: 0,
       growStage: 0,
-      growPending: 0,
       fav,
       lucky: rng.chance(0.25),
+      ichiban: rng.chance(0.2),
+      hoshiGot: false,
       alive: true,
       early: false,
-      endAge: 14,
+      endT: T_BYE,
 
-      petThisOpen: 0,
-      careThisOpen: 0,
-      fedThisOpen: false,
-      playedThisOpen: false,
-      lastActT: 0,
+      petAt: -99,
 
       say: '',
       sayT: 0,
@@ -681,25 +607,22 @@ export default defineGame<IppunIsshoState>({
     n.poke = Math.max(0, n.poke - dt);
     if (n.pressT <= 0) n.pressBtn = -2;
 
-    /* 2. いまのフェーズの時計と、ゲーム内時間 `t` を進める */
+    /* 2. 一日ぶんの時間を流し続ける（とじない）。よるになると眠くなる */
     if (n.phase === 'open') {
       n.openT += dt;
       n.t += dt;
-      // 夜になったら眠る／朝になったら起きる（開けたまま見ていても Zzz が出る）
-      n.asleep = isNight(n.t);
-    } else if (n.phase === 'closed') {
-      n.closedT += dt;
+      n.asleep = isYoru(n.t);
     } else if (n.phase === 'bye' || n.phase === 'gone') {
       n.byeT += dt;
     }
 
-    /* 3. 入力（開いている間はいつでも受ける） */
-    if (takeTap(n)) handleTap(n, input.px, input.py, rng);
+    /* 3. 入力（いつでも受ける） */
+    if (takeTap(n)) handleTap(n, input.px, input.py);
 
-    /* 4. 開いている間に、目の前で減る・よわる（v4 の芯。design.md §3・§5） */
+    /* 4. 開いている間に、目の前で減る・よわる（design.md §3・§5） */
     if (n.phase === 'open' && n.alive) openDrain(n, dt);
 
-    /* 5. 時間で起きること（孵化・とじている処理・おわかれ） */
+    /* 5. 時間で起きること（孵化・せいちょう・おわかれ） */
     stepPhase(n, now, rng);
 
     return n;
@@ -708,15 +631,10 @@ export default defineGame<IppunIsshoState>({
   draw(g, s) {
     const [sx, sy] = shakeOffset(s, s.time);
     drawBody(g);
-    // おわかれは記念に集中させる。上帯は見出しだけ（芽は出さない）
     drawHeadRow(g, s);
     drawWindow(g, s, sx, sy);
-    if (s.phase === 'bye' || s.phase === 'gone') {
-      // ボタン・とじる・手引きを消す（design.md §7）
-    } else if (s.phase === 'closed') {
-      drawDayCard(g, s);
-      drawHelp(g, s);
-    } else {
+    // おわかれは記念に集中させる（ボタン・手引きを消す。design.md §7）
+    if (s.phase !== 'bye' && s.phase !== 'gone') {
       drawControls(g, s);
       drawHelp(g, s);
     }
@@ -726,7 +644,7 @@ export default defineGame<IppunIsshoState>({
    * 上手い人。**押すフレームだけ press を立てる**（押しっぱなしにすると、
    * aim では毎フレーム別の場所を押したことになってしまう）。
    * `% 21` ＝ 0.35秒に1手。ここを `% 2` にすると毎秒30タップの別人になる。
-   * 自動クローズが無いので、困りごとを片づけたら「とじる」を押して時間を進める。
+   * とじないので、困りごとに応え続けて一日を看取る。上手い人は「呼ぶ前」に先に応える。
    */
   bot(s) {
     const frame = Math.round(s.time * 60);
@@ -739,7 +657,7 @@ export default defineGame<IppunIsshoState>({
       py: BTN_Y + BTN_H / 2,
     });
     const char = { press: true, px: CHAR_X, py: FLOOR_Y - 30 };
-    const closeBtn = { press: true, px: W / 2, py: CLOSE_Y + CLOSE_H / 2 };
+    const star = { press: true, px: CHAR_X + 60, py: WIN_Y + 24 };
 
     switch (s.phase) {
       case 'egg':
@@ -750,8 +668,6 @@ export default defineGame<IppunIsshoState>({
         return s.time - s.phaseAt >= 0.6
           ? { press: true, px: NCARD_X[0] + NCARD_W / 2, py: NCARD_Y + NCARD_H / 2 }
           : idle;
-      case 'closed':
-        return idle;
       case 'bye':
       case 'gone':
         // 1.0秒ごとに次の行へ送る
@@ -760,33 +676,25 @@ export default defineGame<IppunIsshoState>({
         break;
     }
 
-    // 困っているものから順に片づける（design.md §9）
+    // 困っているものから順に。上手い人は「呼ぶ前」（AHEAD_AT）に先に応える（design.md §9）
     if (s.sick) return btn(3);
-    if (s.poop > 0) return btn(2);
-    // 「なでて」は寝る前のおねだりなので、ねんね中でも先に応える
+    if (s.asleep) return s.slept ? idle : btn(4);
     if (s.wantPet) return char;
-    if (s.asleep) {
-      // ねんね中は でんきだけ。消したら待って とじる。
-      // ここで「なでる」を試すと「すやすや…」が返るだけで永久に閉じない
-      if (s.lit) return btn(4);
-    } else {
-      if (s.hunger < 3) return btn(0);
-      if (s.mood < 3) return btn(1);
-      if (s.petThisOpen === 0) return char;
-    }
-    // 困りごとが無くなって 1.2秒たったら、手で とじる（+2 と カチッ）
-    if (s.openT >= OPEN_LOCK && s.openT >= s.lastActT + 1.2) return closeBtn;
+    if (s.hunger <= AHEAD_AT) return btn(0);
+    if (s.mood <= AHEAD_AT) return btn(1);
+    // ゆうがたの一番星は見つけたら取る（上振れ②）
+    if (starUp(s)) return star;
     return idle;
   },
 
   reason: (s) =>
     s.early
-      ? `${s.name || 'つぶ'}（${FORM_NAME[s.form]}）は ${s.endAge}さいで たねになった`
-      : `${s.name || 'つぶ'}（${FORM_NAME[s.form]}）は ${s.endAge}さいまで いきた`,
+      ? `${s.name || 'つぶ'}（${FORM_NAME[s.form]}）は ${whenLabel(s.endT)}に ちからつきた`
+      : `${s.name || 'つぶ'}（${FORM_NAME[s.form]}）と あさから よるまで いっしょだった`,
 
   tunables: {
     openDrain: {
-      label: '開いている間 1マス減る秒数',
+      label: '減りの速さ（1マスの秒数）',
       min: 3,
       max: 9,
       get: () => TUNE.openDrain,
@@ -794,17 +702,8 @@ export default defineGame<IppunIsshoState>({
         TUNE.openDrain = v;
       },
     },
-    closedJump: {
-      label: 'とじると飛ぶ秒数',
-      min: 4,
-      max: 14,
-      get: () => TUNE.closedJump,
-      set: (v) => {
-        TUNE.closedJump = v;
-      },
-    },
     weakToDie: {
-      label: 'よわり何回で死ぬか',
+      label: 'よわり何回で力尽きるか',
       min: 2,
       max: 8,
       get: () => TUNE.weakToDie,
@@ -825,51 +724,46 @@ export default defineGame<IppunIsshoState>({
  */
 function openDrain(n: IppunIsshoState, dt: number): void {
   const elder = stageOf(n.t) === 'elder';
-  if (elder) return; // 何も求めない余白
 
-  /* おなか・きげんが 5秒で1マス減る。減った瞬間に呼び出しが鳴る */
+  /* おなか・きげんが減る。ゆうがた以降（elder）はゆっくり（落ち着き）。ねんね中は減らない */
   if (!n.asleep) {
     n.drainT += dt;
-    if (n.drainT >= TUNE.openDrain) {
-      n.drainT -= TUNE.openDrain;
+    const span = elder ? TUNE.openDrain * 1.8 : TUNE.openDrain;
+    if (n.drainT >= span) {
+      n.drainT -= span;
       const hb = n.hunger;
       const mb = n.mood;
       n.hunger = Math.max(0, n.hunger - 1);
       n.mood = Math.max(0, n.mood - 1);
-      // ちょうど呼び出しの線に落ちたら鳴らす（1回だけ）
+      // ちょうど「呼んでいる」の線に落ちたら鳴らす（1回だけ）
       if ((hb > CALL_AT && n.hunger <= CALL_AT) || (mb > CALL_AT && n.mood <= CALL_AT)) beep(n);
     }
   }
 
-  /* うんちがひとりでに出る（放置で うんち→病気 を必ず通す） */
-  if (n.poop <= 0 && !n.asleep) {
-    n.poopClock += dt;
-    if (n.poopClock >= POOP_OPEN_EVERY) {
-      n.poopClock = 0;
-      n.poop = 1;
-      beep(n);
-    }
-  } else {
-    n.poopClock = 0;
+  /* あさ（あかちゃん）と ゆうがた以降は静かなので、8秒に一度「なでて」とねだる（見どころを絶やさない） */
+  const wantsPet = stageOf(n.t) === 'baby' || elder;
+  if (wantsPet && !n.wantPet && !n.sick && !n.asleep && n.mood >= 1 && n.openT - n.petAt >= 8) {
+    n.wantPet = true;
+    beep(n);
   }
 
-  /* うんちを置いたままだと病気になる（×目） */
-  if (n.poop > 0 && !n.sick) {
+  /* おなか0 か 退屈0 を放置すると、ぐあいがわるくなる（×目）。頭上にカプセル＝くすり */
+  if ((n.hunger <= 0 || n.mood <= 0) && !n.sick && !n.asleep) {
     n.sickClock += dt;
-    if (n.sickClock >= SICK_OPEN_AFTER) {
+    if (n.sickClock >= SICK_ONSET) {
       n.sickClock = 0;
       n.sick = true;
       n.sickDays++;
       beep(n);
       addShake(n, 0.2);
     }
-  } else {
+  } else if (!n.sick) {
     n.sickClock = 0;
   }
 
-  /* おなか0（起きているとき）または 病気のまま時間が進むと、よわりが溜まる。weak=6 で死。
-     ねんね中はおなかが空いても よわらない（眠っているだけ）。病気は寝ていても進む */
-  if ((n.hunger <= 0 && !n.asleep) || n.sick) {
+  /* おなか0／退屈0（起きているとき）／ぐあいわるい のまま時間が進むと、よわりが溜まる。
+     weak=weakToDie で力尽きる。ねんね中は空いても よわらない。ぐあいわるいは寝ていても進む */
+  if (((n.hunger <= 0 || n.mood <= 0) && !n.asleep) || n.sick) {
     n.weakT += dt;
     if (n.weakT >= WEAK_OPEN) {
       n.weakT -= WEAK_OPEN;
@@ -877,8 +771,8 @@ function openDrain(n: IppunIsshoState, dt: number): void {
       n.weakEver = true;
       if (n.weak >= 2) addShake(n, 0.1);
       if (n.weak >= TUNE.weakToDie) {
-        // 開いた画面で、その場で力尽きる（design.md §5）
-        n.endAge = Math.floor(ageYears(n.t));
+        // その場で力尽きる（design.md §5）。早い別れ
+        n.endT = n.t;
         n.alive = false;
         startBye(n, n.time, true);
       }
@@ -913,31 +807,11 @@ function stepPhase(n: IppunIsshoState, now: number, rng: Rng): void {
       break;
 
     case 'open':
-      // 開けっぱなしでも時間は進むので、育ちは開いた画面で「目の前で」起きる
-      if (n.alive) checkGrowth(n, true);
-      // 自動では閉じない。最期まで生きたら（開けっぱなしでも）おわかれへ
+      // 時間は流れ続ける。せいちょう（姿決定・ゆうがた）は目の前で起きる
+      if (n.alive) checkGrowth(n);
+      // よるの終わりまで生きたら、静かなおわかれへ
       if (n.alive && n.t >= T_BYE) startBye(n, now, false);
       break;
-
-    case 'closed': {
-      // とじているあいだの呼び出し。1増やすと共通シェルがピピッと1回鳴らす。
-      // 続けて鳴らすときはフレームを分ける（同じフレームで2増やしても1回に聞こえる）
-      if (calling(n)) {
-        if (n.beeped === 0 && n.closedT >= 0.9) {
-          beep(n);
-          n.beeped = 1;
-        } else if (n.beeped === 1 && n.closedT >= 1.9) {
-          beep(n);
-          n.beeped = 2;
-        }
-      }
-      if (n.closedT >= CLOSED_DUR) {
-        if (!n.alive) startBye(n, now, true);
-        else if (n.t >= T_BYE) startBye(n, now, false);
-        else openTurn(n, now);
-      }
-      break;
-    }
 
     case 'bye': {
       // 「…しずかだ」のあいだにピーピー鳴らす（死の音。フレームを分けて3回）
@@ -984,110 +858,16 @@ function openTurn(n: IppunIsshoState, now: number): void {
   n.phase = 'open';
   n.phaseAt = now;
   n.openT = 0;
-  n.closedT = 0;
-  n.petThisOpen = 0;
-  n.careThisOpen = 0;
-  n.fedThisOpen = false;
-  n.playedThisOpen = false;
-  n.lastActT = 0;
+  n.petAt = -99;
   n.beeped = 0;
-  n.litDone = false;
-  n.lit = true;
   n.drainT = 0;
   n.weakT = 0;
-  n.poopClock = 0;
   n.sickClock = 0;
-
-  // よるは眠い。でんきを消すと ぐっすり
-  n.asleep = isNight(n.t);
-  // とじている間に育っていたら、ここで「えっ、こうなったの」を見せる
-  if (n.growPending > 0) {
-    revealGrow(n, n.growPending);
-    n.growPending = 0;
-  }
-  // おとしより・あかちゃんは「なでて」とねだる（余白。design.md §3・§11）
-  const st = stageOf(n.t);
-  n.wantPet = !n.sick && !n.asleep && (st === 'elder' || (st === 'baby' && n.petted === 0 && n.t > 2)) && n.mood >= 2;
-
-  if (troubleOf(n) !== '') {
-    beep(n);
-    addShake(n, 0.15);
-  } else if (n.growT <= 0) {
-    speak(n, 'げんき！', 0.9);
-    addPop(n);
-  }
-  if (n.kuma) speak(n, 'ねむれなかった…', 1.6);
-}
-
-/**
- * とじる（手で押したときだけ）。**とじているあいだに起きることは、押した瞬間に1回でまとめて適用する**
- * （時間が飛ぶ）。表示だけを CLOSED_DUR 秒かけて見せる（design.md §3）。
- */
-function closeTurn(n: IppunIsshoState, now: number, rng: Rng): void {
-  const trouble = troubleOf(n);
-  const night = isNight(n.t);
-  const elder = stageOf(n.t) === 'elder';
-
-  // カチッ。困りごとが無ければ +2＋「ほっ」＋ハート、あれば「…」
-  n.click = (n.click ?? 0) + 1;
-  if (trouble === '') {
-    gain(n, P_CLOSE);
-    speak(n, 'ほっ', 1);
-    animate(n, 5); // とじる ほっ にもハート（design.md §4）
-    addPop(n);
-  } else {
-    speak(n, '…', 0.8);
-    n.missed++;
-  }
-
-  /* ① よわり判定（とじ飛び +1）。閉じる前に直せば必ず助かる。夜の空腹は数えない（眠っている） */
-  if (((n.hunger <= 0 && !night) || n.sick) && !elder) {
-    n.weak++;
-    n.weakEver = true;
-  }
-
-  /* ② おなかとごきげんが減る。ゆらぎの分だけ、同じ世話をしても子ごとに違う育ちになる */
-  n.hunger = Math.max(0, n.hunger - DROP_H - (rng.chance(DROP_WOBBLE) ? 1 : 0));
-  n.mood = Math.max(0, n.mood - DROP_M - (rng.chance(DROP_WOBBLE) ? 1 : 0));
-
-  /* ③ うんちを置いたままとじたら病気（夜は必ず） */
-  if (n.poop > 0 && !n.sick) {
-    if (rng.chance(night ? SICK_NIGHT_P : SICK_DAY_P)) {
-      n.sick = true;
-      n.sickDays++;
-    }
-  }
-
-  /* ④ ごはんをあげた回はうんちが出る（余白の回＝おとしよりは出さない） */
-  if (n.fedThisOpen && n.poop <= 0 && !elder && rng.chance(POOP_CLOSE_P)) n.poop = 1;
-
-  /* ⑤ 夜の でんき。消していれば ぐっすり、点けたままなら翌朝クマ */
-  if (night) {
-    if (n.litDone) {
-      n.mood = Math.min(METER_MAX, n.mood + 1);
-      n.kuma = false;
-    } else {
-      n.kuma = true;
-      n.mood = Math.max(0, n.mood - 2);
-    }
-  } else {
-    n.kuma = false;
-  }
-
-  /* ⑥ ゲーム内時間が飛ぶ。飛んだ先で育ちが起きるかもしれない */
-  n.t += TUNE.closedJump;
-  checkGrowth(n, false);
-
-  /* ⑦ よわりが たまりきったら、この とじている のあいだに死ぬ */
-  if (n.weak >= TUNE.weakToDie) {
-    n.alive = false;
-    n.endAge = Math.floor(ageYears(n.t));
-  }
-
-  n.phase = 'closed';
-  n.phaseAt = now;
-  n.closedT = 0;
-  n.beeped = 0;
+  n.asleep = isYoru(n.t);
+  // 生まれてすぐは たよりない。最初に「なでて」とこちらを見上げる
+  n.wantPet = !n.asleep && n.mood >= 2;
+  speak(n, 'こんにちは', 1);
+  addPop(n);
 }
 
 /** おわかれへ。§7 の順（手振り→沈む→たね→芽→記念4行） */
@@ -1100,16 +880,18 @@ function startBye(n: IppunIsshoState, now: number, early: boolean): void {
   n.early = early;
   n.alive = !early;
   n.asleep = false;
-  n.lit = true;
+  n.slept = false;
   n.wantPet = false;
   n.growT = 0;
   if (early) {
-    speak(n, '…しずかだ', BYE_WAVE);
+    // 早い別れ。ことばにならない「…」→ ピー（stepPhase）
+    speak(n, '…', BYE_WAVE);
     addShake(n, 0.5);
   } else {
-    n.endAge = 14;
+    // よるまで看取れた。静かな満足（design.md §7）
+    n.endT = T_BYE;
     gain(n, P_LIVED);
-    speak(n, 'ありがと', BYE_WAVE);
+    speak(n, 'きょう、たのしかった', BYE_WAVE);
     addPop(n);
     hitStop(n, 0.08);
   }
@@ -1118,83 +900,57 @@ function startBye(n: IppunIsshoState, now: number, early: boolean): void {
 /* ---- 育ち（design.md §5）-------------------------------------------- */
 
 /**
- * せいちょう①（t=12）。
- * 条件は式ではなく「ぼかした一言」で見せる（本家は条件が隠されていた）。
- *
- * 🔴 のら の条件を設計 v4 の「weakEver かつ missed≥2」から実測で置き直した。
- * t=12 は とじ飛び（+8秒）で 1〜2回しか閉じないうちに来るので、その時点では
- * missed は 1 まで・weakEver はまだ立たない（おなかが 0 になるのは開けて 15秒後）。
- * そのままだと のら／なつき／たび が**到達不能**で、放置（idle）が ぽよ→もふ になり
- * 記念「ひとりで すごした」と「たくさん なでられたから」が矛盾していた。
- * **一度も世話していない（fed=0 かつ played=0）＝ ひとりで がんばった** を のら にする。
- * これで放置は のら→たび（下の adultForm）になり、記念と一貫する。
- * 世話する人（fed か played が1以上）はここに落ちないので、きらは保たれる。
+ * 姿が決まる（design.md §5）。ひるの中ほど（GROW_AT=20）に1回だけ。
+ * 条件は式ではなく、記念の「ぼかした一言」で見せる（本家は条件が隠されていた）。
+ * いちばん多く応えたもの＝その子の性格。まったく世話しなかった子は「たび」（ひとりで生きた）。
+ * きら（上振れ①）は だいじに育てた証で、放置の子は入らない。
  */
-function childForm(s: IppunIsshoState): Form {
-  if (s.fed === 0 && s.played === 0) return 'nora';
+function formOf(s: IppunIsshoState): Form {
+  if (s.lucky && !s.weakEver && s.sickDays === 0 && s.fed + s.played + s.petted >= 3) return 'kira';
+  if (s.fed === 0 && s.played === 0 && s.petted === 0) return 'tabi';
+  if (s.petted >= s.fed && s.petted >= s.played) return 'mofu';
   if (s.fed > s.played) return 'koro';
   if (s.played > s.fed) return 'pyon';
   return 'poyo';
 }
 
-/** せいちょう②（t=26）。ここで姿が決まる */
-function adultForm(s: IppunIsshoState): Form {
-  // きら＝だいじに そだてられた。一度も世話されなかった のら の子はここに落ちない
-  if (s.lucky && !s.weakEver && s.sickDays === 0 && s.child !== 'nora') return 'kira';
-  if (s.child === 'nora') {
-    // 途中から関わった（世話が戻った）子は なつき（そばに いた）。
-    // ずっと放ったらかし＝一度も触れられていない子は たび（じぶんの みちを いく）。
-    // ※放置（idle）は fed=played=petted=0 なので必ず たび になり、記念「ひとりで すごした」と一貫する。
-    //   ここで「そばに いた」＝なつき にすると、放置なのに嘘の理由が出てしまう
-    const engaged = s.fed + s.played + s.petted > 0;
-    return engaged && s.missed - s.missedAtChild === 0 ? 'natsuki' : 'tabi';
-  }
-  if (s.child === 'koro') return 'manmaru';
-  if (s.child === 'pyon') return 'hane';
-  return 'mofu';
-}
-
 /**
- * `t` が育ちの時刻を越えていたら育てる。
- * 開いている間の越えは その場で見せ（reveal=true）、とじ飛びの越えは次に開けたときに見せる。
+ * `t` がせいちょうの時刻を越えていたら育てる（とじないので目の前で起きる。reveal は常に）。
+ * stage 1＝姿が決まる（GROW_AT=20）／ stage 2＝ゆうがたに落ち着く（T_DUSK=28）。
  */
-function checkGrowth(n: IppunIsshoState, reveal: boolean): void {
-  const want = n.t >= T_ELDER ? 3 : n.t >= GROW_T_ADULT ? 2 : n.t >= GROW_T_CHILD ? 1 : 0;
+function checkGrowth(n: IppunIsshoState): void {
+  const want = n.t >= T_DUSK ? 2 : n.t >= GROW_AT ? 1 : 0;
   while (n.growStage < want) {
     const stage = n.growStage + 1;
     applyGrowth(n, stage);
     n.growStage = stage;
-    if (reveal) revealGrow(n, stage);
-    else n.growPending = stage;
+    revealGrow(n, stage);
   }
 }
 
-/** 育ちの中身（姿・点数）を適用する。見出しは reveal 側でつける */
+/** 育ちの中身（姿・点数）を適用する。見出しは revealGrow がつける */
 function applyGrowth(n: IppunIsshoState, stage: number): void {
   if (stage === 1) {
-    n.form = childForm(n);
+    // ひるの中ほど。ここで姿が決まる
+    n.form = formOf(n);
     n.child = n.form;
-    n.missedAtChild = n.missed;
-    gain(n, P_GROW);
-  } else if (stage === 2) {
-    n.form = adultForm(n);
     gain(n, P_GROW);
     if (n.form === 'kira') {
       // 先に +15 を入れてから ×倍率 を有効にする（そのぶんまで倍率にすると効きすぎる）
       n.score += P_KIRA;
       n.kira = true;
     }
-  } else if (stage === 3) {
-    // おとしよりは姿はそのまま（白い眉・杖は t で描く）
+  } else if (stage === 2) {
+    // ゆうがた。姿はそのまま、動きがゆっくり・色が淡くなる（t で描く）
     gain(n, P_ELDER);
   }
 }
 
-/** せいちょうの見出しを出す（開けた瞬間に見える） */
+/** せいちょうの見出しを出す（目の前で見える） */
 function revealGrow(n: IppunIsshoState, stage: number): void {
   n.growT = GROW_BANNER_T;
-  if (stage === 3) {
-    n.growText = 'おとしよりに なった';
+  if (stage === 2) {
+    n.growText = 'ゆうがた';
     n.growWhy = 'ゆっくり あるいている';
   } else {
     n.growText = `${FORM_NAME[n.form]}に なった`;
@@ -1208,7 +964,7 @@ function revealGrow(n: IppunIsshoState, stage: number): void {
  * 入力（無反応ゼロ。design.md §2 の表）
  * ================================================================== */
 
-function handleTap(n: IppunIsshoState, px: number, py: number, rng: Rng): void {
+function handleTap(n: IppunIsshoState, px: number, py: number): void {
   /* たまご: どこを押しても ぽかぽか */
   if (n.phase === 'egg') {
     n.poke = 0.35;
@@ -1221,13 +977,6 @@ function handleTap(n: IppunIsshoState, px: number, py: number, rng: Rng): void {
       speak(n, 'もうすこし', 0.8);
     }
     addPop(n);
-    return;
-  }
-
-  /* とじている: 押しても開かない。本体が小さく揺れる */
-  if (n.phase === 'closed') {
-    addShake(n, 0.35);
-    speak(n, '…いまは ひらけない', 1);
     return;
   }
 
@@ -1259,24 +1008,22 @@ function handleTap(n: IppunIsshoState, px: number, py: number, rng: Rng): void {
     case 'btn':
       n.pressBtn = hit.i;
       n.pressT = 0.18;
-      n.lastActT = n.openT;
       doCare(n, BTN_KINDS[hit.i]);
       return;
-    case 'close':
-      n.pressBtn = -1;
-      n.pressT = 0.18;
-      if (n.openT < OPEN_LOCK) {
-        speak(n, 'まだ ひらいたばかり', 0.9);
-        addShake(n, 0.2);
-        return;
-      }
-      closeTurn(n, n.time, rng);
-      return;
     case 'char':
-      n.lastActT = n.openT;
       pet(n);
       return;
     case 'window':
+      // ゆうがたの空に一番星（上振れ②）。空の上のほうをタップして取る
+      if (starUp(n) && py < FLOOR_Y - BODY_H) {
+        gain(n, P_HOSHI);
+        n.hoshiGot = true;
+        speak(n, 'いちばんぼし！', 1.3);
+        animate(n, 5);
+        addPop(n);
+        hitStop(n, 0.06);
+        return;
+      }
       n.lookX = px < CHAR_X ? -1 : 1;
       speak(n, 'ん？', 0.7);
       return;
@@ -1300,49 +1047,39 @@ function healWeak(n: IppunIsshoState): boolean {
 
 /** 世話ボタン5つ（design.md §2 の反応表。押して無反応になる枝を作らない） */
 function doCare(n: IppunIsshoState, kind: Kind): void {
-  // どの世話でも、よわっていたら「…まってたよ」。5つすべてにハート（design.md §4）
+  // どの世話でも、よわっていたら「…まってたよ」（罪悪感が愛着に変わる。design.md §4）
   switch (kind) {
-    case 'gohan':
+    case 'gohan': {
       if (n.asleep) return sleepy(n);
       if (n.sick) return cantDo(n, 'たべられない…');
       if (n.hunger >= METER_MAX) return shakeNo(n, 'いらない');
-      gain(n, n.hunger <= CALL_AT ? P_ANSWER : P_AHEAD);
+      const ahead = n.hunger > CALL_AT; // 呼ぶ前（かすかに気にする）に先に気づいた
+      gain(n, ahead ? P_AHEAD : P_ANSWER);
       n.hunger = Math.min(METER_MAX, n.hunger + 1);
       n.fed++;
-      n.fedThisOpen = true;
-      n.careThisOpen++;
       animate(n, 1);
-      speak(n, healWeak(n) ? '…まってたよ' : 'もぐもぐ');
+      speak(n, healWeak(n) ? '…まってたよ' : ahead ? 'わかってる！' : 'もぐもぐ');
       addPop(n);
       return;
+    }
 
-    case 'asobu':
+    case 'asobu': {
       if (n.asleep) return sleepy(n);
       if (n.sick) return cantDo(n, 'あそべない…');
       if (n.mood >= METER_MAX) return shakeNo(n, 'いらない');
-      gain(n, n.mood <= CALL_AT ? P_ANSWER : P_AHEAD);
+      const ahead = n.mood > CALL_AT;
+      gain(n, ahead ? P_AHEAD : P_ANSWER);
       n.mood = Math.min(METER_MAX, n.mood + 1);
       n.played++;
-      n.playedThisOpen = true;
-      n.careThisOpen++;
       animate(n, 2);
-      speak(n, healWeak(n) ? '…まってたよ' : 'たのしい！');
+      speak(n, healWeak(n) ? '…まってたよ' : ahead ? 'わかってる！' : 'たのしい！');
       addPop(n);
       return;
+    }
 
-    case 'souji':
-      // ねんね中でも片づけられる。ここを塞ぐと夜に手が無く、
-      // 「閉じる前に直せば必ず助かる」（design.md §5）が成り立たなくなる
-      if (n.poop <= 0) return shakeNo(n, 'きれいだよ');
-      gain(n, P_ANSWER);
-      n.poop = 0;
-      n.poopClock = 0;
-      n.sickClock = 0;
-      n.cleaned++;
-      n.careThisOpen++;
-      animate(n, 3);
-      speak(n, healWeak(n) ? '…まってたよ' : n.asleep ? 'そっと かたづけた' : 'きれいに なった');
-      addPop(n);
+    case 'nade':
+      // なでる（ボタン）＝つぶをタップと同じ
+      pet(n);
       return;
 
     case 'kusuri':
@@ -1351,46 +1088,34 @@ function doCare(n: IppunIsshoState, kind: Kind): void {
       n.sick = false;
       n.sickClock = 0;
       n.cured++;
-      n.careThisOpen++;
       animate(n, 4);
       speak(n, healWeak(n) ? '…まってたよ' : 'なおった！');
       addPop(n);
       hitStop(n, 0.06);
       return;
 
-    case 'denki':
-      if (n.asleep && n.lit) {
-        gain(n, P_ANSWER);
-        n.lit = false;
-        n.litDone = true;
-        n.litCount++;
-        n.careThisOpen++;
-        animate(n, 6);
-        speak(n, healWeak(n) ? '…まってたよ' : 'ぐっすり', 1.3);
-        addPop(n);
-        return;
-      }
-      if (n.asleep) return shakeNo(n, 'おやすみ');
-      // 昼に消しても、まぶしくないので すぐ点く
-      n.blackout = 0.45;
-      speak(n, 'まっくら！', 0.9);
-      addShake(n, 0.2);
-      return;
-
-    case 'bikkuri':
+    case 'oyasumi':
+      // よるだけ。まだ眠くないと やわらかく断る
+      if (!n.asleep) return shakeNo(n, 'まだ ねむくない');
+      if (n.slept) return shakeNo(n, 'すやすや…');
+      gain(n, P_ANSWER);
+      n.slept = true;
+      n.blackout = 0.6; // 寝かしつけ。液晶が暗くなる
+      animate(n, 6);
+      speak(n, healWeak(n) ? '…まってたよ' : 'おやすみ', 1.3);
+      addPop(n);
       return;
   }
 }
 
-/** つぶをタップ = なでる */
+/** つぶをタップ = なでる（なでるボタンからも呼ぶ） */
 function pet(n: IppunIsshoState): void {
-  const elder = stageOf(n.t) === 'elder';
   // 「なでて」はおねだりなので、ねんね中でも応えられる
   if (n.wantPet) {
     gain(n, P_PET_ASKED);
     n.wantPet = false;
     n.petted++;
-    n.careThisOpen++;
+    n.petAt = n.openT;
     animate(n, 5);
     speak(n, healWeak(n) ? '…まってたよ' : 'うれしい！', 1.2);
     addPop(n);
@@ -1401,22 +1126,22 @@ function pet(n: IppunIsshoState): void {
   if (n.sick) {
     speak(n, 'つらそう…', 1);
     n.lookX = 0;
-    animate(n, 5);
+    animate(n, 3);
     return;
   }
-  if (n.petThisOpen === 0) {
+  // 前になでてから間があいていれば点が入る（連打では入らない）
+  if (n.openT - n.petAt >= 4) {
     gain(n, P_PET);
-    n.petThisOpen++;
     n.petted++;
-    animate(n, 5);
-    speak(n, healWeak(n) ? '…まってたよ' : elder ? '…' : 'にこっ');
+    n.petAt = n.openT;
+    animate(n, 3);
+    speak(n, healWeak(n) ? '…まってたよ' : 'にこっ');
     addPop(n);
     return;
   }
-  // 2回目から点は入らないが、必ず何か返す（無反応にしない）
-  n.petThisOpen++;
-  animate(n, 5);
-  speak(n, elder ? '…' : 'ふふ', 0.7);
+  // 連打では点は入らないが、必ず何か返す（無反応にしない）
+  animate(n, 3);
+  speak(n, 'ふふ', 0.7);
 }
 
 function sleepy(n: IppunIsshoState): void {
@@ -1469,12 +1194,12 @@ function drawBody(g: Painter): void {
   g.clear('bg2');
 }
 
-/** 上の帯: 左に「◯にちめ・あさ」、まん中に芽5つ、右に年齢 */
+/** 上の帯: 左に時間帯、まん中に芽5つ、右に太陽／月の位置（年齢・◯にちめは廃止） */
 function drawHeadRow(g: Painter, s: IppunIsshoState): void {
   if (s.phase === 'bye' || s.phase === 'gone') {
     const head = s.early
-      ? `${s.name || 'つぶ'}・${s.endAge}さいで`
-      : `${s.name || 'つぶ'}・${s.endAge}さいまで いきた`;
+      ? `${s.name || 'つぶ'}・${whenLabel(s.endT)}に`
+      : `${s.name || 'つぶ'}・よるまで いっしょ`;
     g.text(head, W / 2, HEAD_Y, { size: 12, align: 'center', color: 'ink' });
     return;
   }
@@ -1483,14 +1208,32 @@ function drawHeadRow(g: Painter, s: IppunIsshoState): void {
   } else if (s.phase === 'name') {
     g.text('うまれた', 6, HEAD_Y, { size: 12, color: 'ink' });
   } else {
-    g.text(`${dayNum(s.t)}にちめ・${whenLabel(s.t)}`, 6, HEAD_Y, { size: 12, color: 'ink' });
-    g.text(`${Math.floor(ageYears(s.t))}さい`, W - 6, HEAD_Y - 3, {
-      size: 16,
-      align: 'right',
-      color: 'ink',
-    });
+    // 時間帯だけ（一日の流れ）。右に太陽／月の位置で「あと少し」を伝える
+    g.text(whenLabel(s.t), 6, HEAD_Y, { size: 12, color: 'ink' });
+    drawSky(g, s.t);
   }
   drawSprouts(g, s);
+}
+
+/** 上帯の右、一日の流れ（太陽→月）。あさ左→ひる高く→よるは沈んで月に変わる */
+function drawSky(g: Painter, t: number): void {
+  const x0 = W - 82;
+  const span = 72;
+  const p = Math.min(1, Math.max(0, t / T_BYE));
+  const cx = x0 + p * span;
+  const cy = HEAD_Y - 1 - Math.sin(p * Math.PI) * 8;
+  if (t >= T_NIGHT) {
+    // 月（三日月。本体色で欠けを抜く）
+    g.circle(cx, cy, 6, 'ink');
+    g.circle(cx + 3, cy - 2, 5, 'bg2');
+  } else {
+    // 太陽
+    g.circle(cx, cy, 4, 'ink');
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      g.rect(cx + Math.cos(a) * 7 - 1, cy + Math.sin(a) * 7 - 1, 2, 2, 'ink');
+    }
+  }
 }
 
 /**
@@ -1579,13 +1322,11 @@ function drawWindow(g: Painter, s: IppunIsshoState, sx: number, sy: number): voi
     } else if (s.phase === 'bye' || s.phase === 'gone') {
       drawBye(g, s, sx, sy, ink, hole);
     } else {
-      drawIconRow(g, s, ink, hole);
-      drawMeters(g, s, ink, hole);
-      // 床。とじているあいだも同じ位置に出して「同じ場所を覗いている」ことを保つ
+      // 床
       g.rect(WIN_X + 4, FLOOR_Y, WIN_W - 8, 2, ink);
-      drawPoop(g, s, ink, hole);
       drawTsubu(g, s, CHAR_X + sx, FLOOR_Y + sy, ink, hole);
-      drawBang(g, s, ink);
+      drawWish(g, s, ink, hole); // 頭上のしぐさアイコン（欲しいもの1つ）
+      drawStar(g, s, ink); // ゆうがたの一番星（上振れ②）
       drawGrow(g, s, ink);
     }
     drawSay(g, s, ink);
@@ -1598,102 +1339,26 @@ function drawWindow(g: Painter, s: IppunIsshoState, sx: number, sy: number): voi
 
 /* ---- 窓の中身 -------------------------------------------------------- */
 
-/** 上辺のアイコン列。いま欲しいものだけ反転して点滅する（手が覚えている位置） */
-function drawIconRow(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
-  const blink = Math.floor(s.time * 4) % 2 === 0;
-  for (let i = 0; i < ICON_KINDS.length; i++) {
-    const kind = ICON_KINDS[i];
-    const cx = ICON_X0 + i * ICON_GAP;
-    const on = wanted(s, kind);
-    if (on && blink) {
-      g.rect(cx - 9, ICON_Y - 9, 18, 18, ink);
-      if (kind === 'bikkuri') {
-        g.text('！', cx, ICON_Y, { size: 14, align: 'center', baseline: 'middle', color: hole });
-      } else {
-        drawIcon(g, kind, cx, ICON_Y, 13, hole, ink);
-      }
-      continue;
-    }
-    const c: ColorKey = on ? ink : 'dim';
-    if (kind === 'bikkuri') {
-      g.text('！', cx, ICON_Y, { size: 14, align: 'center', baseline: 'middle', color: c });
-    } else {
-      drawIcon(g, kind, cx, ICON_Y, 13, c, s.phase === 'closed' ? 'ink' : 'bg');
-    }
-  }
-}
-
 /**
- * メーター。●が1つになった行だけ点滅する。
- * 点滅は**行ごと反転**で作る（●を消して作ると「0になった」に見えて嘘になる）。
- * **いちばん右の●は、開いている間じわじわ削れていく**（v4 の芯：目の前で減る）。
+ * 頭上のしぐさアイコン（design.md §2）。troubleOf の「呼んでいる」1件を、
+ * 対応ボタンと同じ絵で頭上に出す（凡例代わり。頭上とボタンで同じ絵＝視線がつながる）。
  */
-function drawMeters(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
-  const rows: [string, number, number][] = [
-    ['おなか', s.hunger, METER_Y1],
-    ['きげん', s.mood, METER_Y2],
-  ];
-  const blink = Math.floor(s.time * 4) % 2 === 0;
-  // 開いていて、眠っておらず、余白でもないときは、いちばん右の●が減っている最中
-  const draining = s.phase === 'open' && !s.asleep && stageOf(s.t) !== 'elder';
-  const prog = draining ? Math.min(1, s.drainT / TUNE.openDrain) : 0;
-  // ●が1つになった行は点滅するが、**反転させるのは●の並びだけ**。
-  // ラベルまで反転させると濁点が潰れて「きげん」→「きけん」に読める（design.md §2）
-  const PIP_X = 48;
-  const PIP_W = METER_MAX * 9 + 10;
-  for (const [label, v, y] of rows) {
-    const flip = v <= CALL_AT && blink;
-    // ラベルは常に ink のまま（読める向きを崩さない）
-    g.text(label, METER_X, y, { size: 10, color: ink });
-    if (flip) g.rect(PIP_X, y - 2, PIP_W, 14, ink);
-    const fg: ColorKey = flip ? hole : ink;
-    const empty: ColorKey = flip ? hole : 'dim';
-    for (let i = 0; i < METER_MAX; i++) {
-      const x = METER_X + 36 + i * 9;
-      if (i < v) {
-        // いちばん右の●だけ、減っている分だけ上から欠ける
-        if (i === v - 1 && draining && prog > 0) {
-          const hgt = Math.max(1, Math.round(6 * (1 - prog)));
-          g.rect(x, y + 2 + (6 - hgt), 6, hgt, fg);
-        } else {
-          g.rect(x, y + 2, 6, 6, fg);
-        }
-      } else {
-        g.rect(x, y + 2, 6, 1, empty);
-        g.rect(x, y + 7, 6, 1, empty);
-        g.rect(x, y + 3, 1, 4, empty);
-        g.rect(x + 5, y + 3, 1, 4, empty);
-      }
-    }
-  }
+function drawWish(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
+  const kind = troubleOf(s);
+  if (kind === '') return;
+  // 病気（見落としの結果）は点滅させず常時出す＝「くすり」を確実に伝える。ほかはゆっくり点滅（1つだけ）
+  if (!s.sick && Math.floor(s.time * 4) % 2 !== 0) return;
+  drawIcon(g, kind, CHAR_X + 42, FLOOR_Y - BODY_H - 4, 16, ink, hole);
 }
 
-/** うんちは3つ山の丘型（渦巻きにしない・目を付けない。design.md §12） */
-function drawPoop(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
-  if (s.poop <= 0) return;
-  // とじているあいだは、閉じてから少し置いてポトッと落ちる
-  if (s.phase === 'closed' && s.closedT < 1) return;
-  const drop = s.phase === 'closed' && s.closedT < 1.25 ? (1.25 - s.closedT) * 60 : 0;
-  const y = POOP_Y - drop;
-  g.rect(POOP_X - 12, y + 6, 24, 4, ink);
-  g.circle(POOP_X - 7, y + 5, 6, ink);
-  g.circle(POOP_X + 7, y + 5, 6, ink);
-  g.circle(POOP_X, y - 3, 7, ink);
-  // 目は付けない。山の段だけを抜いて「うんち」に見せる（小さいお友達に見えないように）
-  g.rect(POOP_X - 9, y + 2, 18, 1, hole);
-  g.rect(POOP_X - 5, y - 3, 10, 1, hole);
-}
-
-/**
- * 液晶の中で点滅する大きな「！」。
- * とじているあいだ（呼び出し中）と、**ひらいた瞬間に困りごとがあるとき**に出す。
- * これが「しまった」の第一報になる（design.md §4・§11）。
- */
-function drawBang(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
-  const on = s.phase === 'closed' ? calling(s) : s.openT < OPEN_BANG && troubleOf(s) !== '';
-  if (!on) return;
-  if (Math.floor(s.time * 4) % 2 !== 0) return;
-  g.text('！', CHAR_X + 44, FLOOR_Y - 66, { size: 20, align: 'center', color: ink });
+/** ゆうがたの空に一番星（上振れ②）。ichiban の子だけ・取るまで きらめく */
+function drawStar(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
+  if (!starUp(s)) return;
+  const cx = CHAR_X + 60;
+  const cy = WIN_Y + 24;
+  const r = Math.floor(s.time * 3) % 2 === 0 ? 6 : 3;
+  g.rect(cx - 1, cy - r, 3, r * 2 + 1, ink);
+  g.rect(cx - r, cy - 1, r * 2 + 1, 3, ink);
 }
 
 /** せいちょうの見出しと理由。消灯中は反転しているので色を受け取る */
@@ -1950,19 +1615,19 @@ function bodyOf(form: Form, child: Form): readonly string[] {
 }
 
 /** その回のつぶの表情 */
-type Mood = 'futsu' | 'niko' | 'shon' | 'nemu' | 'kaze' | 'kuma';
+type Mood = 'futsu' | 'niko' | 'shon' | 'nemu' | 'kaze' | 'kininaru';
 
 function moodOf(s: IppunIsshoState): Mood {
   // 見送りの顔。最期まで生きた子は、こちらを見て笑って手を振る
   if (s.phase === 'bye' || s.phase === 'gone') return 'niko';
   if (s.sick) return 'kaze';
   if (s.asleep) return 'nemu';
-  if (s.kuma) return 'kuma';
   // よわっているときは しょんぼり（よぼよぼの予兆）
   if (s.phase === 'open' && s.weak >= 2) return 'shon';
   if (s.animT > 0 && (s.animKind === 2 || s.animKind === 5)) return 'niko';
   if (s.noT > 0) return 'shon';
-  if (troubleOf(s) !== '') return 'shon';
+  if (troubleOf(s) !== '') return 'shon'; // はっきり困る（頭上に合図が出ている）
+  if (wishOf(s) !== '') return 'kininaru'; // 呼ぶ前・かすかに気にする（design.md §2 中段）
   if (s.phase === 'open') return 'niko';
   return 'futsu';
 }
@@ -1981,17 +1646,27 @@ function drawTsubu(
 ): void {
   const elder = stageOf(s.t) === 'elder' && s.phase !== 'name';
   const weakling = s.phase === 'open' && s.weak >= 2;
+  // 困っている（頭上に合図が出ている）子は動きが鈍い。呼ぶ前は落ち着かない（そわそわ）
+  const trouble = s.phase === 'open' && troubleOf(s) !== '';
+  const fret = s.phase === 'open' && wishOf(s) !== '';
   const still =
-    s.asleep || s.sick || weakling || s.phase === 'name' || s.phase === 'bye' || s.phase === 'gone';
-  // 2コマの差分で左右にちょこまか。おとしより・よぼよぼはゆっくり
-  const beat = Math.floor(s.time * (elder ? 1.3 : 2.8)) % 2;
-  const walk = still ? 0 : (beat === 0 ? -1 : 1) * (elder ? 3 : 6);
+    s.asleep ||
+    s.sick ||
+    weakling ||
+    trouble ||
+    s.phase === 'name' ||
+    s.phase === 'bye' ||
+    s.phase === 'gone';
+  // 2コマの差分で左右にちょこまか。そわそわは速く小さく、おとしより・よぼよぼはゆっくり
+  const rate = fret ? 3.6 : elder ? 1.3 : 2.8;
+  const beat = Math.floor(s.time * rate) % 2;
+  const walk = still ? 0 : (beat === 0 ? -1 : 1) * (fret ? 4 : elder ? 3 : 6);
   const hop = !still && s.animT > 0 && s.animKind === 2 ? 10 : 0;
   const scale = DOT;
   // 弾みは大きさではなく「浮き」で出す（ドットの大きさが変わるとにじむ）
   const lift = Math.round(s.pop * 5);
-  // よぼよぼは少し沈む
-  const sag = weakling ? 4 : 0;
+  // よぼよぼ・ぐあいわるい・困っている子は沈む（体で「たいへん」が分かるように）
+  const sag = weakling ? 4 : s.sick ? 3 : trouble ? 2 : elder ? 1 : 0;
   const w = 16 * scale;
   const h = BODY_H;
   const x = Math.round(cx + walk - w / 2);
@@ -2032,13 +1707,7 @@ function drawTsubu(
       g.rect(px - 5, py - 1, 11, 3, ink);
     }
   }
-  if (elder) {
-    // 杖。おとしよりの回だけ
-    g.rect(x + w + 4, y + 26, 3, 38, ink);
-    g.rect(x + w + 4, y + 22, 9, 3, ink);
-  }
-
-  drawFace(g, s, cx + walk, y, ink, hole, elder);
+  drawFace(g, s, cx + walk, y, ink, hole);
 
   /* まわりの絵 */
   if (s.asleep) {
@@ -2057,12 +1726,6 @@ function drawTsubu(
   if (s.animT > 0 && s.animKind >= 1) {
     g.sprite(HEART, cx + walk + 30, y + 8, { scale: 3, colors: { X: ink }, center: true });
   }
-  if (s.animT > 0 && s.animKind === 3) {
-    // しゅっ。片づけた線
-    for (let i = 0; i < 3; i++) {
-      g.rect(POOP_X - 14 + i * 10, POOP_Y - 10 - i * 4, 8, 2, ink);
-    }
-  }
   if (s.animT > 0 && s.animKind === 4) {
     g.text('…', cx + walk + 32, y + 6, { size: 14, align: 'center', color: ink });
   }
@@ -2079,18 +1742,12 @@ function drawFace(
   top: number,
   ink: ColorKey,
   hole: ColorKey,
-  elder: boolean,
 ): void {
   const mood = moodOf(s);
   const ey = top + (s.form === 'pyon' || s.form === 'hane' ? 30 : 26);
   // たまに こちらを見る。ふだんは進む方を見ている
   const look = Math.floor(s.time / 3.2) % 3 === 0 ? 0 : s.lookX !== 0 ? s.lookX * 2 : 0;
   const ex = [cx - 13 + look, cx + 7 + look];
-
-  if (elder) {
-    // 白い眉（体に空けた横線）
-    for (const x of ex) g.rect(x - 2, ey - 9, 10, 3, hole);
-  }
 
   for (const x of ex) {
     switch (mood) {
@@ -2106,9 +1763,9 @@ function drawFace(
         g.rect(x - 1, ey + 1, 2, 3, hole);
         g.rect(x + 5, ey + 1, 2, 3, hole);
         break;
-      case 'kuma':
-        g.rect(x, ey, 6, 6, hole);
-        g.rect(x - 1, ey + 9, 8, 2, hole);
+      case 'kininaru':
+        // かすかに気にする。目を少し上に（きょろっと）
+        g.rect(x, ey - 1, 6, 6, hole);
         break;
       case 'shon':
         g.rect(x, ey + 2, 6, 5, hole);
@@ -2198,10 +1855,8 @@ function drawEpitaph(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
   const care: [string, number][] = [
     ['ごはん', s.fed],
     ['あそび', s.played],
-    ['そうじ', s.cleaned],
     ['なでなで', s.petted],
     ['おくすり', s.cured],
-    ['でんき', s.litCount],
   ];
   const parts = care
     .filter(([, v]) => v > 0)
@@ -2224,42 +1879,11 @@ function drawEpitaph(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
   else if (favTop) lines.push(`いちばん すきだったのは ${favName}`);
   else lines.push(`ほんとうは ${favName}が すきだった`);
 
-  lines.push(s.early ? `${s.endAge}さいで たねに なった` : `${s.endAge}さいまで いきた`);
+  lines.push(s.early ? `${whenLabel(s.endT)}に ちからつきた` : 'あさから よるまで いっしょだった');
 
   for (let i = 0; i < Math.min(s.epShown, 4); i++) {
     g.text(lines[i], W / 2, EPI_Y + i * EPI_LINE, { size: 10, align: 'center', color: ink });
   }
-}
-
-/* ---- とじているあいだの札と時計 -------------------------------------- */
-
-function drawDayCard(g: Painter, s: IppunIsshoState): void {
-  // その時間帯の「自分の一日」（カタカナ語は出さない）
-  const when = whenLabel(s.t);
-  const label =
-    when === 'よる' ? 'ねる' : when === 'ゆうがた' ? 'ゆうがた' : when === 'あさ' ? 'がっこうへ' : 'ごご';
-  const hour = when === 'よる' ? 22 : when === 'ゆうがた' ? 17 : when === 'あさ' ? 8 : 15;
-  g.text(`${dayNum(s.t)}にちめ・${label}`, W / 2, CARD_Y, {
-    size: 14,
-    align: 'center',
-    color: 'ink',
-  });
-
-  // 時計。文字を使わずに時刻を出す（英数字も絵文字も使わない）
-  g.circleLine(CLOCK_X, CLOCK_Y, CLOCK_R, 'ink', 2);
-  for (let k = 0; k < 12; k++) {
-    const a = (k / 12) * Math.PI * 2 - Math.PI / 2;
-    g.rect(
-      CLOCK_X + Math.cos(a) * (CLOCK_R - 5) - 1,
-      CLOCK_Y + Math.sin(a) * (CLOCK_R - 5) - 1,
-      2,
-      2,
-      'ink',
-    );
-  }
-  const ha = ((hour % 12) / 12) * Math.PI * 2 - Math.PI / 2;
-  g.line(CLOCK_X, CLOCK_Y, CLOCK_X + Math.cos(ha) * 10, CLOCK_Y + Math.sin(ha) * 10, 'ink', 3);
-  g.line(CLOCK_X, CLOCK_Y, CLOCK_X, CLOCK_Y - 16, 'ink', 2);
 }
 
 /* ---- とじる と 世話ボタン -------------------------------------------- */
@@ -2267,19 +1891,7 @@ function drawDayCard(g: Painter, s: IppunIsshoState): void {
 function drawControls(g: Painter, s: IppunIsshoState): void {
   const live = s.phase === 'open';
 
-  /* とじる。幅いっぱいの反転ボタン */
-  const pressed = s.pressT > 0 && s.pressBtn === -1;
-  g.rect(WIN_X, CLOSE_Y, WIN_W, CLOSE_H, pressed ? 'bg' : 'ink');
-  g.rect(WIN_X + 2, CLOSE_Y + 2, WIN_W - 4, CLOSE_H - 4, pressed ? 'ink' : 'bg');
-  g.rect(WIN_X + 3, CLOSE_Y + 3, WIN_W - 6, CLOSE_H - 6, pressed ? 'bg' : 'ink');
-  g.text('とじる（ポケットに しまう）', W / 2, CLOSE_Y + CLOSE_H / 2, {
-    size: 11,
-    align: 'center',
-    baseline: 'middle',
-    color: pressed ? 'ink' : 'bg',
-  });
-
-  /* 世話ボタン5つ。押した瞬間は反転 */
+  /* 世話ボタン5つ。押した瞬間は反転（とじるは廃止＝一日を見守り続ける） */
   for (let i = 0; i < 5; i++) {
     const x = BTN_X0 + i * BTN_GAP;
     const hot = s.pressT > 0 && s.pressBtn === i;
@@ -2303,15 +1915,13 @@ function drawHelp(g: Painter, s: IppunIsshoState): void {
   // 9px で 240px に収まる長さに切ってある（1行に全部入れると両端が切れる）
   const alt = Math.floor(s.time / 4) % 2 === 1;
   const text =
-    s.phase === 'closed'
-      ? 'とじているあいだ じかんが すすむ'
-      : s.phase === 'name'
-        ? 'おして なまえを つける'
-        : s.phase === 'egg'
-          ? 'たまごを おして あたためる'
-          : alt
-            ? 'とじると じかんが とぶ・そのすきに よわる'
-            : 'ボタンで せわ・つぶを タップで なでる';
+    s.phase === 'name'
+      ? 'おして なまえを つける'
+      : s.phase === 'egg'
+        ? 'たまごを おして あたためる'
+        : alt
+          ? 'ようすを 見て、ボタンで こたえる'
+          : 'つぶを タップで なでる';
   g.text(text, W / 2, HELP_Y, { size: 9, align: 'center', color: 'dim' });
 }
 
@@ -2355,13 +1965,13 @@ function drawIcon(
       g.rect(cx - 10 * u, cy + 2 * u, 20 * u, 2 * u, hole);
       break;
     }
-    case 'souji': {
-      // ほうき
-      g.rect(cx - 1 * u, cy - 11 * u, 3 * u, 13 * u, c);
-      g.poly(
-        [cx - 8 * u, cy + 11 * u, cx + 9 * u, cy + 11 * u, cx + 5 * u, cy + 1 * u, cx - 4 * u, cy + 1 * u],
-        c,
-      );
+    case 'nade': {
+      // なでる手（手のひらと指4本）
+      g.circle(cx, cy + 4 * u, 7 * u, c);
+      for (let i = 0; i < 4; i++) {
+        g.rect(cx - 7 * u + i * 4 * u, cy - 8 * u, 3 * u, 10 * u, c);
+      }
+      g.rect(cx - 11 * u, cy - 1 * u, 4 * u, 6 * u, c);
       break;
     }
     case 'kusuri': {
@@ -2375,14 +1985,11 @@ function drawIcon(
       g.line(cx - 6 * u, cy - 4 * u, cx + 4 * u, cy + 6 * u, hole, 2 * u);
       break;
     }
-    case 'denki': {
-      // 電球
-      g.circle(cx, cy - 3 * u, 8 * u, c);
-      g.rect(cx - 4 * u, cy + 4 * u, 8 * u, 4 * u, c);
-      g.rect(cx - 3 * u, cy + 8 * u, 6 * u, 3 * u, c);
+    case 'oyasumi': {
+      // 三日月（欠けを hole で抜く）
+      g.circle(cx, cy, 10 * u, c);
+      g.circle(cx + 4 * u, cy - 3 * u, 9 * u, hole);
       break;
     }
-    case 'bikkuri':
-      break;
   }
 }
