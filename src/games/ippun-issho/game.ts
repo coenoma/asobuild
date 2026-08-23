@@ -114,10 +114,19 @@ const BYE_END = BYE_SPROUT + EPI_STEP * 3 + BYE_TAIL;
 
 const P_WARM = 1;
 const P_BORN = 2;
-/** 「呼んでいる」に応えた（頭上の合図が出てから） */
+/**
+ * くすり・おやすみ など、タイミングの概念が薄い世話に応えた
+ * （ごはん・あそぶ は「呼ばれる前か後か」で P_AHEAD / P_LATE に分かれる）
+ */
 const P_ANSWER = 3;
+/**
+ * ごはん・あそぶ を、呼ばれてから応えた（まにあった）。
+ * 🔴 P_AHEAD との差を「3 と 4」から「2 と 5」に広げた。実機で「3とか5の違いが全然わからない」
+ * と言われたので、**先に気づくと倍以上ちがう**と体感できる幅にする（design.md v10）
+ */
+const P_LATE = 2;
 /** 呼ぶ前の「かすかに気にする」しぐさに、先に気づいて応えた（わかってる！） */
-const P_AHEAD = 4;
+const P_AHEAD = 5;
 /** なでる（1回に1回）／「なでて」とねだられて なでた */
 const P_PET = 1;
 const P_PET_ASKED = 3;
@@ -166,8 +175,8 @@ const BODY_H = 16 * DOT;
 /** 液晶の中に出る一言。**窓の上部**（キャラの下はアイコン専用にして重なりを断つ。v8） */
 const SAY_Y = 60;
 /** せいちょうの見出しと理由 */
-const GROW_Y = 96;
-const GROW_WHY_Y = 112;
+const GROW_Y = 84;
+const GROW_WHY_Y = 100;
 /** 世話ボタン5つ */
 const BTN_Y = 242;
 const BTN_H = 62;
@@ -409,8 +418,16 @@ export interface IppunIsshoState extends BaseState, FeelState {
   /** 手応えポップ（＋N を大きく出す。design.md §4）。0=なし */
   gainPop: number;
   gainPopT: number;
-  /** 手応えの言葉（わかってる！/いらない 等） */
+  /** 手応えの言葉（わかってる！/まにあった/いらない 等） */
   gainWord: string;
+  /**
+   * 次の一手につながるヒント（design.md v10）。「まにあった」で応えた最初の数回だけ、
+   * **どうすればもっと良かったか**を手応えの下に出す（左上の数字は一度も見られなかったので、
+   * 押した瞬間の目線＝キャラの上に置く）
+   */
+  gainHint: string;
+  /** ヒントを出せる残り回数（出し続けると邪魔になる） */
+  hintLeft: number;
   /**
    * 時刻の変わり目の「間」（design.md v7）。世話の減りを止めて画面を静め、
    * いまの調子と進みを大きく見せる山場。残り秒。
@@ -438,8 +455,9 @@ function gain(n: IppunIsshoState, base: number): void {
   n.score += add;
   // 一手ごとの手応え。「＋N」を大きくポップ（design.md §4）
   n.gainPop = add;
-  n.gainPopT = 0.85;
+  n.gainPopT = 1.05;
   n.gainWord = '';
+  n.gainHint = '';
 }
 
 /** 液晶の中に一言。**無反応をゼロにするための最後の砦**でもある */
@@ -622,6 +640,8 @@ export default defineGame<IppunIsshoState>({
       gainPop: 0,
       gainPopT: 0,
       gainWord: '',
+      gainHint: '',
+      hintLeft: 2,
       beatT: 0,
       beatText: '',
       beatDone: 0,
@@ -1165,8 +1185,12 @@ function doCare(n: IppunIsshoState, kind: Kind): void {
       if (n.sick) return cantDo(n, 'たべられない…');
       if (n.hunger >= METER_MAX) return shakeNo(n, 'いらない');
       const ahead = n.hunger > CALL_AT; // 呼ぶ前（かすかに気にする）に先に気づいた
-      gain(n, ahead ? P_AHEAD : P_ANSWER);
-      if (ahead) n.gainWord = 'わかってる！';
+      gain(n, ahead ? P_AHEAD : P_LATE);
+      n.gainWord = ahead ? 'わかってる！' : 'まにあった';
+      if (!ahead && n.hintLeft > 0) {
+        n.hintLeft--;
+        n.gainHint = 'よぶまえに きづくと ＋5';
+      }
       n.hunger = Math.min(METER_MAX, n.hunger + 1);
       n.fed++;
       animate(n, 1);
@@ -1180,8 +1204,12 @@ function doCare(n: IppunIsshoState, kind: Kind): void {
       if (n.sick) return cantDo(n, 'あそべない…');
       if (n.mood >= METER_MAX) return shakeNo(n, 'いらない');
       const ahead = n.mood > CALL_AT;
-      gain(n, ahead ? P_AHEAD : P_ANSWER);
-      if (ahead) n.gainWord = 'わかってる！';
+      gain(n, ahead ? P_AHEAD : P_LATE);
+      n.gainWord = ahead ? 'わかってる！' : 'まにあった';
+      if (!ahead && n.hintLeft > 0) {
+        n.hintLeft--;
+        n.gainHint = 'よぶまえに きづくと ＋5';
+      }
       n.mood = Math.min(METER_MAX, n.mood + 1);
       n.played++;
       animate(n, 2);
@@ -1372,7 +1400,9 @@ function drawSky(g: Painter, t: number): void {
 function drawBeat(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
   if (s.beatT <= 0) return;
   // 下地を敷く。きらのきらめき等と重なると文字が潰れて読めなくなる（実測）
-  g.rect(WIN_X + 3, WIN_Y + 12, WIN_W - 6, 84, hole);
+  // 下地はキャラの頭（FLOOR_Y-BODY_H=126。跳ねると116まで上がる）にかからない高さに収める。
+  // ここを超えると頭が切れて見える（実機FB。v10）
+  g.rect(WIN_X + 3, WIN_Y + 6, WIN_W - 6, 64, hole);
   const goals = meta.goals ?? [];
   let cur = '';
   let next: { score: number; label: string } | null = null;
@@ -1380,17 +1410,20 @@ function drawBeat(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey)
     if (s.score >= goal.score) cur = goal.label;
     else if (!next) next = goal;
   }
-  g.text(s.beatText, W / 2, WIN_Y + 26, { size: 18, align: 'center', color: ink });
+  g.text(s.beatText, W / 2, WIN_Y + 12, { size: 17, align: 'center', color: ink });
   // いまの調子（良い方向か危ない方向か）を言葉で
-  g.text(conditionWord(s), W / 2, WIN_Y + 50, { size: 13, align: 'center', color: ink });
+  g.text(conditionWord(s), W / 2, WIN_Y + 32, { size: 12, align: 'center', color: ink });
   // どこまで来たか
-  g.text(`しあわせ ${s.score}${cur ? `・${cur}` : ''}`, W / 2, WIN_Y + 70, {
+  g.text(`しあわせ ${s.score}${cur ? `・${cur}` : ''}`, W / 2, WIN_Y + 48, {
     size: 11,
     align: 'center',
     color: ink,
   });
   if (next) {
-    g.text(`つぎ ${next.label} まで あと ${next.score - s.score}`, W / 2, WIN_Y + 86, {
+    // 🔴 点数ではなく**あと何回どうすればいいか**で出す（次の一手につながる情報。v10）
+    const best = s.kira ? Math.round(P_AHEAD * KIRA_MULT) : P_AHEAD;
+    const times = Math.max(1, Math.ceil((next.score - s.score) / best));
+    g.text(`${next.label}まで わかってる！ あと${times}かい`, W / 2, WIN_Y + 62, {
       size: 10,
       align: 'center',
       color: ink,
@@ -1640,11 +1673,20 @@ function drawGainPop(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorK
   const rise = (0.85 - s.gainPopT) * 16;
   const y = FLOOR_Y - BODY_H - 14 - rise;
   // 下地。きらめきや木と重なると読めなくなる（重ねない規則。v9）
-  const bh = s.gainPop > 0 && s.gainWord ? 44 : s.gainPop > 0 ? 28 : 20;
-  g.rect(CHAR_X - 56, y - 14, 112, bh, hole);
+  const lines = (s.gainWord ? 1 : 0) + (s.gainHint ? 1 : 0);
+  const bh = (s.gainPop > 0 ? 30 : 16) + lines * 15;
+  g.rect(CHAR_X - 74, y - 15, 148, bh, hole);
   if (s.gainPop > 0) {
-    g.text(`＋${s.gainPop}`, CHAR_X, y, { size: 24, align: 'center', color: ink });
-    if (s.gainWord) g.text(s.gainWord, CHAR_X, y + 19, { size: 12, align: 'center', color: ink });
+    // 「＋N」と**そのときの累計**を並べる。左上の数字は一度も見られなかったので、
+    // 押した瞬間の目線（キャラの上）に置く（design.md v10）
+    g.text(`＋${s.gainPop}`, CHAR_X - 22, y, { size: 24, align: 'center', color: ink });
+    g.text(`ぜんぶで ${s.score}`, CHAR_X + 34, y + 5, { size: 11, align: 'center', color: ink });
+    let ly = y + 19;
+    if (s.gainWord) {
+      g.text(s.gainWord, CHAR_X, ly, { size: 12, align: 'center', color: ink });
+      ly += 15;
+    }
+    if (s.gainHint) g.text(s.gainHint, CHAR_X, ly, { size: 10, align: 'center', color: ink });
   } else if (s.gainWord) {
     g.text(s.gainWord, CHAR_X, y + 8, { size: 15, align: 'center', color: ink });
   }
@@ -1654,7 +1696,7 @@ function drawGainPop(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorK
 function drawGrow(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
   if (s.growT <= 0) return;
   // 下地。雨やきらめきと重なると読めなくなる（実機で確認。v8）
-  g.rect(WIN_X + 3, GROW_Y - 12, WIN_W - 6, 34, hole);
+  g.rect(WIN_X + 3, GROW_Y - 12, WIN_W - 6, 32, hole);
   g.text(s.growText, W / 2, GROW_Y, { size: 14, align: 'center', color: ink });
   if (s.growWhy) {
     g.text(s.growWhy, W / 2, GROW_WHY_Y, { size: 9, align: 'center', color: ink });
