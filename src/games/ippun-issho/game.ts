@@ -144,12 +144,12 @@ const KIRA_MULT = 1.5;
 const P_LIVED = 10;
 
 /** せいちょうの見出しを出しておく秒数 */
-const GROW_BANNER_T = 1.8;
+const GROW_BANNER_T = 2.6;
 /**
  * 時刻の変わり目の「間」の長さ（design.md v7）。この間は世話が減らず、画面が静かになり、
  * いまの調子と進みを大きく見せる。ここが目線を集める山場（ふだんは静かに、変わり目で山）。
  */
-const BEAT_T = 2.2;
+const BEAT_T = 3;
 
 /* ---- 画面の決まり（240×320・mono テーマ。design.md §2）-------------- */
 
@@ -175,8 +175,8 @@ const BODY_H = 16 * DOT;
 /** 液晶の中に出る一言。**窓の上部**（キャラの下はアイコン専用にして重なりを断つ。v8） */
 const SAY_Y = 60;
 /** せいちょうの見出しと理由 */
-const GROW_Y = 84;
-const GROW_WHY_Y = 100;
+const GROW_Y = 78;
+const GROW_WHY_Y = 94;
 /** 世話ボタン5つ */
 const BTN_Y = 242;
 const BTN_H = 62;
@@ -196,7 +196,7 @@ const NCARD_X: readonly number[] = [16, 84, 152];
 const EPI_Y = 88;
 const EPI_LINE = 17;
 /** 一言・演出の既定の長さ */
-const SAY_T = 1.1;
+const SAY_T = 1.5;
 const ANIM_T = 0.5;
 
 /* ---- 種類 ------------------------------------------------------------ */
@@ -455,7 +455,7 @@ function gain(n: IppunIsshoState, base: number): void {
   n.score += add;
   // 一手ごとの手応え。「＋N」を大きくポップ（design.md §4）
   n.gainPop = add;
-  n.gainPopT = 1.05;
+  n.gainPopT = 1.5;
   n.gainWord = '';
   n.gainHint = '';
 }
@@ -831,7 +831,7 @@ function checkTitle(n: IppunIsshoState): void {
   if (reached <= n.titleDone) return;
   n.titleDone = reached;
   n.titleText = `${goals[reached - 1].label}に なった！`;
-  n.titleT = 1.5;
+  n.titleT = 2.4;
   addPop(n);
   hitStop(n, 0.1);
   beep(n);
@@ -1399,35 +1399,64 @@ function drawSky(g: Painter, t: number): void {
  */
 function drawBeat(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
   if (s.beatT <= 0) return;
-  // 下地を敷く。きらのきらめき等と重なると文字が潰れて読めなくなる（実測）
-  // 下地はキャラの頭（FLOOR_Y-BODY_H=126。跳ねると116まで上がる）にかからない高さに収める。
-  // ここを超えると頭が切れて見える（実機FB。v10）
-  g.rect(WIN_X + 3, WIN_Y + 6, WIN_W - 6, 64, hole);
-  const goals = meta.goals ?? [];
-  let cur = '';
-  let next: { score: number; label: string } | null = null;
-  for (const goal of goals) {
-    if (s.score >= goal.score) cur = goal.label;
-    else if (!next) next = goal;
+  // 下地はキャラの頭（跳ねると116pxまで上がる）にかからない高さに収める
+  g.rect(WIN_X + 3, WIN_Y + 4, WIN_W - 6, 58, hole);
+
+  /* ① いまが一日のどこか＝太陽／夕日／月の絵。文字は時間帯の名前だけ */
+  const icx = WIN_X + 36;
+  const icy = WIN_Y + 22;
+  if (s.t >= T_NIGHT) {
+    g.circle(icx, icy, 9, ink);
+    g.circle(icx + 4, icy - 3, 8, hole); // 三日月
+  } else {
+    g.circle(icx, icy, 7, ink);
+    for (let i = 0; i < 8; i++) {
+      const a2 = (i / 8) * Math.PI * 2;
+      g.line(icx + Math.cos(a2) * 10, icy + Math.sin(a2) * 10, icx + Math.cos(a2) * 14, icy + Math.sin(a2) * 14, ink, 2);
+    }
+    if (s.t >= T_DUSK) g.rect(icx - 17, icy + 7, 34, 3, ink); // 夕日は地平線を添える
   }
-  g.text(s.beatText, W / 2, WIN_Y + 12, { size: 17, align: 'center', color: ink });
-  // いまの調子（良い方向か危ない方向か）を言葉で
-  g.text(conditionWord(s), W / 2, WIN_Y + 32, { size: 12, align: 'center', color: ink });
-  // どこまで来たか
-  g.text(`しあわせ ${s.score}${cur ? `・${cur}` : ''}`, W / 2, WIN_Y + 48, {
-    size: 11,
-    align: 'center',
-    color: ink,
-  });
-  if (next) {
-    // 🔴 点数ではなく**あと何回どうすればいいか**で出す（次の一手につながる情報。v10）
-    const best = s.kira ? Math.round(P_AHEAD * KIRA_MULT) : P_AHEAD;
-    const times = Math.max(1, Math.ceil((next.score - s.score) / best));
-    g.text(`${next.label}まで わかってる！ あと${times}かい`, W / 2, WIN_Y + 62, {
-      size: 10,
-      align: 'center',
-      color: ink,
-    });
+  g.text(s.beatText, W / 2 + 14, WIN_Y + 14, { size: 17, align: 'center', color: ink });
+
+  /* ② いまの調子＝顔の絵（文字で説明しない） */
+  const fx = WIN_X + 36;
+  const fy = WIN_Y + 48;
+  const bad = s.sick || s.weak >= 2;
+  const soso = !bad && s.weak >= 1;
+  g.circle(fx, fy, 10, ink);
+  if (bad) {
+    g.line(fx - 7, fy - 5, fx - 2, fy, hole, 2);
+    g.line(fx - 2, fy - 5, fx - 7, fy, hole, 2);
+    g.line(fx + 2, fy - 5, fx + 7, fy, hole, 2);
+    g.line(fx + 7, fy - 5, fx + 2, fy, hole, 2);
+    g.rect(fx - 4, fy + 6, 8, 2, hole);
+  } else {
+    g.rect(fx - 6, fy - 4, 3, 4, hole);
+    g.rect(fx + 3, fy - 4, 3, 4, hole);
+    if (soso) g.rect(fx - 4, fy + 5, 8, 2, hole);
+    else {
+      g.rect(fx - 4, fy + 4, 8, 2, hole);
+      g.rect(fx - 6, fy + 2, 2, 2, hole);
+      g.rect(fx + 4, fy + 2, 2, 2, hole);
+    }
+  }
+
+  /* ③ どこまで来たか＝しあわせの数と、咲いた花の数（数字は1つだけ） */
+  g.text(`${s.score}`, W / 2 + 2, WIN_Y + 38, { size: 21, align: 'center', color: ink });
+  const bloom = titleCount(s.score);
+  for (let i = 0; i < 4; i++) {
+    const px = W / 2 + 40 + i * 17;
+    const py = WIN_Y + 48;
+    if (i < bloom) {
+      // 咲いた花
+      g.circle(px, py, 4, ink);
+      g.circle(px - 5, py, 3, ink);
+      g.circle(px + 5, py, 3, ink);
+      g.circle(px, py - 5, 3, ink);
+      g.circle(px, py + 5, 3, ink);
+    } else {
+      g.circleLine(px, py, 4, ink, 1); // まだのつぼみ
+    }
   }
 }
 
@@ -1441,7 +1470,7 @@ function drawFootPlant(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
   /* 咲いた瞬間はぐんと伸びる（前の段の高さから今の段へ 0.5秒で育つ） */
   const H = [14, 34, 66, 92, 92];
   const prev = H[Math.max(0, stage - 1)];
-  const ease = s.titleT > 0 ? Math.min(1, (1.5 - s.titleT) / 0.5) : 1;
+  const ease = s.titleT > 0 ? Math.min(1, (2.4 - s.titleT) / 0.6) : 1;
   const h = wilt ? 16 : Math.round(prev + (H[stage] - prev) * ease);
 
   for (let i = 0; i < 2; i++) {
@@ -1504,7 +1533,7 @@ function drawFootPlant(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
     /* 育った瞬間のきらめき（キャラの周りに輪） */
     for (let k = 0; k < 8; k++) {
       const a = k * 0.785 + s.time * 3;
-      const rr = 40 + (1 - Math.min(1, s.titleT / 1.5)) * 26;
+      const rr = 40 + (1 - Math.min(1, s.titleT / 2.4)) * 26;
       g.rect(CHAR_X + Math.cos(a) * rr - 2, FLOOR_Y - 34 + Math.sin(a) * rr * 0.7 - 2, 5, 5, ink);
     }
   }
@@ -1663,32 +1692,44 @@ function drawDusk(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
  */
 function drawTitle(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
   if (s.titleT <= 0 || s.growT > 0) return;
-  g.rect(WIN_X + 3, WIN_Y + 8, WIN_W - 6, 26, hole);
+  g.rect(WIN_X + 3, WIN_Y + 6, WIN_W - 6, 32, hole);
   g.text(s.titleText, W / 2, WIN_Y + 14, { size: 15, align: 'center', color: ink });
 }
 
 /** 手応えポップ（design.md §4・v6 FB4①）。押した瞬間、キャラの上に「＋N」を大きく。上へ流れて消える */
 function drawGainPop(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
   if (s.gainPopT <= 0 || s.growT > 0) return; // 成長バナー中はゆずる
-  const rise = (0.85 - s.gainPopT) * 16;
-  const y = FLOOR_Y - BODY_H - 14 - rise;
-  // 下地。きらめきや木と重なると読めなくなる（重ねない規則。v9）
-  const lines = (s.gainWord ? 1 : 0) + (s.gainHint ? 1 : 0);
-  const bh = (s.gainPop > 0 ? 30 : 16) + lines * 15;
-  g.rect(CHAR_X - 74, y - 15, 148, bh, hole);
-  if (s.gainPop > 0) {
-    // 「＋N」と**そのときの累計**を並べる。左上の数字は一度も見られなかったので、
-    // 押した瞬間の目線（キャラの上）に置く（design.md v10）
-    g.text(`＋${s.gainPop}`, CHAR_X - 22, y, { size: 24, align: 'center', color: ink });
-    g.text(`ぜんぶで ${s.score}`, CHAR_X + 34, y + 5, { size: 11, align: 'center', color: ink });
-    let ly = y + 19;
-    if (s.gainWord) {
-      g.text(s.gainWord, CHAR_X, ly, { size: 12, align: 'center', color: ink });
-      ly += 15;
+  const rise = Math.max(0, 1.5 - s.gainPopT) * 11;
+  const y = FLOOR_Y - BODY_H - 16 - rise;
+
+  /* 断られたとき（点なし）だけ、短い文字を出す。それ以外は文字を使わない */
+  if (s.gainPop <= 0) {
+    if (!s.gainWord) return;
+    g.rect(CHAR_X - 52, y - 8, 104, 20, hole);
+    g.text(s.gainWord, CHAR_X, y, { size: 13, align: 'center', color: ink });
+    return;
+  }
+
+  /**
+   * 手応えは**数字とハートの数だけ**で見せる（design.md v11）。
+   * 「わかってる！」「ぜんぶで NN」といった文字を並べると読む時間が足りず、字だらけになる。
+   * 先に気づいた（＋5以上）＝ハート3つ＋輪、間に合った（＋2）＝ハート1つ。**差は量で伝える**。
+   */
+  const great = s.gainPop >= P_AHEAD;
+  const hearts = great ? 3 : 1;
+  g.rect(CHAR_X - 52, y - 16, 104, 34, hole);
+  g.text(`＋${s.gainPop}`, CHAR_X, y - 2, { size: great ? 30 : 22, align: 'center', color: ink });
+  for (let i = 0; i < hearts; i++) {
+    const hx = CHAR_X - (hearts - 1) * 11 + i * 22;
+    g.sprite(HEART, hx, y + 14, { scale: 2, colors: { X: ink }, center: true });
+  }
+  if (great) {
+    // 先に気づいたときだけ輪が広がる（「こっちが良い」を体で覚える）
+    for (let k = 0; k < 6; k++) {
+      const a2 = k * 1.05 + s.time * 4;
+      const rr = 26 + Math.max(0, 1.5 - s.gainPopT) * 26;
+      g.rect(CHAR_X + Math.cos(a2) * rr - 2, y + Math.sin(a2) * rr * 0.6 - 2, 4, 4, ink);
     }
-    if (s.gainHint) g.text(s.gainHint, CHAR_X, ly, { size: 10, align: 'center', color: ink });
-  } else if (s.gainWord) {
-    g.text(s.gainWord, CHAR_X, y + 8, { size: 15, align: 'center', color: ink });
   }
 }
 
@@ -1696,7 +1737,7 @@ function drawGainPop(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorK
 function drawGrow(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
   if (s.growT <= 0) return;
   // 下地。雨やきらめきと重なると読めなくなる（実機で確認。v8）
-  g.rect(WIN_X + 3, GROW_Y - 12, WIN_W - 6, 32, hole);
+  g.rect(WIN_X + 3, GROW_Y - 16, WIN_W - 6, 40, hole);
   g.text(s.growText, W / 2, GROW_Y, { size: 14, align: 'center', color: ink });
   if (s.growWhy) {
     g.text(s.growWhy, W / 2, GROW_WHY_Y, { size: 9, align: 'center', color: ink });
@@ -2250,6 +2291,8 @@ function drawHelp(g: Painter, s: IppunIsshoState): void {
   if (s.phase === 'bye' || s.phase === 'gone') return;
   // 9px で 240px に収まる長さに切ってある（1行に全部入れると両端が切れる）
   const alt = Math.floor(s.time / 4) % 2 === 1;
+  // 🔴 最初の12秒だけ出して、あとは消す。字が多いと画面が「文字だらけ」になる（v11）
+  if (s.phase === 'open' && s.t > 12) return;
   const text =
     s.phase === 'name'
       ? 'おして なまえを つける'
