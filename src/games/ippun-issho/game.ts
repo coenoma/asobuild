@@ -171,11 +171,7 @@ const BTN_X0 = 4;
 const BTN_GAP = 47;
 /** 手引き */
 const HELP_Y = 307;
-/** 上帯中央の芽5つ（しあわせ 20 ごと）。●（達成）／○（未達）で見せる */
-const SPROUT_MAX = 5;
-const SPROUT_STEP = 20;
-const SPROUT_GAP = 11;
-const SPROUT_X0 = W / 2 - ((SPROUT_MAX - 1) * SPROUT_GAP) / 2;
+/** 上帯中央の称号ゲージの y（design.md §6・v6 FB4②） */
 const SPROUT_Y = 24;
 /** なまえのカード */
 const NCARD_Y = 146;
@@ -405,13 +401,23 @@ export interface IppunIsshoState extends BaseState, FeelState {
   beeped: number;
   /** 記念の何行目まで出したか */
   epShown: number;
+  /** 手応えポップ（＋N を大きく出す。design.md §4）。0=なし */
+  gainPop: number;
+  gainPopT: number;
+  /** 手応えの言葉（わかってる！/いらない 等） */
+  gainWord: string;
 }
 
 /* ---- 小さな道具 ------------------------------------------------------ */
 
 /** 点を足す。きらになった子は以後 ×KIRA_MULT（design.md §6） */
 function gain(n: IppunIsshoState, base: number): void {
-  n.score += n.kira ? Math.round(base * KIRA_MULT) : base;
+  const add = n.kira ? Math.round(base * KIRA_MULT) : base;
+  n.score += add;
+  // 一手ごとの手応え。「＋N」を大きくポップ（design.md §4）
+  n.gainPop = add;
+  n.gainPopT = 0.85;
+  n.gainWord = '';
 }
 
 /** 液晶の中に一言。**無反応をゼロにするための最後の砦**でもある */
@@ -589,6 +595,9 @@ export default defineGame<IppunIsshoState>({
       lookX: 0,
       beeped: 0,
       epShown: 0,
+      gainPop: 0,
+      gainPopT: 0,
+      gainWord: '',
     };
   },
 
@@ -605,6 +614,7 @@ export default defineGame<IppunIsshoState>({
     n.growT = Math.max(0, n.growT - dt);
     n.blackout = Math.max(0, n.blackout - dt);
     n.poke = Math.max(0, n.poke - dt);
+    n.gainPopT = Math.max(0, n.gainPopT - dt);
     if (n.pressT <= 0) n.pressBtn = -2;
 
     /* 2. 一日ぶんの時間を流し続ける（とじない）。よるになると眠くなる */
@@ -631,10 +641,12 @@ export default defineGame<IppunIsshoState>({
   draw(g, s) {
     const [sx, sy] = shakeOffset(s, s.time);
     drawBody(g);
+    // over 後（gone）はシェルの結果画面に全部ゆずる（記念は bye で見せ切る。二重表示を防ぐ）
+    if (s.phase === 'gone') return;
     drawHeadRow(g, s);
     drawWindow(g, s, sx, sy);
-    // おわかれは記念に集中させる（ボタン・手引きを消す。design.md §7）
-    if (s.phase !== 'bye' && s.phase !== 'gone') {
+    // おわかれ（bye）は記念に集中させる（ボタン・手引きを消す。design.md §7）
+    if (s.phase !== 'bye') {
       drawControls(g, s);
       drawHelp(g, s);
     }
@@ -689,8 +701,8 @@ export default defineGame<IppunIsshoState>({
 
   reason: (s) =>
     s.early
-      ? `${s.name || 'つぶ'}（${FORM_NAME[s.form]}）は ${whenLabel(s.endT)}に ちからつきた`
-      : `${s.name || 'つぶ'}（${FORM_NAME[s.form]}）と あさから よるまで いっしょだった`,
+      ? `${s.name || 'つぶ'}、${whenLabel(s.endT)}に おわかれ`
+      : `${s.name || 'つぶ'}、あさから よるまで いっしょ`,
 
   tunables: {
     openDrain: {
@@ -1055,10 +1067,11 @@ function doCare(n: IppunIsshoState, kind: Kind): void {
       if (n.hunger >= METER_MAX) return shakeNo(n, 'いらない');
       const ahead = n.hunger > CALL_AT; // 呼ぶ前（かすかに気にする）に先に気づいた
       gain(n, ahead ? P_AHEAD : P_ANSWER);
+      if (ahead) n.gainWord = 'わかってる！';
       n.hunger = Math.min(METER_MAX, n.hunger + 1);
       n.fed++;
       animate(n, 1);
-      speak(n, healWeak(n) ? '…まってたよ' : ahead ? 'わかってる！' : 'もぐもぐ');
+      speak(n, healWeak(n) ? '…まってたよ' : 'もぐもぐ');
       addPop(n);
       return;
     }
@@ -1069,10 +1082,11 @@ function doCare(n: IppunIsshoState, kind: Kind): void {
       if (n.mood >= METER_MAX) return shakeNo(n, 'いらない');
       const ahead = n.mood > CALL_AT;
       gain(n, ahead ? P_AHEAD : P_ANSWER);
+      if (ahead) n.gainWord = 'わかってる！';
       n.mood = Math.min(METER_MAX, n.mood + 1);
       n.played++;
       animate(n, 2);
-      speak(n, healWeak(n) ? '…まってたよ' : ahead ? 'わかってる！' : 'たのしい！');
+      speak(n, healWeak(n) ? '…まってたよ' : 'たのしい！');
       addPop(n);
       return;
     }
@@ -1158,6 +1172,10 @@ function cantDo(n: IppunIsshoState, text: string): void {
 function shakeNo(n: IppunIsshoState, text: string): void {
   speak(n, text, 0.9);
   n.noT = 0.5;
+  // 拒否も手応え（点は入らないが「いらない」を大きく返す）
+  n.gainWord = text;
+  n.gainPop = 0;
+  n.gainPopT = 0.6;
 }
 
 /** おわかれ中のタップ。次の見せ場まで飛ばす */
@@ -1208,7 +1226,7 @@ function drawHeadRow(g: Painter, s: IppunIsshoState): void {
   } else if (s.phase === 'name') {
     g.text('うまれた', 6, HEAD_Y, { size: 12, color: 'ink' });
   } else {
-    // 時間帯だけ（一日の流れ）。右に太陽／月の位置で「あと少し」を伝える
+    // 時間帯（一日の流れ）。のこりは太陽/月の位置と よるの星で見せる（v6 FB5）
     g.text(whenLabel(s.t), 6, HEAD_Y, { size: 12, color: 'ink' });
     drawSky(g, s.t);
   }
@@ -1227,11 +1245,18 @@ function drawSky(g: Painter, t: number): void {
     g.circle(cx, cy, 6, 'ink');
     g.circle(cx + 3, cy - 2, 5, 'bg2');
   } else {
-    // 太陽
-    g.circle(cx, cy, 4, 'ink');
+    // 太陽（光条は線で。点だと「…」に見える）
+    g.circle(cx, cy, 5, 'ink');
     for (let i = 0; i < 8; i++) {
       const a = (i / 8) * Math.PI * 2;
-      g.rect(cx + Math.cos(a) * 7 - 1, cy + Math.sin(a) * 7 - 1, 2, 2, 'ink');
+      g.line(
+        cx + Math.cos(a) * 7,
+        cy + Math.sin(a) * 7,
+        cx + Math.cos(a) * 11,
+        cy + Math.sin(a) * 11,
+        'ink',
+        2,
+      );
     }
   }
 }
@@ -1242,24 +1267,26 @@ function drawSky(g: Painter, t: number): void {
  * 🔴 双葉のドット絵は QVGA で潰れて「⊥⊥⊥＿＿」と文字化けに見えたので、●／○ のドットに変えた（coordinator指摘）。
  */
 function drawSprouts(g: Painter, s: IppunIsshoState): void {
-  for (let i = 0; i < SPROUT_MAX; i++) {
-    const cx = SPROUT_X0 + i * SPROUT_GAP;
-    if (s.score >= (i + 1) * SPROUT_STEP) {
-      g.circle(cx, SPROUT_Y, 3.5, 'ink'); // 達成＝●
-    } else {
-      g.circleLine(cx, SPROUT_Y, 3, 'dim', 1); // 未達＝○
-    }
+  // 称号ゲージ（design.md §6・v6 FB4②）。いまのしあわせと、つぎの称号までの進みを見せる
+  const goals = meta.goals ?? [];
+  if (goals.length === 0) return;
+  const max = goals[goals.length - 1].score;
+  const bx = W / 2 - 48;
+  const bw = 96;
+  const by = SPROUT_Y - 2;
+  g.rect(bx, by, bw, 4, 'dim'); // 台
+  g.rect(bx, by, Math.round(bw * Math.min(1, s.score / max)), 4, 'ink'); // いまの伸び
+  let cur = '';
+  let next: { score: number; label: string } | null = null;
+  for (const goal of goals) {
+    const gx = bx + Math.round((goal.score / max) * bw);
+    const done = s.score >= goal.score;
+    g.rect(gx - 1, by - 2, 2, 8, done ? 'ink' : 'dim'); // 称号のしるし
+    if (done) cur = goal.label;
+    else if (!next) next = goal;
   }
-  // いまの称号（達成した中でいちばん上）を小さく添える。まだ無ければ出さない
-  let title = '';
-  let best = -1;
-  for (const goal of meta.goals ?? []) {
-    if (s.score >= goal.score && goal.score > best) {
-      best = goal.score;
-      title = goal.label;
-    }
-  }
-  if (title) g.text(title, W / 2, SPROUT_Y + 7, { size: 9, align: 'center', color: 'dim' });
+  const label = next ? `つぎ ${next.label} まで あと ${next.score - s.score}` : `${cur}！`;
+  g.text(label, W / 2, SPROUT_Y + 10, { size: 9, align: 'center', color: 'dim' });
 }
 
 /**
@@ -1324,9 +1351,11 @@ function drawWindow(g: Painter, s: IppunIsshoState, sx: number, sy: number): voi
     } else {
       // 床
       g.rect(WIN_X + 4, FLOOR_Y, WIN_W - 8, 2, ink);
+      drawDusk(g, s, ink); // よるの星（時間の移ろい）
       drawTsubu(g, s, CHAR_X + sx, FLOOR_Y + sy, ink, hole);
-      drawWish(g, s, ink, hole); // 頭上のしぐさアイコン（欲しいもの1つ）
+      drawWish(g, s, ink, hole); // 欲しいものアイコン（キャラの真下）
       drawStar(g, s, ink); // ゆうがたの一番星（上振れ②）
+      drawGainPop(g, s, ink); // 手応え「＋N」（キャラの上）
       drawGrow(g, s, ink);
     }
     drawSay(g, s, ink);
@@ -1348,7 +1377,8 @@ function drawWish(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey)
   if (kind === '') return;
   // 病気（見落としの結果）は点滅させず常時出す＝「くすり」を確実に伝える。ほかはゆっくり点滅（1つだけ）
   if (!s.sick && Math.floor(s.time * 4) % 2 !== 0) return;
-  drawIcon(g, kind, CHAR_X + 42, FLOOR_Y - BODY_H - 4, 16, ink, hole);
+  // キャラの真下（キャラ→アイコン→下のボタンで視線が下へ一直線。design.md v6 FB3）
+  drawIcon(g, kind, CHAR_X, FLOOR_Y + 14, 20, ink, hole);
 }
 
 /** ゆうがたの空に一番星（上振れ②）。ichiban の子だけ・取るまで きらめく */
@@ -1359,6 +1389,36 @@ function drawStar(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
   const r = Math.floor(s.time * 3) % 2 === 0 ? 6 : 3;
   g.rect(cx - 1, cy - r, 3, r * 2 + 1, ink);
   g.rect(cx - r, cy - 1, r * 2 + 1, 3, ink);
+}
+
+/** ゆうがた→よるの空（時間を主役に。design.md v6 FB5）。よるは窓の上に星がまたたく */
+function drawDusk(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
+  if (s.t < T_NIGHT) return;
+  const stars: [number, number][] = [
+    [40, 66],
+    [92, 52],
+    [150, 72],
+    [188, 58],
+    [118, 86],
+    [66, 92],
+  ];
+  for (const [px, py] of stars) {
+    if (Math.floor(s.time * 2 + px) % 3 === 0) continue; // まばたき
+    g.rect(WIN_X + px, WIN_Y + py, 2, 2, ink);
+  }
+}
+
+/** 手応えポップ（design.md §4・v6 FB4①）。押した瞬間、キャラの上に「＋N」を大きく。上へ流れて消える */
+function drawGainPop(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
+  if (s.gainPopT <= 0 || s.growT > 0) return; // 成長バナー中はゆずる
+  const rise = (0.85 - s.gainPopT) * 16;
+  const y = FLOOR_Y - BODY_H - 14 - rise;
+  if (s.gainPop > 0) {
+    g.text(`＋${s.gainPop}`, CHAR_X, y, { size: 24, align: 'center', color: ink });
+    if (s.gainWord) g.text(s.gainWord, CHAR_X, y + 19, { size: 12, align: 'center', color: ink });
+  } else if (s.gainWord) {
+    g.text(s.gainWord, CHAR_X, y + 8, { size: 15, align: 'center', color: ink });
+  }
 }
 
 /** せいちょうの見出しと理由。消灯中は反転しているので色を受け取る */
