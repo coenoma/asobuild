@@ -103,11 +103,14 @@ const P_MORPH = 10;
 const P_CALM = 10;
 const P_KIRA = 25;
 const KIRA_MULT = 1.5;
-const P_HOSHI = 8;
+/** 流れ星を捕まえた（タイミングの腕前。上振れの主役＝回数が日によって違う） */
+const P_HOSHI = 16;
 const P_TUCK = 5;
 const P_LIVED = 15;
 /** 一度も雨が降らなかった（きれいな一生） */
 const P_CLEAN = 15;
+/** 流れ星を一つも落とさなかった（連続成功のボーナス。「今日は乗ってる」） */
+const P_ALL_STARS = 20;
 
 /* ---- 画面の決まり（240×320・mono。設計 §4）-------------------- */
 
@@ -123,9 +126,9 @@ const FLOOR_Y = 190;
 const CHAR_X = 120;
 /** 吹き出し */
 const BUBBLE_R = 17;
-/** 一番星の位置（bot と draw で同じ値を使う） */
-const STAR_X = CHAR_X + 70;
-const STAR_Y = WIN_Y + 26;
+/** 流れ星: 空を横切る秒数／捕まえる当たりの半径 */
+const STAR_T = 1.4;
+const STAR_R = 26;
 /** 世話ボタン4つ */
 const BTN_Y = 232;
 const BTN_H = 64;
@@ -133,7 +136,7 @@ const BTN_W = 52;
 const BTN_X0 = 8;
 const BTN_GAP = 58;
 /** 記念の文 */
-const EPI_Y = 62;
+const EPI_Y = 54;
 const EPI_LINE = 18;
 /** ＋N の長さ／反応の既定の長さ */
 const GAIN_T = 0.9;
@@ -142,15 +145,15 @@ const ANIM_T = 1.2;
 /* ---- おわかれの時間割（設計 §8）-------------------------------- */
 
 /** 見上げる（言葉）／倒れたまま */
-const BYE_LOOK = 2;
+const BYE_LOOK = 1.6;
 /** 光の粒が散る */
-const BYE_LIGHT = 1.6;
-const BYE_SEED = BYE_LOOK + BYE_LIGHT + 0.4;
-const BYE_EPI = BYE_SEED + 0.6;
-const EPI_STEP = 0.8;
-/** 記念3行のあと、6つの姿の列を見せてから終わる */
-const BYE_FORMS = BYE_EPI + EPI_STEP * 3;
-const BYE_END = BYE_FORMS + 3.2;
+const BYE_LIGHT = 1.2;
+const BYE_SEED = BYE_LOOK + BYE_LIGHT + 0.3;
+const BYE_EPI = BYE_SEED + 0.4;
+const EPI_STEP = 0.6;
+/** 記念4行のあと、6つの姿の列を見せてから終わる（全体 ≈7秒。タップで送れる） */
+const BYE_FORMS = BYE_EPI + EPI_STEP * 4;
+const BYE_END = BYE_FORMS + 2.4;
 
 /* ---- 種類 ------------------------------------------------------------ */
 
@@ -268,9 +271,12 @@ export interface IppunIsshoState extends BaseState, FeelState {
   form: Form;
   morphed: boolean;
   kira: boolean;
-  lucky: boolean;
-  ichiban: boolean;
-  hoshiGot: boolean;
+  /** 流れ星: 一生に出る数／残り回数／次に出る時刻／見えている残り秒（0=出ていない）／捕まえた数 */
+  starsTotal: number;
+  starsLeft: number;
+  nextStarAt: number;
+  starT: number;
+  starsCaught: number;
   bandage: boolean;
   tucked: boolean;
 
@@ -419,11 +425,19 @@ function dotOf(s: IppunIsshoState): number {
 }
 
 function starUp(s: IppunIsshoState): boolean {
-  return s.phase === 'life' && s.ichiban && !s.hoshiGot && s.t >= T_MORPH + 2 && s.t < T_NIGHT && s.pause === '';
+  return s.phase === 'life' && s.starT > 0 && s.pause === '';
 }
 
-function darkNow(s: IppunIsshoState): boolean {
-  return (s.phase === 'bye' || s.phase === 'gone') && s.early;
+/** 流れ星のいまの位置（右上から左下へ、STAR_T 秒で空を横切る） */
+function starAt(s: IppunIsshoState): { x: number; y: number } {
+  const p = 1 - s.starT / STAR_T;
+  // 空のいちばん上の帯を右から左へ（太陽・吹き出し・キャラと重ならない高さ）
+  return { x: WIN_X + WIN_W - 24 - p * (WIN_W - 48), y: WIN_Y + 12 + p * 12 };
+}
+
+/** 液晶を暗く反転する場面は無い（早い別れも暗転しない＝罰にしない。光になって上る） */
+function darkNow(_s: IppunIsshoState): boolean {
+  return false;
 }
 
 /** 足の長さ（あし軸。まる≥6 の球は足が無い） */
@@ -531,9 +545,12 @@ export default defineGame<IppunIsshoState>({
       form: 'tsubu',
       morphed: false,
       kira: false,
-      lucky: rng.chance(0.25),
-      ichiban: rng.chance(0.2),
-      hoshiGot: false,
+      // 流れ星は一生に 1〜4回（1:30% 2:35% 3:25% 4:10%＝「今日は乗ってる」が起きる）。最初は ひる（t=18〜27）
+      starsTotal: 0,
+      starsLeft: ((r) => (r < 30 ? 1 : r < 65 ? 2 : r < 90 ? 3 : 4))(rng.int(100)),
+      nextStarAt: 18 + rng.int(10),
+      starT: 0,
+      starsCaught: 0,
       bandage: false,
       tucked: false,
 
@@ -592,7 +609,10 @@ export default defineGame<IppunIsshoState>({
     if (takeTap(n)) handleTap(n, input.px, input.py);
 
     /* 4. 減り・呼び・よわり・病気・力尽きる（全停止中・反応中は減りを休む） */
-    if (n.phase === 'life' && n.alive && n.pause === '') stepNeeds(n, dt);
+    if (n.phase === 'life' && n.alive && n.pause === '') {
+      stepNeeds(n, dt);
+      stepStar(n, dt, rng);
+    }
 
     /* 5. 時間で起きること（孵化・場面転換・へんしん・看取り） */
     stepPhase(n, rng);
@@ -617,7 +637,7 @@ export default defineGame<IppunIsshoState>({
    * 上手い人（設計 §11）。押すフレームだけ press を立てる。0.35秒に1手。
    * 病気→くすり ＞ よるで起きていれば なでる ＞ 値≤2 の欲求（いちばん低いものから。満腹には食べさせない）＞ 一番星 ＞ 待つ。
    */
-  bot(s) {
+  bot(s, rng) {
     const frame = Math.round(s.time * 60);
     const idle = { press: false, px: CHAR_X, py: FLOOR_Y - 30 };
     if (frame % 21 !== 0) return idle;
@@ -629,11 +649,19 @@ export default defineGame<IppunIsshoState>({
     if (s.pause !== '') return idle;
     if (s.sick) return btn(3);
     if (s.t >= T_NIGHT) return s.tucked ? idle : char;
+    // 流れ星は気づいてから捕まえる（出て 0.5秒後〜1.0秒の窓だけ＝人間の反応。6割ほど捕まえる）。
+    // 呼びより優先（一瞬で消えるので）
+    if (starUp(s) && s.starT < STAR_T - 0.5 && s.starT > STAR_T - 1.0 && rng.chance(0.65)) {
+      const st = starAt(s);
+      return { press: true, px: st.x, py: st.y };
+    }
+    // 「気にする」（Lv1）で先回りするのは6割。残りは呼ばれてから（人間の上手い人の揺らぎ）
+    const eager = Math.floor(s.time * 3) % 5 < 3;
     let pick: Need | -1 = -1;
     let low = 99;
     for (const i of [0, 1, 2] as const) {
       const v = needOf(s, i);
-      if (v <= LV1_AT && v < low) {
+      if (v <= (eager ? LV1_AT : LV2_AT) && v < low) {
         low = v;
         pick = i;
       }
@@ -641,7 +669,6 @@ export default defineGame<IppunIsshoState>({
     if (pick === 0) return s.fullT > 0 ? idle : btn(0);
     if (pick === 1) return btn(1);
     if (pick === 2) return char;
-    if (starUp(s)) return { press: true, px: STAR_X, py: STAR_Y };
     return idle;
   },
 
@@ -736,6 +763,20 @@ function stepNeeds(n: IppunIsshoState, dt: number): void {
   }
 }
 
+/** 流れ星（設計 §9 上振れ）。ひる〜ゆうがたに 1〜3回。出た瞬間ピッ。STAR_T 秒で消える */
+function stepStar(n: IppunIsshoState, dt: number, rng: Rng): void {
+  if (n.starT > 0) {
+    n.starT = Math.max(0, n.starT - dt);
+    return;
+  }
+  if (n.starsLeft > 0 && n.t >= n.nextStarAt && n.t < T_NIGHT - 2 && !n.sick) {
+    n.starsLeft--;
+    n.starT = STAR_T;
+    n.nextStarAt = n.t + 6 + rng.int(6);
+    beep(n);
+  }
+}
+
 function makeSick(n: IppunIsshoState): void {
   n.sick = true;
   n.sickT = 0;
@@ -756,6 +797,7 @@ function stepPhase(n: IppunIsshoState, rng: Rng): void {
         n.t = 0;
         n.form = 'tsubu';
         n.nameT = NAME_T;
+        n.starsTotal = n.starsLeft;
         gain(n, P_BORN);
         addPop(n);
         hitStop(n, 0.08);
@@ -783,7 +825,6 @@ function stepPhase(n: IppunIsshoState, rng: Rng): void {
         else if (n.form === 'pyon') n.ashi = AXIS_MAX;
         else if (n.form === 'mofu') n.kenami = AXIS_MAX;
         gain(n, P_MORPH);
-        if (!n.urged) n.score += P_CALM;
         if (n.form === 'kira') {
           n.score += P_KIRA;
           n.kira = true;
@@ -824,7 +865,7 @@ function stepPhase(n: IppunIsshoState, rng: Rng): void {
       }
       const shown = Math.floor((n.byeT - BYE_EPI) / EPI_STEP) + 1;
       if (n.byeT >= BYE_EPI && shown > n.epShown) {
-        n.epShown = Math.min(3, shown);
+        n.epShown = Math.min(4, shown);
         if (n.epShown === 1) addPop(n);
       }
       if (n.byeT >= BYE_END) {
@@ -858,6 +899,8 @@ function startBye(n: IppunIsshoState, early: boolean): void {
     gain(n, P_LIVED);
     if (!n.rained) n.score += P_CLEAN;
     if (!n.urged) n.score += P_CALM;
+    // 流れ星を一つも落とさなかった日（連続成功のボーナス）
+    if (n.starsTotal > 0 && n.starsCaught >= n.starsTotal) n.score += n.kira ? Math.round(P_ALL_STARS * KIRA_MULT) : P_ALL_STARS;
     addPop(n);
     hitStop(n, 0.08);
   }
@@ -870,7 +913,10 @@ function startBye(n: IppunIsshoState, early: boolean): void {
 function formOf(s: IppunIsshoState, rng: Rng): Form {
   const cares = s.fed + s.played + s.petted;
   if (cares <= 4 && s.rained) return 'tabi';
-  if (s.lucky && !s.rained && s.fed >= 1 && s.played >= 1 && s.petted >= 1) return 'kira';
+  // きら＝腕前: 雨を降らせず・3つの世話を均等に（運の要素は無い）
+  const axes = [s.maru, s.ashi, s.kenami];
+  const even = Math.max(...axes) - Math.min(...axes) <= 3;
+  if (!s.rained && s.fed >= 2 && s.played >= 2 && s.petted >= 2 && even) return 'kira';
   const m = Math.max(s.maru, s.ashi, s.kenami);
   if (m <= 0) return 'poyo';
   const tops: Form[] = [];
@@ -969,19 +1015,24 @@ function handleTap(n: IppunIsshoState, px: number, py: number): void {
     case 'char':
       pet(n);
       return;
-    case 'sky':
+    case 'sky': {
       if (starUp(n)) {
-        gain(n, P_HOSHI);
-        n.hoshiGot = true;
-        animate(n, 3, 0.8);
-        addPop(n);
-        hitStop(n, 0.06);
-        return;
+        const st = starAt(n);
+        if (Math.hypot(px - st.x, py - st.y) <= STAR_R) {
+          gain(n, P_HOSHI);
+          n.starsCaught++;
+          n.starT = 0;
+          animate(n, 3, 0.8);
+          addPop(n);
+          hitStop(n, 0.08);
+          return;
+        }
       }
       n.lookX = px < CHAR_X + n.walkX ? -1 : 1;
       n.lookT = 0.7;
       animate(n, 8, 0.7);
       return;
+    }
     default:
       n.lookX = px < CHAR_X + n.walkX ? -1 : 1;
       n.lookT = 0.6;
@@ -1128,7 +1179,7 @@ function refuse(n: IppunIsshoState): void {
 }
 
 function byeTap(n: IppunIsshoState): void {
-  const marks = [BYE_LOOK, BYE_SEED, BYE_EPI, BYE_EPI + EPI_STEP, BYE_EPI + EPI_STEP * 2, BYE_FORMS, BYE_END];
+  const marks = [BYE_LOOK, BYE_SEED, BYE_EPI, BYE_EPI + EPI_STEP, BYE_EPI + EPI_STEP * 2, BYE_EPI + EPI_STEP * 3, BYE_FORMS, BYE_END];
   for (const m of marks) {
     if (n.byeT < m - 0.05) {
       n.byeT = m;
@@ -1248,8 +1299,8 @@ function drawSky(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey):
   // キャラや吹き出しの帯（y≥90）には下りてこない
   const p = Math.min(T_NIGHT, s.t) / T_NIGHT;
   const cx = WIN_X + 22 + p * (WIN_W + 4);
-  const top = WIN_Y + 24;
-  const cy = p < 0.5 ? top + 30 - Math.sin(p * Math.PI) * 30 : top + ((p - 0.5) / 0.5) * 34;
+  const top = WIN_Y + 34;
+  const cy = p < 0.5 ? top + 26 - Math.sin(p * Math.PI) * 26 : top + ((p - 0.5) / 0.5) * 26;
   g.circle(cx, cy, 7, ink);
   for (let i = 0; i < 4; i++) {
     const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
@@ -1588,14 +1639,20 @@ function drawBubbles(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorK
   }
 }
 
-/** ゆうがたの一番星（上振れ）。空の右上でまたたく */
+/** 流れ星（上振れ）。右上から左下へ尾を引いて横切る。タップで捕まえる */
 function drawStar(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
   if (!starUp(s)) return;
-  const cx = STAR_X;
-  const cy = STAR_Y;
-  const r = Math.floor(s.time * 3) % 2 === 0 ? 7 : 4;
-  g.rect(cx - 1, cy - r, 3, r * 2 + 1, ink);
-  g.rect(cx - r, cy - 1, r * 2 + 1, 3, ink);
+  const { x, y } = starAt(s);
+  // 尾（来た方向へ3つ、だんだん小さく）
+  for (let k = 1; k <= 3; k++) {
+    const tx = x + k * 10;
+    const ty = y - k * 2;
+    const r = 4 - k;
+    g.rect(tx - r, ty - r, r * 2 + 1, r * 2 + 1, ink);
+  }
+  const r = Math.floor(s.time * 8) % 2 === 0 ? 7 : 5;
+  g.rect(x - 1, y - r, 3, r * 2 + 1, ink);
+  g.rect(x - r, y - 1, r * 2 + 1, 3, ink);
 }
 
 /** 手応え「＋N」。キャラの頭上に数字だけ。上に流れて消える。＋5以上は一瞬大きい */
@@ -1671,6 +1728,9 @@ function drawEgg(g: Painter, s: IppunIsshoState, sx: number, sy: number): void {
   }
   g.rect(WIN_X + 4, FLOOR_Y, WIN_W - 8, 2, 'ink');
   g.rect(WIN_X + 3, FLOOR_Y + 2, WIN_W - 6, WIN_H - (FLOOR_Y + 2 - WIN_Y) - 3, 'bg');
+  // 6つの姿の影絵を たまごの両脇に（この卵からどれかが生まれる＝0秒から目標がある。字は無し）
+  const slots = [34, 60, 86, 154, 180, 206];
+  for (let i = 0; i < FORMS_ALL.length; i++) drawMiniForm(g, FORMS_ALL[i], slots[i], FLOOR_Y - 16, false, 'ink', 'bg');
   // 押す場所を示す「指さし」がたまごを叩く（字ではなく絵。ゆっくり上下して、触れた瞬間に波紋）
   if (waiting) {
     const ph = (s.time % 1.2) / 1.2;
@@ -1713,16 +1773,15 @@ function drawBye(g: Painter, s: IppunIsshoState, sx: number, sy: number, ink: Co
 
   if (s.byeT < BYE_LOOK) {
     drawCreature(g, s, CHAR_X + sx, FLOOR_Y + sy, ink, hole);
-    if (!s.early) {
-      g.rect(WIN_X + 3, WIN_Y + 6, WIN_W - 6, 28, hole);
-      g.text('きょう、たのしかった', W / 2, WIN_Y + 12, { size: 14, align: 'center', color: ink });
-    }
+    g.rect(WIN_X + 3, WIN_Y + 6, WIN_W - 6, 28, hole);
+    // 言葉は2つ: よるまで「きょう、たのしかった」／早い別れ「つぎは そばに いて」（罰でなく次への誘い）
+    g.text(s.early ? 'つぎは そばに いて' : 'きょう、たのしかった', W / 2, WIN_Y + 12, { size: 14, align: 'center', color: ink });
   } else if (s.byeT < BYE_LOOK + BYE_LIGHT) {
     const p = (s.byeT - BYE_LOOK) / BYE_LIGHT;
-    const n = s.early ? 1 : 8;
+    const n = s.early ? 3 : 8;
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2;
-      const spread = s.early ? 0 : 18 + p * 40;
+      const spread = s.early ? 6 : 18 + p * 40;
       const px = CHAR_X + Math.cos(a) * spread;
       const py = FLOOR_Y - 30 - p * 120 + Math.sin(a) * spread * 0.4;
       const r = Math.max(1, 5 - p * 4);
@@ -1734,9 +1793,10 @@ function drawBye(g: Painter, s: IppunIsshoState, sx: number, sy: number, ink: Co
     g.circle(CHAR_X, FLOOR_Y - 5, 5, ink);
     g.rect(CHAR_X - 6, FLOOR_Y - 6, 12, 3, ink);
     if (s.bandage) g.rect(CHAR_X + 12, FLOOR_Y - 8, 8, 3, ink);
-    if (s.hoshiGot) {
-      g.rect(CHAR_X - 21, FLOOR_Y - 12, 3, 9, ink);
-      g.rect(CHAR_X - 24, FLOOR_Y - 9, 9, 3, ink);
+    for (let k = 0; k < s.starsCaught; k++) {
+      const sx2 = CHAR_X - 22 - k * 12;
+      g.rect(sx2 - 1, FLOOR_Y - 12, 3, 9, ink);
+      g.rect(sx2 - 4, FLOOR_Y - 9, 9, 3, ink);
     }
     if (s.tucked) {
       g.circle(CHAR_X + 26, FLOOR_Y - 10, 4, ink);
@@ -1750,16 +1810,33 @@ function drawBye(g: Painter, s: IppunIsshoState, sx: number, sy: number, ink: Co
 function drawEpitaph(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
   if (s.epShown <= 0) return;
   const name = NAMES[s.nameId];
+  // 4行目＝その一生の出来事（毎回違う）
+  const allStars = s.starsTotal > 0 && s.starsCaught >= s.starsTotal && !s.early;
+  const event = allStars
+    ? 'ながれぼしを ぜんぶ つかまえた'
+    : s.starsCaught >= 2
+    ? `ながれぼしを ${s.starsCaught}つ つかまえた`
+    : s.starsCaught === 1
+      ? 'ながれぼしを つかまえた'
+      : s.bandage
+        ? 'いちど たおれて、なおった'
+        : !s.rained && !s.early
+          ? 'いちども なかなかった'
+          : s.tucked
+            ? 'さいごは ねむって'
+            : s.early
+              ? 'あめが ふっていた'
+              : 'ふつうの いちにち';
   const lines = s.early
-    ? [s.form === 'tsubu' ? `${name}は まだ あかちゃんだった` : `${name}は ${FORM_NAME[s.form]}だった`, 'まっていた', `${whenLabel(s.endT)}に おわかれ`]
-    : [`${name}は ${FORM_NAME[s.form]}に なった`, FORM_WHY[s.form], s.form === 'tabi' ? 'ひとりで いきた' : 'あさから よるまで いっしょだった'];
-  g.rect(WIN_X + 3, WIN_Y + 4, WIN_W - 6, EPI_Y + EPI_LINE * 3 - WIN_Y, hole);
-  for (let i = 0; i < Math.min(s.epShown, 3); i++) {
+    ? [s.form === 'tsubu' ? `${name}は まだ あかちゃんだった` : `${name}は ${FORM_NAME[s.form]}だった`, 'まっていた', event, `${whenLabel(s.endT)}に おわかれ`]
+    : [`${name}は ${FORM_NAME[s.form]}に なった`, FORM_WHY[s.form], event, s.form === 'tabi' ? 'ひとりで いきた' : 'あさから よるまで いっしょだった'];
+  g.rect(WIN_X + 3, WIN_Y + 4, WIN_W - 6, EPI_Y + EPI_LINE * 4 - WIN_Y, hole);
+  for (let i = 0; i < Math.min(s.epShown, 4); i++) {
     g.text(lines[i], W / 2, EPI_Y + i * EPI_LINE, { size: 11, align: 'center', color: ink });
   }
   if (s.byeT >= BYE_FORMS) {
     // 6つの姿を小さな影絵で（今回の姿は塗り・ほかは輪郭）。「ほかにもある」＝もう一回の理由
-    const y = FLOOR_Y - 44;
+    const y = FLOOR_Y - 40;
     for (let i = 0; i < FORMS_ALL.length; i++) {
       const f = FORMS_ALL[i];
       const x = 38 + i * 33;
