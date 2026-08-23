@@ -136,6 +136,11 @@ const P_LIVED = 10;
 
 /** せいちょうの見出しを出しておく秒数 */
 const GROW_BANNER_T = 1.8;
+/**
+ * 時刻の変わり目の「間」の長さ（design.md v7）。この間は世話が減らず、画面が静かになり、
+ * いまの調子と進みを大きく見せる。ここが目線を集める山場（ふだんは静かに、変わり目で山）。
+ */
+const BEAT_T = 2.2;
 
 /* ---- 画面の決まり（240×320・mono テーマ。design.md §2）-------------- */
 
@@ -406,6 +411,15 @@ export interface IppunIsshoState extends BaseState, FeelState {
   gainPopT: number;
   /** 手応えの言葉（わかってる！/いらない 等） */
   gainWord: string;
+  /**
+   * 時刻の変わり目の「間」（design.md v7）。世話の減りを止めて画面を静め、
+   * いまの調子と進みを大きく見せる山場。残り秒。
+   */
+  beatT: number;
+  /** その「間」の見出し（ひるに なった 等） */
+  beatText: string;
+  /** どこまでの変わり目を見せたか（0=まだ 1=ひる 2=ゆうがた 3=よる） */
+  beatDone: number;
 }
 
 /* ---- 小さな道具 ------------------------------------------------------ */
@@ -598,6 +612,9 @@ export default defineGame<IppunIsshoState>({
       gainPop: 0,
       gainPopT: 0,
       gainWord: '',
+      beatT: 0,
+      beatText: '',
+      beatDone: 0,
     };
   },
 
@@ -615,6 +632,7 @@ export default defineGame<IppunIsshoState>({
     n.blackout = Math.max(0, n.blackout - dt);
     n.poke = Math.max(0, n.poke - dt);
     n.gainPopT = Math.max(0, n.gainPopT - dt);
+    n.beatT = Math.max(0, n.beatT - dt);
     if (n.pressT <= 0) n.pressBtn = -2;
 
     /* 2. 一日ぶんの時間を流し続ける（とじない）。よるになると眠くなる */
@@ -629,10 +647,13 @@ export default defineGame<IppunIsshoState>({
     /* 3. 入力（いつでも受ける） */
     if (takeTap(n)) handleTap(n, input.px, input.py);
 
-    /* 4. 開いている間に、目の前で減る・よわる（design.md §3・§5） */
-    if (n.phase === 'open' && n.alive) openDrain(n, dt);
+    /* 4. 時刻の変わり目の「間」（design.md v7）。ここで世話は減らず、画面が静まる */
+    if (n.phase === 'open' && n.alive) checkBeat(n);
 
-    /* 5. 時間で起きること（孵化・せいちょう・おわかれ） */
+    /* 5. 開いている間に、目の前で減る・よわる（design.md §3・§5）。「間」の最中は休む */
+    if (n.phase === 'open' && n.alive && n.beatT <= 0) openDrain(n, dt);
+
+    /* 6. 時間で起きること（孵化・せいちょう・おわかれ） */
     stepPhase(n, now, rng);
 
     return n;
@@ -734,6 +755,35 @@ export default defineGame<IppunIsshoState>({
  * 開いている間の減り・よわり（v4 の芯）。目の前でメーターが減り、放っておくと よぼよぼになる。
  * おとしより（余白）は何も減らない。ねんね中はおなかも減らない。
  */
+/**
+ * いまの調子をひと言で（design.md v7）。**良い方向か危ない方向かを、数字でなく言葉で**返す。
+ * 「間」と看取りで使う。ここが「今いい状態なのか悪い状態なのか分からない」への答え。
+ */
+function conditionWord(s: IppunIsshoState): string {
+  if (s.sick) return 'ぐあいが わるい';
+  if (s.weak >= 3) return 'よわってきた';
+  if (s.weak >= 1) return 'すこし つかれてる';
+  if (s.kira) return 'とても しあわせ';
+  if (s.missed === 0 && s.fed + s.played + s.petted >= 4) return 'ごきげん';
+  return 'げんき';
+}
+
+/**
+ * 時刻の変わり目に「間」を作る（design.md v7）。あさ→ひる→ゆうがた→よる の3回。
+ * ここだけ世話が減らず、画面が静まり、いまの調子と進みを大きく見せる＝目線を集める山場。
+ */
+function checkBeat(n: IppunIsshoState): void {
+  const want = n.t >= T_NIGHT ? 3 : n.t >= T_DUSK ? 2 : n.t >= T_NOON ? 1 : 0;
+  if (want <= n.beatDone) return;
+  n.beatDone = want;
+  n.beatT = BEAT_T;
+  n.beatText = want === 3 ? 'よるに なった' : want === 2 ? 'ゆうがた' : 'ひるに なった';
+  // 山場のしるし。ここで手を止めさせる
+  addPop(n);
+  hitStop(n, 0.12);
+  beep(n);
+}
+
 function openDrain(n: IppunIsshoState, dt: number): void {
   const elder = stageOf(n.t) === 'elder';
 
@@ -752,9 +802,11 @@ function openDrain(n: IppunIsshoState, dt: number): void {
     }
   }
 
-  /* あさ（あかちゃん）と ゆうがた以降は静かなので、8秒に一度「なでて」とねだる（見どころを絶やさない） */
+  /* あさ（あかちゃん）と ゆうがた以降は静かなので、ときどき「なでて」とねだる。
+     v7: ふだんは静かにして変わり目の「間」を山場にするため 8→11秒に空けた（ゲートの
+     「画面で何かが起きる間隔」は 12秒以内が基準なので、その内側に収める） */
   const wantsPet = stageOf(n.t) === 'baby' || elder;
-  if (wantsPet && !n.wantPet && !n.sick && !n.asleep && n.mood >= 1 && n.openT - n.petAt >= 8) {
+  if (wantsPet && !n.wantPet && !n.sick && !n.asleep && n.mood >= 1 && n.openT - n.petAt >= 11) {
     n.wantPet = true;
     beep(n);
   }
@@ -1226,11 +1278,11 @@ function drawHeadRow(g: Painter, s: IppunIsshoState): void {
   } else if (s.phase === 'name') {
     g.text('うまれた', 6, HEAD_Y, { size: 12, color: 'ink' });
   } else {
-    // 時間帯（一日の流れ）。のこりは太陽/月の位置と よるの星で見せる（v6 FB5）
+    // v7: プレイ中の上帯は時間帯と空だけ（実機で「上帯の情報は一つも入らなかった」）。
+    // 状態はキャラの足元、進みは変わり目の「間」で見せる
     g.text(whenLabel(s.t), 6, HEAD_Y, { size: 12, color: 'ink' });
     drawSky(g, s.t);
   }
-  drawSprouts(g, s);
 }
 
 /** 上帯の右、一日の流れ（太陽→月）。あさ左→ひる高く→よるは沈んで月に変わる */
@@ -1266,27 +1318,67 @@ function drawSky(g: Painter, t: number): void {
  * すぐ下に いまの称号を dim で添える。
  * 🔴 双葉のドット絵は QVGA で潰れて「⊥⊥⊥＿＿」と文字化けに見えたので、●／○ のドットに変えた（coordinator指摘）。
  */
-function drawSprouts(g: Painter, s: IppunIsshoState): void {
-  // 称号ゲージ（design.md §6・v6 FB4②）。いまのしあわせと、つぎの称号までの進みを見せる
+/**
+ * 「間」で見せる進み（design.md v7）。ふだんは出さず、時刻の変わり目にだけ大きく出す。
+ * ここが「どこまで来たか・次は何点か」を認識できる唯一の場所（＝目線を集める山場）。
+ */
+function drawBeat(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
+  if (s.beatT <= 0) return;
+  // 下地を敷く。きらのきらめき等と重なると文字が潰れて読めなくなる（実測）
+  g.rect(WIN_X + 3, WIN_Y + 12, WIN_W - 6, 84, hole);
   const goals = meta.goals ?? [];
-  if (goals.length === 0) return;
-  const max = goals[goals.length - 1].score;
-  const bx = W / 2 - 48;
-  const bw = 96;
-  const by = SPROUT_Y - 2;
-  g.rect(bx, by, bw, 4, 'dim'); // 台
-  g.rect(bx, by, Math.round(bw * Math.min(1, s.score / max)), 4, 'ink'); // いまの伸び
   let cur = '';
   let next: { score: number; label: string } | null = null;
   for (const goal of goals) {
-    const gx = bx + Math.round((goal.score / max) * bw);
-    const done = s.score >= goal.score;
-    g.rect(gx - 1, by - 2, 2, 8, done ? 'ink' : 'dim'); // 称号のしるし
-    if (done) cur = goal.label;
+    if (s.score >= goal.score) cur = goal.label;
     else if (!next) next = goal;
   }
-  const label = next ? `つぎ ${next.label} まで あと ${next.score - s.score}` : `${cur}！`;
-  g.text(label, W / 2, SPROUT_Y + 10, { size: 9, align: 'center', color: 'dim' });
+  g.text(s.beatText, W / 2, WIN_Y + 26, { size: 18, align: 'center', color: ink });
+  // いまの調子（良い方向か危ない方向か）を言葉で
+  g.text(conditionWord(s), W / 2, WIN_Y + 50, { size: 13, align: 'center', color: ink });
+  // どこまで来たか
+  g.text(`しあわせ ${s.score}${cur ? `・${cur}` : ''}`, W / 2, WIN_Y + 70, {
+    size: 11,
+    align: 'center',
+    color: ink,
+  });
+  if (next) {
+    g.text(`つぎ ${next.label} まで あと ${next.score - s.score}`, W / 2, WIN_Y + 86, {
+      size: 10,
+      align: 'center',
+      color: ink,
+    });
+  }
+}
+
+/**
+ * キャラの足元の芽（design.md v7）。**いま良い状態か悪い状態かを、目線が既にいる場所で常に見せる**。
+ * しあわせが育つと伸びて花が咲き、よわっている間はしおれる（数字を読ませない）。
+ */
+function drawFootPlant(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
+  const goals = meta.goals ?? [];
+  const max = goals.length > 0 ? goals[goals.length - 1].score : 100;
+  const grow = Math.min(1, s.score / max);
+  const wilt = s.sick || s.weak >= 2; // しおれ＝危ない方向
+  const n = 1 + Math.floor(grow * 3.99); // 1〜4本
+  for (let i = 0; i < n; i++) {
+    const side = i % 2 === 0 ? -1 : 1;
+    const x = CHAR_X + side * (46 + Math.floor(i / 2) * 15);
+    const h = wilt ? 5 : 8 + Math.round(grow * 12);
+    const ty = FLOOR_Y - h;
+    // 茎。しおれているときは片側へ倒れる
+    const bend = wilt ? side * 4 : 0;
+    g.line(x, FLOOR_Y, x + bend, ty, ink, 2);
+    // 葉
+    g.rect(x + bend - 5, ty + 1, 5, 2, ink);
+    g.rect(x + bend + 1, ty + 4, 5, 2, ink);
+    // 花（じゅうぶん育った子だけ・しおれていないとき）
+    if (!wilt && grow > 0.5 && i < 2) {
+      g.circle(x + bend, ty - 2, 3, ink);
+      g.circle(x + bend - 3, ty - 1, 2, ink);
+      g.circle(x + bend + 3, ty - 1, 2, ink);
+    }
+  }
 }
 
 /**
@@ -1352,10 +1444,16 @@ function drawWindow(g: Painter, s: IppunIsshoState, sx: number, sy: number): voi
       // 床
       g.rect(WIN_X + 4, FLOOR_Y, WIN_W - 8, 2, ink);
       drawDusk(g, s, ink); // よるの星（時間の移ろい）
+      drawFootPlant(g, s, ink); // 足元の芽＝いま良い状態か悪い状態か（常に見える）
       drawTsubu(g, s, CHAR_X + sx, FLOOR_Y + sy, ink, hole);
-      drawWish(g, s, ink, hole); // 欲しいものアイコン（キャラの真下）
-      drawStar(g, s, ink); // ゆうがたの一番星（上振れ②）
-      drawGainPop(g, s, ink); // 手応え「＋N」（キャラの上）
+      // 「間」の最中はキャラ周りを静めて、見出しと進みだけに目を向けさせる（design.md v7）
+      if (s.beatT > 0) {
+        drawBeat(g, s, ink, hole);
+      } else {
+        drawWish(g, s, ink, hole); // 欲しいものアイコン（キャラの真下）
+        drawStar(g, s, ink); // ゆうがたの一番星（上振れ②）
+        drawGainPop(g, s, ink); // 手応え「＋N」（キャラの上）
+      }
       drawGrow(g, s, ink);
     }
     drawSay(g, s, ink);
