@@ -163,8 +163,8 @@ const CHAR_X = 120;
 const DOT = 4;
 /** 体の高さ（16ドット×DOT） */
 const BODY_H = 16 * DOT;
-/** 液晶の中に出る一言 */
-const SAY_Y = 196;
+/** 液晶の中に出る一言。**窓の上部**（キャラの下はアイコン専用にして重なりを断つ。v8） */
+const SAY_Y = 60;
 /** せいちょうの見出しと理由 */
 const GROW_Y = 96;
 const GROW_WHY_Y = 112;
@@ -420,6 +420,14 @@ export interface IppunIsshoState extends BaseState, FeelState {
   beatText: string;
   /** どこまでの変わり目を見せたか（0=まだ 1=ひる 2=ゆうがた 3=よる） */
   beatDone: number;
+  /**
+   * 称号に届いた瞬間の見出し（design.md v8）。「ちょっとずつ育つ」だけでは
+   * 良いのか悪いのか分からなかったので、**称号ごとに花が1本ドンと咲く**大きな出来事にする。
+   */
+  titleT: number;
+  titleText: string;
+  /** いくつ称号を祝ったか（＝咲いている花の数） */
+  titleDone: number;
 }
 
 /* ---- 小さな道具 ------------------------------------------------------ */
@@ -615,6 +623,9 @@ export default defineGame<IppunIsshoState>({
       beatT: 0,
       beatText: '',
       beatDone: 0,
+      titleT: 0,
+      titleText: '',
+      titleDone: 0,
     };
   },
 
@@ -633,6 +644,7 @@ export default defineGame<IppunIsshoState>({
     n.poke = Math.max(0, n.poke - dt);
     n.gainPopT = Math.max(0, n.gainPopT - dt);
     n.beatT = Math.max(0, n.beatT - dt);
+    n.titleT = Math.max(0, n.titleT - dt);
     if (n.pressT <= 0) n.pressBtn = -2;
 
     /* 2. 一日ぶんの時間を流し続ける（とじない）。よるになると眠くなる */
@@ -653,7 +665,10 @@ export default defineGame<IppunIsshoState>({
     /* 5. 開いている間に、目の前で減る・よわる（design.md §3・§5）。「間」の最中は休む */
     if (n.phase === 'open' && n.alive && n.beatT <= 0) openDrain(n, dt);
 
-    /* 6. 時間で起きること（孵化・せいちょう・おわかれ） */
+    /* 6. 称号に届いたら、花が1本 咲く（大きな出来事にする。design.md v8） */
+    checkTitle(n);
+
+    /* 7. 時間で起きること（孵化・せいちょう・おわかれ） */
     stepPhase(n, now, rng);
 
     return n;
@@ -772,6 +787,31 @@ function conditionWord(s: IppunIsshoState): string {
  * 時刻の変わり目に「間」を作る（design.md v7）。あさ→ひる→ゆうがた→よる の3回。
  * ここだけ世話が減らず、画面が静まり、いまの調子と進みを大きく見せる＝目線を集める山場。
  */
+/** いま届いている称号の数（＝足元に咲いている花の数） */
+function titleCount(score: number): number {
+  let n = 0;
+  for (const goal of meta.goals ?? []) if (score >= goal.score) n++;
+  return n;
+}
+
+/**
+ * 称号に届いた瞬間（design.md v8）。**花が1本ドンと咲く**。
+ * 実機で「ちょっとずつ育つのは さりげなさすぎて、良いのか悪いのか分からない」と言われたので、
+ * 進みは連続でなく**段（花の本数）**で見せ、届いた瞬間を止めて祝う。
+ */
+function checkTitle(n: IppunIsshoState): void {
+  if (n.phase !== 'open') return;
+  const goals = meta.goals ?? [];
+  const reached = titleCount(n.score);
+  if (reached <= n.titleDone) return;
+  n.titleDone = reached;
+  n.titleText = `${goals[reached - 1].label}に なった！`;
+  n.titleT = 1.5;
+  addPop(n);
+  hitStop(n, 0.1);
+  beep(n);
+}
+
 function checkBeat(n: IppunIsshoState): void {
   const want = n.t >= T_NIGHT ? 3 : n.t >= T_DUSK ? 2 : n.t >= T_NOON ? 1 : 0;
   if (want <= n.beatDone) return;
@@ -988,7 +1028,9 @@ function checkGrowth(n: IppunIsshoState): void {
     const stage = n.growStage + 1;
     applyGrowth(n, stage);
     n.growStage = stage;
-    revealGrow(n, stage);
+    // 🔴 ゆうがた（stage 2）の見出しは出さない。同じ時刻に「間」の見出しも出るので
+    // 二重に描かれて文字が重なり、読めなくなる（実機で発生。design.md v8）
+    if (stage === 1) revealGrow(n, stage);
   }
 }
 
@@ -1356,28 +1398,57 @@ function drawBeat(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey)
  * しあわせが育つと伸びて花が咲き、よわっている間はしおれる（数字を読ませない）。
  */
 function drawFootPlant(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
-  const goals = meta.goals ?? [];
-  const max = goals.length > 0 ? goals[goals.length - 1].score : 100;
-  const grow = Math.min(1, s.score / max);
   const wilt = s.sick || s.weak >= 2; // しおれ＝危ない方向
-  const n = 1 + Math.floor(grow * 3.99); // 1〜4本
-  for (let i = 0; i < n; i++) {
+  const bloom = titleCount(s.score); // 咲いている花＝届いた称号の数
+  // まだ0本でも「芽」は1つ出す（何も無いと"育っていないこと"すら伝わらない）
+  const total = Math.max(1, bloom);
+  for (let i = 0; i < total; i++) {
     const side = i % 2 === 0 ? -1 : 1;
-    const x = CHAR_X + side * (46 + Math.floor(i / 2) * 15);
-    const h = wilt ? 5 : 8 + Math.round(grow * 12);
+    const x = CHAR_X + side * (54 + Math.floor(i / 2) * 24);
+    const open = i < bloom; // 咲いているか（まだなら芽）
+    // 咲いた瞬間はぐんと伸びる（最後の1本だけ）
+    const justBloomed = i === bloom - 1 && s.titleT > 0;
+    const pop = justBloomed ? Math.round((1.5 - s.titleT) * 10) : 0;
+    const h = wilt ? 10 : open ? 30 + pop : 12;
+    const bend = wilt ? side * 7 : 0; // しおれると倒れる
     const ty = FLOOR_Y - h;
-    // 茎。しおれているときは片側へ倒れる
-    const bend = wilt ? side * 4 : 0;
-    g.line(x, FLOOR_Y, x + bend, ty, ink, 2);
-    // 葉
-    g.rect(x + bend - 5, ty + 1, 5, 2, ink);
-    g.rect(x + bend + 1, ty + 4, 5, 2, ink);
-    // 花（じゅうぶん育った子だけ・しおれていないとき）
-    if (!wilt && grow > 0.5 && i < 2) {
-      g.circle(x + bend, ty - 2, 3, ink);
-      g.circle(x + bend - 3, ty - 1, 2, ink);
-      g.circle(x + bend + 3, ty - 1, 2, ink);
+    g.line(x, FLOOR_Y, x + bend, ty, ink, 3);
+    // 葉（大きめ。小さいと見えない）
+    g.rect(x + bend - 9, ty + 6, 9, 3, ink);
+    g.rect(x + bend + 3, ty + 12, 9, 3, ink);
+    if (open && !wilt) {
+      // 花。中心＋花びら4枚（1ビットでも花と分かる大きさに）
+      g.circle(x + bend, ty - 3, 4, ink);
+      g.circle(x + bend - 7, ty - 3, 4, ink);
+      g.circle(x + bend + 7, ty - 3, 4, ink);
+      g.circle(x + bend, ty - 10, 4, ink);
+      g.circle(x + bend, ty + 4, 4, ink);
+      if (justBloomed) {
+        // 咲いた瞬間のきらめき
+        for (let k = 0; k < 4; k++) {
+          const a = k * 1.57 + s.time * 3;
+          g.rect(x + Math.cos(a) * 18 - 2, ty - 3 + Math.sin(a) * 18 - 2, 4, 4, ink);
+        }
+      }
+    } else if (open && wilt) {
+      // しおれた花（うつむく）
+      g.circle(x + bend, ty + 2, 4, ink);
     }
+  }
+}
+
+/**
+ * ぐあいが悪い・よわっているときの雨（design.md v8）。
+ * **画面全体の空気を変えて「いま良くない」を一目で伝える**（足元の小さな変化では伝わらなかった）。
+ */
+function drawRain(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
+  if (s.phase !== 'open') return;
+  if (!(s.sick || s.weak >= 2)) return;
+  for (let i = 0; i < 12; i++) {
+    const x = WIN_X + 14 + ((i * 41) % (WIN_W - 28));
+    const span = FLOOR_Y - WIN_Y - 16;
+    const y = WIN_Y + 12 + (((s.time * 110 + i * 29) % span) | 0);
+    g.rect(x, y, 2, 8, ink);
   }
 }
 
@@ -1444,7 +1515,8 @@ function drawWindow(g: Painter, s: IppunIsshoState, sx: number, sy: number): voi
       // 床
       g.rect(WIN_X + 4, FLOOR_Y, WIN_W - 8, 2, ink);
       drawDusk(g, s, ink); // よるの星（時間の移ろい）
-      drawFootPlant(g, s, ink); // 足元の芽＝いま良い状態か悪い状態か（常に見える）
+      drawRain(g, s, ink); // 雨＝いま良くない（画面全体の空気で伝える。v8）
+      drawFootPlant(g, s, ink); // 足元の花＝どこまで来たか（称号ごとに1本咲く。v8）
       drawTsubu(g, s, CHAR_X + sx, FLOOR_Y + sy, ink, hole);
       // 「間」の最中はキャラ周りを静めて、見出しと進みだけに目を向けさせる（design.md v7）
       if (s.beatT > 0) {
@@ -1453,8 +1525,9 @@ function drawWindow(g: Painter, s: IppunIsshoState, sx: number, sy: number): voi
         drawWish(g, s, ink, hole); // 欲しいものアイコン（キャラの真下）
         drawStar(g, s, ink); // ゆうがたの一番星（上振れ②）
         drawGainPop(g, s, ink); // 手応え「＋N」（キャラの上）
+        drawGrow(g, s, ink, hole); // せいちょうの見出し
+        drawTitle(g, s, ink, hole); // 称号に届いた見出し
       }
-      drawGrow(g, s, ink);
     }
     drawSay(g, s, ink);
   });
@@ -1476,7 +1549,7 @@ function drawWish(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey)
   // 病気（見落としの結果）は点滅させず常時出す＝「くすり」を確実に伝える。ほかはゆっくり点滅（1つだけ）
   if (!s.sick && Math.floor(s.time * 4) % 2 !== 0) return;
   // キャラの真下（キャラ→アイコン→下のボタンで視線が下へ一直線。design.md v6 FB3）
-  drawIcon(g, kind, CHAR_X, FLOOR_Y + 14, 20, ink, hole);
+  drawIcon(g, kind, CHAR_X, FLOOR_Y + 12, 18, ink, hole);
 }
 
 /** ゆうがたの空に一番星（上振れ②）。ichiban の子だけ・取るまで きらめく */
@@ -1506,6 +1579,16 @@ function drawDusk(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
   }
 }
 
+/**
+ * 称号に届いた見出し（design.md v8）。花が咲いた瞬間、窓の上に大きく1行。
+ * 下地を敷いてから描く（重ねると読めなくなるのは実機で確認済み）。
+ */
+function drawTitle(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
+  if (s.titleT <= 0 || s.growT > 0) return;
+  g.rect(WIN_X + 3, WIN_Y + 8, WIN_W - 6, 26, hole);
+  g.text(s.titleText, W / 2, WIN_Y + 14, { size: 15, align: 'center', color: ink });
+}
+
 /** 手応えポップ（design.md §4・v6 FB4①）。押した瞬間、キャラの上に「＋N」を大きく。上へ流れて消える */
 function drawGainPop(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
   if (s.gainPopT <= 0 || s.growT > 0) return; // 成長バナー中はゆずる
@@ -1520,8 +1603,10 @@ function drawGainPop(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
 }
 
 /** せいちょうの見出しと理由。消灯中は反転しているので色を受け取る */
-function drawGrow(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
+function drawGrow(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
   if (s.growT <= 0) return;
+  // 下地。雨やきらめきと重なると読めなくなる（実機で確認。v8）
+  g.rect(WIN_X + 3, GROW_Y - 12, WIN_W - 6, 34, hole);
   g.text(s.growText, W / 2, GROW_Y, { size: 14, align: 'center', color: ink });
   if (s.growWhy) {
     g.text(s.growWhy, W / 2, GROW_WHY_Y, { size: 9, align: 'center', color: ink });
@@ -1551,6 +1636,9 @@ function drawSay(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
     g.text(text, W / 2, 50, { size: 12, align: 'center', color: 'ink' });
     return;
   }
+  // 🔴 見出し（間・せいちょう・称号）が出ている間は譲る。重ねると必ず読めなくなる
+  if (s.beatT > 0 || s.growT > 0 || s.titleT > 0) return;
+  // 一言は窓の上。**キャラの下は「いま何がほしいか」のアイコン専用**にして重なりを断つ
   g.text(text, W / 2, SAY_Y, { size: 11, align: 'center', color: ink });
 }
 
