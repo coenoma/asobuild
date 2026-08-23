@@ -483,9 +483,11 @@ function wishOf(s: IppunIsshoState): Kind | '' {
   return '';
 }
 
-/** そのボタンが「いま応えるべきもの」か（下のボタンが反転して点滅する。頭上の合図と同じ1件） */
+/** そのボタンが「いま応えるべきもの」か（下のボタンが反転して点滅する。合図と同じ1件） */
 function wanted(s: IppunIsshoState, kind: Kind): boolean {
   if (s.phase !== 'open') return false;
+  // 見出しが出ているあいだは急かさない（祝いを見る余裕を作る。v9）
+  if (s.beatT > 0 || s.growT > 0 || s.titleT > 0) return false;
   return troubleOf(s) === kind;
 }
 
@@ -662,8 +664,11 @@ export default defineGame<IppunIsshoState>({
     /* 4. 時刻の変わり目の「間」（design.md v7）。ここで世話は減らず、画面が静まる */
     if (n.phase === 'open' && n.alive) checkBeat(n);
 
-    /* 5. 開いている間に、目の前で減る・よわる（design.md §3・§5）。「間」の最中は休む */
-    if (n.phase === 'open' && n.alive && n.beatT <= 0) openDrain(n, dt);
+    /* 5. 開いている間に、目の前で減る・よわる（design.md §3・§5）。
+       🔴 見出し（間・せいちょう・称号）が出ているあいだは**世話の時間ごと止める**。
+       祝っている最中に次を要求すると、慌ただしくて見出しを見る余裕が無くなる（実機FB。v9） */
+    const banner = n.beatT > 0 || n.growT > 0 || n.titleT > 0;
+    if (n.phase === 'open' && n.alive && !banner) openDrain(n, dt);
 
     /* 6. 称号に届いたら、花が1本 咲く（大きな出来事にする。design.md v8） */
     checkTitle(n);
@@ -1398,41 +1403,76 @@ function drawBeat(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey)
  * しあわせが育つと伸びて花が咲き、よわっている間はしおれる（数字を読ませない）。
  */
 function drawFootPlant(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
-  const wilt = s.sick || s.weak >= 2; // しおれ＝危ない方向
-  const bloom = titleCount(s.score); // 咲いている花＝届いた称号の数
-  // まだ0本でも「芽」は1つ出す（何も無いと"育っていないこと"すら伝わらない）
-  const total = Math.max(1, bloom);
-  for (let i = 0; i < total; i++) {
-    const side = i % 2 === 0 ? -1 : 1;
-    const x = CHAR_X + side * (54 + Math.floor(i / 2) * 24);
-    const open = i < bloom; // 咲いているか（まだなら芽）
-    // 咲いた瞬間はぐんと伸びる（最後の1本だけ）
-    const justBloomed = i === bloom - 1 && s.titleT > 0;
-    const pop = justBloomed ? Math.round((1.5 - s.titleT) * 10) : 0;
-    const h = wilt ? 10 : open ? 30 + pop : 12;
-    const bend = wilt ? side * 7 : 0; // しおれると倒れる
+  const wilt = s.sick || s.weak >= 2;
+  const stage = Math.min(4, titleCount(s.score)); // 0=芽 1=花 2=木 3=大木 4=満開
+  /* 咲いた瞬間はぐんと伸びる（前の段の高さから今の段へ 0.5秒で育つ） */
+  const H = [14, 34, 66, 92, 92];
+  const prev = H[Math.max(0, stage - 1)];
+  const ease = s.titleT > 0 ? Math.min(1, (1.5 - s.titleT) / 0.5) : 1;
+  const h = wilt ? 16 : Math.round(prev + (H[stage] - prev) * ease);
+
+  for (let i = 0; i < 2; i++) {
+    const side = i === 0 ? -1 : 1;
+    const x = CHAR_X + side * 62;
+    const bend = wilt ? side * 8 : 0;
     const ty = FLOOR_Y - h;
-    g.line(x, FLOOR_Y, x + bend, ty, ink, 3);
-    // 葉（大きめ。小さいと見えない）
-    g.rect(x + bend - 9, ty + 6, 9, 3, ink);
-    g.rect(x + bend + 3, ty + 12, 9, 3, ink);
-    if (open && !wilt) {
-      // 花。中心＋花びら4枚（1ビットでも花と分かる大きさに）
-      g.circle(x + bend, ty - 3, 4, ink);
-      g.circle(x + bend - 7, ty - 3, 4, ink);
-      g.circle(x + bend + 7, ty - 3, 4, ink);
-      g.circle(x + bend, ty - 10, 4, ink);
-      g.circle(x + bend, ty + 4, 4, ink);
-      if (justBloomed) {
-        // 咲いた瞬間のきらめき
-        for (let k = 0; k < 4; k++) {
-          const a = k * 1.57 + s.time * 3;
-          g.rect(x + Math.cos(a) * 18 - 2, ty - 3 + Math.sin(a) * 18 - 2, 4, 4, ink);
-        }
+    /* みき。育つほど太くなる */
+    g.line(x, FLOOR_Y, x + bend, ty, ink, stage >= 2 ? 6 : 3);
+
+    if (wilt) {
+      // しおれ。葉が落ちる（落ちていく粒は時間の関数）
+      g.circle(x + bend, ty + 3, 4, ink);
+      for (let k = 0; k < 3; k++) {
+        const fy = ty + 14 + (((s.time * 26 + k * 17) % 40) | 0);
+        if (fy < FLOOR_Y) g.rect(x + side * (6 + k * 3), fy, 4, 2, ink);
       }
-    } else if (open && wilt) {
-      // しおれた花（うつむく）
-      g.circle(x + bend, ty + 2, 4, ink);
+      continue;
+    }
+
+    if (stage === 0) {
+      // 芽。ふたば
+      g.circle(x - 5, ty + 2, 4, ink);
+      g.circle(x + 5, ty + 2, 4, ink);
+    } else if (stage === 1) {
+      // 花
+      g.circle(x, ty - 3, 5, ink);
+      g.circle(x - 8, ty - 3, 4, ink);
+      g.circle(x + 8, ty - 3, 4, ink);
+      g.circle(x, ty - 11, 4, ink);
+      g.circle(x, ty + 5, 4, ink);
+      g.rect(x - 10, ty + 14, 10, 3, ink);
+      g.rect(x, ty + 22, 10, 3, ink);
+    } else {
+      /* 木。葉のかたまりを丸で重ねる。段が上がるほど大きく広がる */
+      const r = stage >= 3 ? 26 : 18;
+      g.circle(x, ty + 4, r, ink);
+      g.circle(x - r * 0.7, ty + 14, r * 0.7, ink);
+      g.circle(x + r * 0.7, ty + 14, r * 0.7, ink);
+      g.circle(x, ty - r * 0.6, r * 0.7, ink);
+      if (stage >= 3) {
+        // 枝が上へ広がる（画面の上のほうまで届く＝ありえない育ち方）
+        g.line(x, ty + 4, x + side * 26, WIN_Y + 34, ink, 3);
+        g.circle(x + side * 26, WIN_Y + 32, 12, ink);
+      }
+    }
+  }
+
+  if (stage >= 4 && !wilt) {
+    /* 満開。画面じゅうに花びらが舞う（現実にはありえないが、"満ちた"が一目で分かる） */
+    for (let k = 0; k < 14; k++) {
+      const px = WIN_X + 16 + ((k * 53) % (WIN_W - 32));
+      const drift = Math.sin(s.time * 1.4 + k) * 6;
+      const py = WIN_Y + 14 + (((s.time * 22 + k * 37) % (FLOOR_Y - WIN_Y - 20)) | 0);
+      g.circle(px + drift, py, 3, ink);
+    }
+  }
+
+  if (s.titleT > 0 && !wilt) {
+    /* 育った瞬間のきらめき（キャラの周りに輪） */
+    for (let k = 0; k < 8; k++) {
+      const a = k * 0.785 + s.time * 3;
+      const rr = 40 + (1 - Math.min(1, s.titleT / 1.5)) * 26;
+      g.rect(CHAR_X + Math.cos(a) * rr - 2, FLOOR_Y - 34 + Math.sin(a) * rr * 0.7 - 2, 5, 5, ink);
     }
   }
 }
@@ -1515,8 +1555,11 @@ function drawWindow(g: Painter, s: IppunIsshoState, sx: number, sy: number): voi
       // 床
       g.rect(WIN_X + 4, FLOOR_Y, WIN_W - 8, 2, ink);
       drawDusk(g, s, ink); // よるの星（時間の移ろい）
-      drawRain(g, s, ink); // 雨＝いま良くない（画面全体の空気で伝える。v8）
-      drawFootPlant(g, s, ink); // 足元の花＝どこまで来たか（称号ごとに1本咲く。v8）
+      // 「間」の最中は本当に静める（雨も庭も出さない。見出しだけに目を向けさせる。v9）
+      if (s.beatT <= 0) {
+        drawRain(g, s, ink); // 雨＝いま良くない（画面全体の空気で伝える。v8）
+        drawFootPlant(g, s, ink); // 育ち＝どこまで来たか（芽→花→木→大木→満開。v9）
+      }
       drawTsubu(g, s, CHAR_X + sx, FLOOR_Y + sy, ink, hole);
       // 「間」の最中はキャラ周りを静めて、見出しと進みだけに目を向けさせる（design.md v7）
       if (s.beatT > 0) {
@@ -1524,7 +1567,7 @@ function drawWindow(g: Painter, s: IppunIsshoState, sx: number, sy: number): voi
       } else {
         drawWish(g, s, ink, hole); // 欲しいものアイコン（キャラの真下）
         drawStar(g, s, ink); // ゆうがたの一番星（上振れ②）
-        drawGainPop(g, s, ink); // 手応え「＋N」（キャラの上）
+        drawGainPop(g, s, ink, hole); // 手応え「＋N」（キャラの上）
         drawGrow(g, s, ink, hole); // せいちょうの見出し
         drawTitle(g, s, ink, hole); // 称号に届いた見出し
       }
@@ -1544,6 +1587,8 @@ function drawWindow(g: Painter, s: IppunIsshoState, sx: number, sy: number): voi
  * 対応ボタンと同じ絵で頭上に出す（凡例代わり。頭上とボタンで同じ絵＝視線がつながる）。
  */
 function drawWish(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
+  // 見出しが出ているあいだは出さない（祝いと要求を同時に出さない。v9）
+  if (s.beatT > 0 || s.growT > 0 || s.titleT > 0) return;
   const kind = troubleOf(s);
   if (kind === '') return;
   // 病気（見落としの結果）は点滅させず常時出す＝「くすり」を確実に伝える。ほかはゆっくり点滅（1つだけ）
@@ -1590,10 +1635,13 @@ function drawTitle(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey
 }
 
 /** 手応えポップ（design.md §4・v6 FB4①）。押した瞬間、キャラの上に「＋N」を大きく。上へ流れて消える */
-function drawGainPop(g: Painter, s: IppunIsshoState, ink: ColorKey): void {
+function drawGainPop(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey): void {
   if (s.gainPopT <= 0 || s.growT > 0) return; // 成長バナー中はゆずる
   const rise = (0.85 - s.gainPopT) * 16;
   const y = FLOOR_Y - BODY_H - 14 - rise;
+  // 下地。きらめきや木と重なると読めなくなる（重ねない規則。v9）
+  const bh = s.gainPop > 0 && s.gainWord ? 44 : s.gainPop > 0 ? 28 : 20;
+  g.rect(CHAR_X - 56, y - 14, 112, bh, hole);
   if (s.gainPop > 0) {
     g.text(`＋${s.gainPop}`, CHAR_X, y, { size: 24, align: 'center', color: ink });
     if (s.gainWord) g.text(s.gainWord, CHAR_X, y + 19, { size: 12, align: 'center', color: ink });

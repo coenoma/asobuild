@@ -41,10 +41,10 @@ export const meta: GameMeta = {
    * ※ ここは実測（npm run fun -- ippun-issho --runs=400 の seed 0/777/31337）で確定する。
    */
   goals: [
-    { score: 25, label: 'ともだち' },
-    { score: 55, label: 'なかよし' },
-    { score: 95, label: 'かぞく' },
-    { score: 135, label: 'あいぼう' },
+    { score: 22, label: 'ともだち' },
+    { score: 48, label: 'なかよし' },
+    { score: 82, label: 'かぞく' },
+    { score: 124, label: 'あいぼう' },
   ],
   /**
    * 終わりは失敗ではない。結果画面の reason() を赤で出さず（mono では ink）、
