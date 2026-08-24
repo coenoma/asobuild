@@ -45,7 +45,7 @@ const TUNE = {
   /** 欲求が 1 減るのにかかる秒数（おなか。きげん・さみしさは係数をかける） */
   drain: 5,
   /** 呼び始めから力尽きるまでの秒数。「放てば死ぬ」の猶予そのもの（本家「僅かな気の緩みで死ぬ」） */
-  graceToDie: 18,
+  graceToDie: 14,
 };
 
 /* ================================================================== *
@@ -76,13 +76,13 @@ const LV1_AT = 2;
 /** この値以下で「呼ぶ」（Lv2。大きな吹き出し・ピッ） */
 const LV2_AT = 1;
 /** 呼び始めてから Lv3（強く呼ぶ）・Lv4（よわる＝雨）になる秒数 */
-const LV3_AFTER = 3;
-const LV4_AFTER = 6;
+const LV3_AFTER = 2;
+const LV4_AFTER = 4.5;
 /** ぐあいわるい のまま何秒で力尽きるか（Lv5 は graceToDie - これ） */
-const SICK_TO_DIE = 8;
+const SICK_TO_DIE = 6;
 /** 満腹で続けて食べさせると「げふ」になる回数／そのあと食べられない秒数 */
-const OVERFEED_AT = 3;
-const FULL_T = 6;
+const OVERFEED_AT = 2;
+const FULL_T = 7;
 /** なでるで けなみ が増える間隔（連打では増えない） */
 const PET_EVERY = 4;
 /** 育ちの軸の上限 */
@@ -96,7 +96,7 @@ const P_FAST = 5;
 const P_NORMAL = 3;
 const P_SLOW = 1;
 /** 呼ばれてから これ以内に応えれば「はやい」（オーナー判断で厳しめ。気にしているうちに先回りしても はやい） */
-const FAST_WITHIN = 0.45;
+const FAST_WITHIN = 0.3;
 const P_CURE = 5;
 const P_MORPH = 10;
 /** 一度も強く呼ばれなかった（おだやか）。へんしん時と看取り時の2回 */
@@ -139,7 +139,7 @@ const EPI_LINE = 18;
 const GAIN_T = 1.0;
 const ANIM_T = 0.7;
 /** 応えた直後の小休止（この間だけ減りが止まる）。長いと「もったり」する */
-const REST_T = 0.3;
+const REST_T = 0.2;
 
 /* ---- おわかれの時間割（設計 §8）-------------------------------- */
 
@@ -651,7 +651,8 @@ export default defineGame<IppunIsshoState>({
     for (const i of [0, 1, 2] as const) {
       const v = needOf(s, i);
       const tier = Math.floor(s.pace0 * 1000 + s.pace1 * 100 + s.pace2 * 10 + cares * 37 + i * 11) % 100;
-      const wait = tier < 55 ? -1 : tier < 85 ? 2 : 3.2;
+      // 猶予（Lv3 は 2秒）に合わせた待ち: 55% 先回り＝はやい／30% 1.2秒＝ふつう／15% 2.5秒＝おそい
+      const wait = tier < 55 ? -1 : tier < 85 ? 1.2 : 2.5;
       const ready = wait < 0 ? v <= LV1_AT : v <= LV2_AT && callOf(s, i) >= wait;
       if (ready && v < low) {
         low = v;
@@ -702,7 +703,7 @@ export default defineGame<IppunIsshoState>({
  */
 function drainSpan(s: IppunIsshoState, i: Need): number {
   const p = Math.min(1, s.t / T_BYE);
-  const mul = 0.7 - 0.52 * p; // あさ 0.7 → よるの終わり 0.18（約4倍速）
+  const mul = 0.5 - 0.39 * p; // あさ 0.5 → よるの終わり 0.11（全体に速く、かつ約4.5倍まで加速）
   const per = i === 0 ? 1 : i === 1 ? 1.15 : 1.3;
   const pace = i === 0 ? s.pace0 : i === 1 ? s.pace1 : s.pace2;
   return TUNE.drain * per * mul * pace;
