@@ -1,19 +1,19 @@
 {
   "slug": "ippun-issho",
   "genre": "nurture",
-  "recordedAt": "2026-08-23",
+  "recordedAt": "2026-08-24",
   "runs": 400,
   "pass": true,
   "idle": {
     "secondsP50": 60.5
   },
   "random": {
-    "secondsP50": 61.8,
-    "scoreP50": 41
+    "secondsP50": 61.9,
+    "scoreP50": 46
   },
   "smart": {
     "secondsP50": 63,
-    "scoreP50": 145,
-    "scoreP90": 183
+    "scoreP50": 165,
+    "scoreP90": 217
   }
 }

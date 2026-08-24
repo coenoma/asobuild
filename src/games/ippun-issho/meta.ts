@@ -8,7 +8,7 @@ import type { GameMeta } from '@/arcade/types';
  * v1〜v11 はオーナーの実機FB 11回で作り直し続け、v11 で「全然全く面白くない」。
  * 32件のFBを統合して根本原因を出し、設計から作り直した（docs/plans/008-ippun-issho/design.md §0〜§1）。
  * 芯は「毎タップが舵」: ごはん→丸く／あそぶ→足が伸びる／なでる→毛が立つ。t=30 に自分が作った形へ名前が付く。
- * 放てば6秒で雨、18秒で力尽きる。応えれば必ず助かる。字は3か所だけ。流れ星は一生に1〜4回、捕まえるのは腕前。
+ * 放てば6秒で雨、18秒で力尽きる。応えれば必ず助かる。はやく応えるほど高く、連続で倍。ルールは窓とボタンの間の帯に言葉で出る。
  *
  * 型は nurture。調査は docs/research/virtual-pet-1996.md。
  */
@@ -34,9 +34,9 @@ export const meta: GameMeta = {
    */
   goals: [
     { score: 20, label: 'ともだち' },
-    { score: 55, label: 'なかよし' },
-    { score: 105, label: 'かぞく' },
-    { score: 190, label: 'あいぼう' },
+    { score: 60, label: 'なかよし' },
+    { score: 120, label: 'かぞく' },
+    { score: 215, label: 'あいぼう' },
   ],
   /**
    * 終わりは失敗ではない。結果画面の reason() を赤で出さず（mono では ink）、
