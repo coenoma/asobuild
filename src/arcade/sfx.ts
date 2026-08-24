@@ -188,6 +188,19 @@ class Sfx {
       { type: 'triangle', vol: 0.13 },
     );
   }
+  /**
+   * 呼びかけ（ピピッ）。育てる型の「世話して」の合図。
+   * 当時の携帯型の玩具は圧電ブザーの単純なビープだったので、同じ高さの短い2音にしてある。
+   */
+  call(): void {
+    this.sequence(
+      [
+        { f: 1320, d: 0.05 },
+        { f: 1320, d: 0.05 },
+      ],
+      { type: 'square', vol: 0.09, gap: 0.04 },
+    );
+  }
   /** カウントダウン等 */
   tick(): void {
     this.beep({ freq: 440, dur: 0.03, vol: 0.06, type: 'triangle' });

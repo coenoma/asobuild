@@ -125,5 +125,5 @@ if (wantFrames && usable.length) {
       ]);
     }
   }
-  console.log('良かったものは docs/video/footage-notes/ に時刻つきで書き写すこと。');
+  console.log('良かったものは docs/episodes/<slug>/footage-notes.md に時刻つきで書き写すこと。');
 }

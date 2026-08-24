@@ -7,7 +7,7 @@
  *   **ズレた構成表は、無いより悪い**（それを見て相談するので）。
  *   だから唯一の正は EDL にして、読む形はここから作る。
  *
- *   node scripts/storyboard.mjs edl/001-nuimichi.json > ../docs/video/storyboards/001-nuimichi.md
+ *   node scripts/storyboard.mjs edl/001-nuimichi.json > ../docs/episodes/001-nuimichi/storyboard.md
  *
  * 出てくるものには**通し番号**がついている（[3-2] = 3章目の2番目）。
  * 直したいところを「3-2 の言い回し変えて」と番号で指せるようにするため。
@@ -149,7 +149,7 @@ out();
 out('```bash');
 out('cd video');
 out(`node scripts/extract.mjs ${edlPath}                 # 尺と映り込みの検査つき`);
-out(`node scripts/storyboard.mjs ${edlPath} > ../docs/video/storyboards/${edl.meta.slug}.md`);
+out(`node scripts/storyboard.mjs ${edlPath} > ../docs/episodes/${edl.meta.slug}/storyboard.md`);
 out('npm run build -- <slug>   # 省略で最新の回。id は Episode-<slug>');
 out('```');
 

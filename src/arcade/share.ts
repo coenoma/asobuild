@@ -19,6 +19,11 @@ export interface ShareContext {
   /** 現在の称号（あれば見出しに使う。数字より人に伝わる） */
   rankLabel?: string;
   allCleared?: boolean;
+  /**
+   * 終わり方の一行（meta.ending.share を立てたゲームだけ渡ってくる）。
+   * あるときは あそびかた の行の代わりに出す。「何になって何さいまで生きたか」のほうが人に言いたいことだから
+   */
+  detail?: string;
 }
 
 export function buildShareText(meta: GameMeta, score: number, ctx: ShareContext = {}): string {
@@ -27,7 +32,7 @@ export function buildShareText(meta: GameMeta, score: number, ctx: ShareContext 
     : ctx.rankLabel
       ? `${ctx.rankLabel}になりました（${score}${meta.unit}）`
       : `${ctx.isBest ? '自己ベスト' : '記録'} ${score}${meta.unit}`;
-  return `【${meta.title}】${head}\n${meta.howto}\n#${HASHTAG}\n${gameUrl(meta.slug)}`;
+  return `【${meta.title}】${head}\n${ctx.detail || meta.howto}\n#${HASHTAG}\n${gameUrl(meta.slug)}`;
 }
 
 export function xIntentUrl(text: string): string {
@@ -94,7 +99,7 @@ export async function buildResultCard(
 
   g.fillStyle = '#e9f1e4';
   g.font = font(34);
-  g.fillText(meta.howto, S / 2, 810);
+  g.fillText(ctx.detail || meta.howto, S / 2, 810);
 
   g.fillStyle = '#4cc9f0';
   g.font = font(30);

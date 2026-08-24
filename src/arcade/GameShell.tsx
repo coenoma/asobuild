@@ -114,6 +114,8 @@ export function GameShell({ game }: { game: AnyGame }) {
       isBest: r.isBest,
       rankLabel: r.rankLabel,
       allCleared: r.allCleared,
+      // 終わり方を人に言いたいゲーム（育てる型）だけ、reason() を共有文に足す
+      detail: game.meta.ending?.share ? r.reason : undefined,
     });
   }, [game]);
 
@@ -196,6 +198,9 @@ export function GameShell({ game }: { game: AnyGame }) {
     let replaySlow = 0;
     let best = getBest(game.meta.slug);
     let prevScore = 0;
+    /** 呼びかけ（BaseState.cue）と カチッ（BaseState.click）の前回値。増えたら鳴らす */
+    let prevCue = 0;
+    let prevClick = 0;
     let phaseTime = 0;
     let acc = 0;
     let last = performance.now();
@@ -254,6 +259,8 @@ export function GameShell({ game }: { game: AnyGame }) {
       state = game.init(gameRng);
       state.time = 0;
       prevScore = 0;
+      prevCue = state.cue ?? 0;
+      prevClick = state.click ?? 0;
       incPlays(game.meta.slug);
       sfx.jingleStart();
       gotoPhase('playing');
@@ -386,7 +393,12 @@ export function GameShell({ game }: { game: AnyGame }) {
       painter.text(`${r.score}`, painter.w / 2, 84, { size: 44, align: 'center', color: 'accent' });
       painter.text(game.meta.unit, painter.w / 2, 132, { size: 12, align: 'center', color: 'dim' });
       if (r.reason) {
-        painter.text(r.reason, painter.w / 2, 156, { size: 11, align: 'center', color: 'bad' });
+        // 死因は赤が既定。終わりが失敗でないゲーム（meta.ending.color）はその色で
+        painter.text(r.reason, painter.w / 2, 156, {
+          size: 11,
+          align: 'center',
+          color: game.meta.ending?.color ?? 'bad',
+        });
       }
       // 主役の1行。称号を取った瞬間がいちばん強いので最優先で出す
       const blinkOn = Math.floor(blink * 5) % 2 === 0;
@@ -509,6 +521,15 @@ export function GameShell({ game }: { game: AnyGame }) {
           if (state.score > prevScore) {
             sfx.combo(state.score - prevScore > 1 ? 4 : Math.min(12, state.score));
             prevScore = state.score;
+          }
+          // 得点は動かないが知らせたい瞬間（育てる型の呼び出し）。ゲームが cue を進めたら鳴らす
+          if ((state.cue ?? 0) > prevCue) {
+            sfx.call();
+            prevCue = state.cue ?? 0;
+          }
+          if ((state.click ?? 0) > prevClick) {
+            sfx.tap();
+            prevClick = state.click ?? 0;
           }
           if (state.over) {
             sfx.jingleOver();
