@@ -57,13 +57,13 @@ const T_NOON = 15;
 /** へんしん（自分が作った形に名前が付く）。sick・反応中なら落ち着くまで待つ */
 const T_MORPH = 30;
 const T_MORPH_MAX = 36;
-/** ゆうがた → よる（よるの間） */
+/** ゆうがた → よる（よるの間）。よるは休みでなく**ラストスパート**（呼びが最速になる） */
 const T_NIGHT = 45;
 /** 看取りが始まる */
-const T_BYE = 50;
+const T_BYE = 53;
 
 /** 全停止の長さ: 場面転換／へんしん */
-const PAUSE_BEAT = 2;
+const PAUSE_BEAT = 1.2;
 const PAUSE_MORPH = 2.6;
 /** 名前を大きく出す長さ（孵化の瞬間に1回） */
 const NAME_T = 1.5;
@@ -96,7 +96,7 @@ const P_FAST = 5;
 const P_NORMAL = 3;
 const P_SLOW = 1;
 /** 呼ばれてから これ以内に応えれば「はやい」（オーナー判断で厳しめ。気にしているうちに先回りしても はやい） */
-const FAST_WITHIN = 0.7;
+const FAST_WITHIN = 0.45;
 const P_CURE = 5;
 const P_MORPH = 10;
 /** 一度も強く呼ばれなかった（おだやか）。へんしん時と看取り時の2回 */
@@ -104,7 +104,6 @@ const P_CALM = 10;
 const P_KIRA = 25;
 const KIRA_MULT = 1.5;
 
-const P_TUCK = 5;
 const P_LIVED = 15;
 /** 一度も雨が降らなかった（きれいな一生） */
 const P_CLEAN = 15;
@@ -137,8 +136,10 @@ const BTN_GAP = 58;
 const EPI_Y = 54;
 const EPI_LINE = 18;
 /** ＋N の長さ／反応の既定の長さ */
-const GAIN_T = 1.2;
-const ANIM_T = 1.2;
+const GAIN_T = 1.0;
+const ANIM_T = 0.7;
+/** 応えた直後の小休止（この間だけ減りが止まる）。長いと「もったり」する */
+const REST_T = 0.3;
 
 /* ---- おわかれの時間割（設計 §8）-------------------------------- */
 
@@ -274,7 +275,6 @@ export interface IppunIsshoState extends BaseState, FeelState {
   growWord: string;
   growWordT: number;
   bandage: boolean;
-  tucked: boolean;
 
   /* 全停止（場面転換・へんしん） */
   pause: Pause;
@@ -316,9 +316,9 @@ function gain(n: IppunIsshoState, base: number, word = '', mult = 1): void {
   n.mult = mult;
 }
 
-/** コンボの倍率。3連続で ×2、5連続で ×3 */
+/** コンボの倍率。3連続で ×2、5連続で ×3、8連続で ×4（終盤の速い呼びに応え続けた人の取り分） */
 function multOf(combo: number): number {
-  return combo >= 5 ? 3 : combo >= 3 ? 2 : 1;
+  return combo >= 8 ? 4 : combo >= 5 ? 3 : combo >= 3 ? 2 : 1;
 }
 
 /** コンボが切れる（雨・違うボタン・おそい）。言葉で見せる */
@@ -367,7 +367,7 @@ function setDrain(n: IppunIsshoState, i: Need, v: number): void {
 
 /** その欲求の段階。0=げんき 1=気にする 2=呼ぶ 3=強く呼ぶ 4=よわる（雨）。5=ぐあいわるい は sick */
 function levelOf(s: IppunIsshoState, i: Need): number {
-  if (s.phase !== 'life' || s.t >= T_NIGHT) return 0;
+  if (s.phase !== 'life') return 0;
   const v = needOf(s, i);
   if (v <= LV2_AT) {
     const c = callOf(s, i);
@@ -399,33 +399,20 @@ function worstLevel(s: IppunIsshoState): number {
   return w === -1 ? 0 : levelOf(s, w);
 }
 
-/** 2つ目（同時に呼んでいるとき）。無ければ -1 */
-function secondNeed(s: IppunIsshoState): Need | -1 {
-  const first = worstNeed(s);
-  if (first < 0) return -1;
-  let best: Need | -1 = -1;
-  let bestLv = 0;
-  for (const i of [0, 1, 2] as const) {
-    if (i === first) continue;
-    const lv = levelOf(s, i);
-    if (lv >= 2 && lv > bestLv) {
-      best = i;
-      bestLv = lv;
-    }
-  }
-  return best;
-}
-
-/** 吹き出しに出すもの（病気なら くすり だけ） */
+/** 吹き出しに出すもの（病気なら くすり だけ）。呼んでいる欲求は**全部**出す（最大3つ＝ワニワニ）。困っている順 */
 function bubbles(s: IppunIsshoState): { kind: Kind; lv: number }[] {
   if (s.phase !== 'life' || s.pause !== '' || !s.alive) return [];
   if (s.sick) return [{ kind: 'kusuri', lv: 5 }];
-  const out: { kind: Kind; lv: number }[] = [];
-  const a = worstNeed(s);
-  if (a !== -1) out.push({ kind: NEED_KIND[a], lv: levelOf(s, a) });
-  const b = secondNeed(s);
-  if (b !== -1) out.push({ kind: NEED_KIND[b], lv: levelOf(s, b) });
-  return out;
+  const out: { kind: Kind; lv: number; c: number }[] = [];
+  for (const i of [0, 1, 2] as const) {
+    const lv = levelOf(s, i);
+    if (lv >= 1) out.push({ kind: NEED_KIND[i], lv, c: callOf(s, i) });
+  }
+  out.sort((x, y) => y.lv - x.lv || y.c - x.c);
+  // 「気にする」（Lv1）は、呼んでいるものが無いときだけ1つ見せる
+  const calling = out.filter((b) => b.lv >= 2);
+  const shown = calling.length > 0 ? calling : out.slice(0, 1);
+  return shown.map(({ kind, lv }) => ({ kind, lv }));
 }
 
 /** 年齢＝大きさ（設計 §6）。あさ3・ひる4・よる5 */
@@ -450,10 +437,11 @@ function legLen(s: IppunIsshoState): number {
   return Math.round(a * 3 * (dotOf(s) / 4));
 }
 
-/** 吹き出しの中心（キャラの頭の右上に追従。2つ目は左上） */
+/** 吹き出しの中心（キャラの頭に追従。1つ目は右上・2つ目は左上・3つ目は真上） */
 function bubbleAt(s: IppunIsshoState, idx: number): { x: number; y: number } {
   const dot = dotOf(s);
   const headY = FLOOR_Y - 16 * dot - legLen(s) + 4 * dot;
+  if (idx === 2) return { x: CHAR_X + s.walkX, y: headY - 40 };
   const side = idx === 0 ? 1 : -1;
   return { x: CHAR_X + s.walkX + side * (8 * dot + 14), y: headY - 18 };
 }
@@ -551,7 +539,6 @@ export default defineGame<IppunIsshoState>({
       growWord: '',
       growWordT: 0,
       bandage: false,
-      tucked: false,
 
       pause: '',
       pauseT: 0,
@@ -654,7 +641,6 @@ export default defineGame<IppunIsshoState>({
     if (s.phase === 'bye' || s.phase === 'gone') return frame % 63 === 0 ? char : idle;
     if (s.pause !== '') return idle;
     if (s.sick) return btn(3);
-    if (s.t >= T_NIGHT) return s.tucked ? idle : char;
     // 人間の上手い人の揺らぎ: 55% は「気にする」で先回り（はやい）、30% は呼ばれて2秒で（ふつう）、
     // 15% は強く呼ばれてから（おそい・コンボが切れる）。
     // 呼びごとに1回だけ決まる（その子の減りの位相と、これまでの世話の数から引く）＝一生ごとに点が散り、
@@ -710,22 +696,24 @@ export default defineGame<IppunIsshoState>({
  * step の中身
  * ================================================================== */
 
-/** あさは呼びが多い（本家「最初の30分が最も忙しい」）。ゆうがたは落ち着く */
+/**
+ * 減りの速さは**時間とともに上がり続ける**（ワニワニ型。あさ 0.6 → よるの終わり 0.24 ＝ 2.5倍速）。
+ * ゆうがたに落ち着かない・よるも止まらない。終盤は2〜3秒に1回呼び、吹き出しが2〜3つ重なる。
+ */
 function drainSpan(s: IppunIsshoState, i: Need): number {
-  const mul = s.t < T_NOON ? 0.6 : s.t < T_MORPH ? 1 : 1.5;
-  const per = i === 0 ? 1 : i === 1 ? 1.3 : 1.6;
+  const p = Math.min(1, s.t / T_BYE);
+  const mul = 0.7 - 0.52 * p; // あさ 0.7 → よるの終わり 0.18（約4倍速）
+  const per = i === 0 ? 1 : i === 1 ? 1.15 : 1.3;
   const pace = i === 0 ? s.pace0 : i === 1 ? s.pace1 : s.pace2;
   return TUNE.drain * per * mul * pace;
 }
 
 /** 減り → 呼びの段階 → よわり（雨）→ ぐあいわるい → 力尽きる（設計 §6） */
 function stepNeeds(n: IppunIsshoState, dt: number): void {
-  const night = n.t >= T_NIGHT;
-  // 応えた・治した直後の小休止だけ減らない（「次の呼びは前の反応が終わってから」。
-  // 反応アニメ全般で止めると、なでる連打で永久に呼ばれなくなる＝原則3が壊れる）
+  // 応えた・治した直後の短い小休止だけ減らない（反応アニメ全般で止めると連打で呼ばれなくなり、長いと「もったり」する）
   const busy = n.restT > 0;
   for (const i of [0, 1, 2] as const) {
-    if (!night && !n.sick && !busy) {
+    if (!n.sick && !busy) {
       const span = drainSpan(n, i);
       const d = (i === 0 ? n.drain0 : i === 1 ? n.drain1 : n.drain2) + dt;
       if (d >= span) {
@@ -737,7 +725,7 @@ function stepNeeds(n: IppunIsshoState, dt: number): void {
         setDrain(n, i, d);
       }
     }
-    if (!night && needOf(n, i) <= LV2_AT) {
+    if (needOf(n, i) <= LV2_AT) {
       const c = callOf(n, i);
       const c2 = c + dt;
       setCall(n, i, c2);
@@ -819,8 +807,7 @@ function stepPhase(n: IppunIsshoState, rng: Rng): void {
         n.beatDone = 2;
         n.pause = 'night';
         n.pauseT = PAUSE_BEAT;
-        animate(n, 10, PAUSE_BEAT);
-        n.call0 = n.call1 = n.call2 = 0;
+        animate(n, 9, PAUSE_BEAT);
         n.grewT = 0.6;
         addPop(n);
         beep(n);
@@ -915,7 +902,7 @@ function stepIdle(n: IppunIsshoState, dt: number, rng: Rng): void {
     if (n.idle === 0 && rng.chance(0.4)) n.walkDir = -n.walkDir;
   }
   const lv = worstLevel(n);
-  const still = n.sick || n.tucked || n.pause !== '' || n.anim === 2 || lv >= 4 || n.t >= T_NIGHT;
+  const still = n.sick || n.pause !== '' || n.anim === 2 || lv >= 4;
   if (still) {
     n.walkX *= Math.max(0, 1 - dt * 4);
     return;
@@ -1036,16 +1023,15 @@ function answer(n: IppunIsshoState, i: Need): void {
   setNeed(n, i, NEED_MAX);
   setCall(n, i, 0);
   setDrain(n, i, 0);
-  n.restT = ANIM_T;
+  n.restT = REST_T;
 }
 
 /** 世話ボタン4つ（設計 §5 の反応表。押して無反応になる枝を作らない） */
 function doCare(n: IppunIsshoState, kind: Kind): void {
-  const night = n.t >= T_NIGHT;
   switch (kind) {
     case 'gohan': {
       if (offCall(n, 0)) return refuse(n, true);
-      if (n.sick || n.tucked || n.fullT > 0) return refuse(n);
+      if (n.sick || n.fullT > 0) return refuse(n);
       n.fed++;
       if (n.hunger >= NEED_MAX - 0.5) {
         // 満腹。点は無いが体は丸くなる（舵）。続けると「げふ」（笑える罰。病気にはしない）
@@ -1073,7 +1059,7 @@ function doCare(n: IppunIsshoState, kind: Kind): void {
     }
     case 'asobu': {
       if (offCall(n, 1)) return refuse(n, true);
-      if (n.sick || night || n.tucked) return refuse(n);
+      if (n.sick) return refuse(n);
       n.played++;
       const wantedNow = levelOf(n, 1) >= 1;
       if (wantedNow) answer(n, 1);
@@ -1098,8 +1084,8 @@ function doCare(n: IppunIsshoState, kind: Kind): void {
         setDrain(n, i, 0);
       }
       gain(n, P_CURE);
-      n.restT = 1.4;
-      animate(n, 4, 1.4);
+      n.restT = REST_T;
+      animate(n, 4, 0.9);
       addPop(n);
       hitStop(n, 0.06);
       return;
@@ -1111,17 +1097,6 @@ function doCare(n: IppunIsshoState, kind: Kind): void {
 function pet(n: IppunIsshoState): void {
   if (n.sick) {
     animate(n, 11, 0.7); // つらそうに震える（点なし）
-    return;
-  }
-  if (n.t >= T_NIGHT) {
-    if (!n.tucked) {
-      n.tucked = true;
-      gain(n, P_TUCK);
-      animate(n, 5, 1.4);
-      addPop(n);
-      return;
-    }
-    animate(n, 3, 0.5);
     return;
   }
   if (offCall(n, 2)) return refuse(n, true);
@@ -1273,6 +1248,8 @@ function drawSky(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey):
   const cx = WIN_X + 22 + p * (WIN_W + 4);
   const top = WIN_Y + 34;
   const cy = p < 0.5 ? top + 26 - Math.sin(p * Math.PI) * 26 : top + ((p - 0.5) / 0.5) * 26;
+  // 窓の右端まで来たら沈みきったものとして描かない（光線だけが縁に残ると「)」に見える）
+  if (cx > WIN_X + WIN_W - 18) return;
   g.circle(cx, cy, 7, ink);
   for (let i = 0; i < 4; i++) {
     const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
@@ -1314,16 +1291,6 @@ function drawProps(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKey
     const bx = CHAR_X + Math.sin(p * Math.PI * 2) * 70;
     drawIcon(g, 'asobu', bx, FLOOR_Y - 9, 16, ink, hole);
   }
-  if (s.tucked && s.phase === 'life') {
-    // ねむり: 「z」を3つ、斜め上へ（字でなくドット絵。吹き出しや＋N と重ならない左側に）
-    const x0 = CHAR_X + s.walkX - 8 * dotOf(s) - 30;
-    const y0 = FLOOR_Y - 16 * dotOf(s) + 10;
-    for (let i = 0; i < 3; i++) {
-      const sc = 2 + i;
-      const on = Math.floor(s.time * 1.5 + i) % 3 !== 2;
-      if (on) g.sprite(ZEE, x0 - i * 20, y0 - i * 24, { scale: sc, colors: { X: ink } });
-    }
-  }
 }
 
 /* ---- キャラ（3軸で形を作る。設計 §7）-------------------------------- */
@@ -1340,10 +1307,9 @@ type Mood = 'futsu' | 'niko' | 'shon' | 'nemu' | 'kaze' | 'kininaru';
 function moodOf(s: IppunIsshoState): Mood {
   if (s.phase === 'bye') return s.early ? 'kaze' : 'niko';
   if (s.sick) return 'kaze';
-  if (s.tucked || s.anim === 5) return 'nemu';
+  if (s.anim === 5) return 'nemu';
   if (s.anim === 6 || s.anim === 7 || s.anim === 11) return 'shon';
   if (s.anim >= 1 && s.anim <= 4) return 'niko';
-  if (s.t >= T_NIGHT) return 'nemu';
   const lv = worstLevel(s);
   if (lv >= 4) return 'shon';
   if (lv >= 1) return 'kininaru';
@@ -1361,7 +1327,7 @@ function drawCreature(g: Painter, s: IppunIsshoState, cx: number, footY: number,
 
   // 跳ね: げんきなら時々ぴょこ。あし軸が長いと高く。よわっていれば無し
   let hop = 0;
-  if (s.phase === 'life' && s.alive && !s.sick && !s.tucked && lv < 4 && s.pause === '' && s.anim !== 11) {
+  if (s.phase === 'life' && s.alive && !s.sick && lv < 4 && s.pause === '' && s.anim !== 11) {
     const period = s.ashi >= 6 ? 0.45 : 0.9;
     const ph = (s.time % period) / period;
     const amp = s.ashi >= 6 ? 12 : lv >= 2 ? 0 : 4;
@@ -1598,7 +1564,7 @@ function drawBubbles(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorK
     const small = b.lv === 1;
     if (b.lv >= 3 && b.lv !== 5 && Math.floor(s.time * 4) % 2 === 1) continue;
     const r = small ? 11 : BUBBLE_R;
-    const side = i === 0 ? 1 : -1;
+    const side = i === 0 ? 1 : i === 1 ? -1 : 0;
     g.circle(at.x, at.y, r + 2, ink);
     g.circle(at.x, at.y, r, hole);
     g.poly([at.x - side * 6, at.y + r - 2, at.x - side * (r + 2), at.y + r + 8, at.x + side * 2, at.y + r + 1], ink);
@@ -1660,7 +1626,7 @@ function drawBanner(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKe
   }
   if (s.pause === 'night') {
     g.text('よる', W / 2, WIN_Y + 6, { size: 18, align: 'center', color: ink });
-    g.text('もうすぐ おわかれ', W / 2, WIN_Y + 30, { size: 11, align: 'center', color: ink });
+    g.text('さいごまで いっしょに！', W / 2, WIN_Y + 30, { size: 11, align: 'center', color: ink });
   } else {
     g.text('ひる', 96, WIN_Y + 10, { size: 20, align: 'center', color: ink });
     const cx = 150;
@@ -1715,10 +1681,7 @@ function drawBye(g: Painter, s: IppunIsshoState, sx: number, sy: number, ink: Co
     g.rect(CHAR_X - 6, FLOOR_Y - 6, 12, 3, ink);
     if (s.bandage) g.rect(CHAR_X + 12, FLOOR_Y - 8, 8, 3, ink);
 
-    if (s.tucked) {
-      g.circle(CHAR_X + 26, FLOOR_Y - 10, 4, ink);
-      g.circle(CHAR_X + 28, FLOOR_Y - 11, 3, hole);
-    }
+
   }
   drawEpitaph(g, s, ink, hole);
 }
@@ -1734,11 +1697,9 @@ function drawEpitaph(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorK
         ? 'いちど たおれて、なおった'
         : !s.rained && !s.early
           ? 'いちども なかなかった'
-          : s.tucked
-            ? 'さいごは ねむって'
-            : s.early
-              ? 'あめが ふっていた'
-              : 'ふつうの いちにち';
+          : s.early
+            ? 'あめが ふっていた'
+            : 'ふつうの いちにち';
   const lines = s.early
     ? [s.form === 'tsubu' ? `${name}は まだ あかちゃんだった` : `${name}は ${FORM_NAME[s.form]}だった`, 'まっていた', event, `${whenLabel(s.endT)}に おわかれ`]
     : [`${name}は ${FORM_NAME[s.form]}に なった`, FORM_WHY[s.form], event, s.form === 'tabi' ? 'ひとりで いきた' : 'あさから よるまで いっしょだった'];
@@ -1952,5 +1913,4 @@ const BODY_MANMARU = [
 
 /** ハート（なでる の反応） */
 const HEART = ['.X.X.', 'XXXXX', 'XXXXX', '.XXX.', '..X..'];
-/** ねむりの z */
-const ZEE = ['XXXXX', '....X', '..XX.', '.X...', 'XXXXX'];
+
