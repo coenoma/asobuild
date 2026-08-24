@@ -68,10 +68,6 @@ const PAUSE_MORPH = 2.6;
 /** 名前を大きく出す長さ（孵化の瞬間に1回） */
 const NAME_T = 1.5;
 
-/** たまご: 押すと何秒後に孵るか／押されなければ何秒で自分で孵るか／温められる回数 */
-const EGG_HATCH = 1.2;
-const EGG_AUTO = 30;
-const EGG_TAPS = 3;
 
 /** 欲求の段階（設計 §6）。値は 0〜4 */
 const NEED_MAX = 4;
@@ -94,14 +90,13 @@ const AXIS_MAX = 8;
 
 /* ---- 得点（設計 §9）-------------------------------------------- */
 
-const P_WARM = 1;
 const P_BORN = 2;
 /** 呼びに応えた点: はやい（気にしているうち／呼ばれて1.5秒以内）／ふつう／おそい（強く呼ばれてから） */
 const P_FAST = 5;
 const P_NORMAL = 3;
 const P_SLOW = 1;
-/** 呼ばれてから これ以内に応えれば「はやい」 */
-const FAST_WITHIN = 1.5;
+/** 呼ばれてから これ以内に応えれば「はやい」（オーナー判断で厳しめ。気にしているうちに先回りしても はやい） */
+const FAST_WITHIN = 0.7;
 const P_CURE = 5;
 const P_MORPH = 10;
 /** 一度も強く呼ばれなかった（おだやか）。へんしん時と看取り時の2回 */
@@ -169,7 +164,7 @@ const BTN_LABEL: readonly string[] = ['ごはん', 'あそぶ', 'なでる', '�
 type Need = 0 | 1 | 2;
 const NEED_KIND: readonly Kind[] = ['gohan', 'asobu', 'nade'];
 
-type Phase = 'egg' | 'life' | 'bye' | 'gone';
+type Phase = 'life' | 'bye' | 'gone';
 type Pause = '' | 'noon' | 'morph' | 'night';
 
 /** 姿（設計 §7）。語尾を揃えない（本家の命名の癖に寄せないため）。つぶ＝名前が付く前 */
@@ -221,11 +216,6 @@ export interface IppunIsshoState extends BaseState, FeelState {
   /** 孵化からの秒。全停止中は進まない */
   t: number;
   byeT: number;
-  /** たまごが孵る時刻（s.time 基準。押されるまでは EGG_AUTO） */
-  hatchAt: number;
-  /** たまごを押したか（＝契約。ここからこの子はあなたに頼る） */
-  touched: boolean;
-  eggTaps: number;
   nameId: number;
   /** 名前を大きく出している残り秒 */
   nameT: number;
@@ -313,7 +303,6 @@ export interface IppunIsshoState extends BaseState, FeelState {
   pressT: number;
   beeped: number;
   epShown: number;
-  poke: number;
 }
 
 /* ---- 小さな道具 ------------------------------------------------------ */
@@ -441,7 +430,6 @@ function bubbles(s: IppunIsshoState): { kind: Kind; lv: number }[] {
 
 /** 年齢＝大きさ（設計 §6）。あさ3・ひる4・よる5 */
 function dotOf(s: IppunIsshoState): number {
-  if (s.phase === 'egg') return 4;
   // へんしんの瞬間は一回り大きく現れて等倍に戻る（「ぽん」）
   if (s.pause === 'morph' && s.pauseT > PAUSE_MORPH - 0.7 && s.pauseT < PAUSE_MORPH - 0.25) return 6;
   if (s.t >= T_NOON) return 5;
@@ -513,14 +501,12 @@ export default defineGame<IppunIsshoState>({
       cue: 0,
       click: 0,
 
-      phase: 'egg',
+      // たまごは無い。生まれた状態から始まる（最初の1.5秒は名前を大きく）
+      phase: 'life',
       t: 0,
       byeT: 0,
-      hatchAt: EGG_AUTO,
-      touched: false,
-      eggTaps: 0,
       nameId: rng.int(NAMES.length),
-      nameT: 0,
+      nameT: NAME_T,
 
       // 生まれたては さみしがり（最初の呼びが「なでて」になる）。おなか・きげんは順に来る
       hunger: 3,
@@ -589,7 +575,6 @@ export default defineGame<IppunIsshoState>({
       pressT: 0,
       beeped: 0,
       epShown: 0,
-      poke: 0,
     };
   },
 
@@ -604,7 +589,6 @@ export default defineGame<IppunIsshoState>({
     n.pressT = Math.max(0, n.pressT - dt);
     n.lookT = Math.max(0, n.lookT - dt);
     if (n.lookT <= 0) n.lookX = 0;
-    n.poke = Math.max(0, n.poke - dt);
     n.nameT = Math.max(0, n.nameT - dt);
     n.grewT = Math.max(0, n.grewT - dt);
     n.fullT = Math.max(0, n.fullT - dt);
@@ -613,6 +597,15 @@ export default defineGame<IppunIsshoState>({
     if (n.pause !== '') {
       n.pauseT = Math.max(0, n.pauseT - dt);
       if (n.pauseT <= 0) n.pause = '';
+    }
+
+    /* 生まれた瞬間（最初のフレーム）: ぽん＋ピッ＋＋2 */
+    if (n.time === 0 && n.phase === 'life' && n.score === 0) {
+      gain(n, P_BORN);
+      addPop(n);
+      hitStop(n, 0.06);
+      beep(n);
+      n.lookT = 1.2;
     }
 
     /* 2. 時間を進める（全停止中は止まる。看取りは byeT） */
@@ -658,19 +651,21 @@ export default defineGame<IppunIsshoState>({
     const btn = (i: number) => ({ press: true, px: BTN_X0 + i * BTN_GAP + BTN_W / 2, py: BTN_Y + BTN_H / 2 });
     const char = { press: true, px: CHAR_X + s.walkX, py: FLOOR_Y - 30 };
 
-    if (s.phase === 'egg') return s.eggTaps < EGG_TAPS ? char : idle;
     if (s.phase === 'bye' || s.phase === 'gone') return frame % 63 === 0 ? char : idle;
     if (s.pause !== '') return idle;
     if (s.sick) return btn(3);
     if (s.t >= T_NIGHT) return s.tucked ? idle : char;
     // 人間の上手い人の揺らぎ: 55% は「気にする」で先回り（はやい）、30% は呼ばれて2秒で（ふつう）、
-    // 15% は強く呼ばれてから（おそい・コンボが切れる）
-    const tier = Math.floor(s.time * 1.7) % 20;
-    const wait = tier < 11 ? -1 : tier < 17 ? 2 : 3.2;
+    // 15% は強く呼ばれてから（おそい・コンボが切れる）。
+    // 呼びごとに1回だけ決まる（その子の減りの位相と、これまでの世話の数から引く）＝一生ごとに点が散り、
+    // かつ同じ呼びの中で判断が揺れない（毎フレーム引くと結局いちばん早い判断に収束して点が固まる＝崖）
+    const cares = s.fed + s.played + s.petted;
     let pick: Need | -1 = -1;
     let low = 99;
     for (const i of [0, 1, 2] as const) {
       const v = needOf(s, i);
+      const tier = Math.floor(s.pace0 * 1000 + s.pace1 * 100 + s.pace2 * 10 + cares * 37 + i * 11) % 100;
+      const wait = tier < 55 ? -1 : tier < 85 ? 2 : 3.2;
       const ready = wait < 0 ? v <= LV1_AT : v <= LV2_AT && callOf(s, i) >= wait;
       if (ready && v < low) {
         low = v;
@@ -789,20 +784,6 @@ function makeSick(n: IppunIsshoState): void {
 /** 時間で起きること */
 function stepPhase(n: IppunIsshoState, rng: Rng): void {
   switch (n.phase) {
-    case 'egg':
-      if (n.time >= n.hatchAt) {
-        n.phase = 'life';
-        n.t = 0;
-        n.form = 'tsubu';
-        n.nameT = NAME_T;
-        gain(n, P_BORN);
-        addPop(n);
-        hitStop(n, 0.08);
-        beep(n);
-        n.lookT = 1.2;
-      }
-      break;
-
     case 'life': {
       if (!n.alive) break;
       if (n.beatDone < 1 && n.t >= T_NOON) {
@@ -958,20 +939,6 @@ function stepIdle(n: IppunIsshoState, dt: number, rng: Rng): void {
  * ================================================================== */
 
 function handleTap(n: IppunIsshoState, px: number, py: number): void {
-  /* たまご: どこを押しても温める。最初のタップ＝契約（1.2秒後に孵る） */
-  if (n.phase === 'egg') {
-    n.poke = 0.35;
-    if (!n.touched) {
-      n.touched = true;
-      n.hatchAt = Math.min(n.hatchAt, n.time + EGG_HATCH);
-    }
-    if (n.eggTaps < EGG_TAPS) {
-      n.eggTaps++;
-      gain(n, P_WARM);
-    }
-    addPop(n);
-    return;
-  }
   if (n.phase === 'bye' || n.phase === 'gone') {
     byeTap(n);
     return;
@@ -1209,10 +1176,6 @@ function byeTap(n: IppunIsshoState): void {
  * ================================================================== */
 
 function drawHead(g: Painter, s: IppunIsshoState): void {
-  if (s.phase === 'egg') {
-    g.text('たまご', 6, HEAD_Y, { size: 12, color: 'ink' });
-    return;
-  }
   const t = s.phase === 'life' ? s.t : s.endT;
   g.text(whenLabel(t), 6, HEAD_Y, { size: 12, color: 'ink' });
 }
@@ -1251,7 +1214,7 @@ function drawWindow(g: Painter, s: IppunIsshoState, sx: number, sy: number): voi
   g.rect(WIN_X, WIN_Y, WIN_W, WIN_H, dark ? 'ink' : 'bg');
 
   // 起動時の点灯チェック。全ドットが 0.3秒 光って消える
-  if (s.phase === 'egg' && s.time < 0.3) {
+  if (s.time < 0.3) {
     g.rect(WIN_X + 4, WIN_Y + 4, WIN_W - 8, WIN_H - 8, 'ink');
     windowFrame(g, false);
     return;
@@ -1260,9 +1223,7 @@ function drawWindow(g: Painter, s: IppunIsshoState, sx: number, sy: number): voi
   const hole: ColorKey = dark ? 'ink' : 'bg';
 
   g.clip(WIN_X, WIN_Y, WIN_W, WIN_H, () => {
-    if (s.phase === 'egg') {
-      drawEgg(g, s, sx, sy);
-    } else if (s.phase === 'bye') {
+    if (s.phase === 'bye') {
       drawBye(g, s, sx, sy, ink, hole);
     } else {
       drawSky(g, s, ink, hole);
@@ -1712,45 +1673,6 @@ function drawBanner(g: Painter, s: IppunIsshoState, ink: ColorKey, hole: ColorKe
   }
 }
 
-/* ---- たまご ---------------------------------------------------------- */
-
-function drawEgg(g: Painter, s: IppunIsshoState, sx: number, sy: number): void {
-  const waiting = !s.touched;
-  const wob = Math.sin(s.time * (s.poke > 0 ? 26 : waiting ? 3 : 10)) * (s.poke > 0 ? 4 : waiting ? 1.5 : 3);
-  const ex = CHAR_X + sx + wob;
-  const ey = FLOOR_Y - 30 + sy;
-  g.sprite(EGG, ex, ey, { scale: 4, colors: { X: 'ink' }, center: true });
-  if (s.touched) {
-    g.rect(ex - 2, ey - 10, 3, 8, 'bg');
-    g.rect(ex + 1, ey - 3, 3, 6, 'bg');
-    g.rect(ex - 6, ey + 2, 3, 5, 'bg');
-  }
-  g.rect(WIN_X + 4, FLOOR_Y, WIN_W - 8, 2, 'ink');
-  g.rect(WIN_X + 3, FLOOR_Y + 2, WIN_W - 6, WIN_H - (FLOOR_Y + 2 - WIN_Y) - 3, 'bg');
-  // 6つの姿の影絵を たまごの両脇に（この卵からどれかが生まれる＝0秒から目標がある。字は無し）
-  const slots = [34, 60, 86, 154, 180, 206];
-  for (let i = 0; i < FORMS_ALL.length; i++) drawMiniForm(g, FORMS_ALL[i], slots[i], FLOOR_Y - 16, false, 'ink', 'bg');
-  // 押す場所を示す「指さし」がたまごを叩く（字ではなく絵。ゆっくり上下して、触れた瞬間に波紋）
-  if (waiting) {
-    const ph = (s.time % 1.2) / 1.2;
-    const down = ph < 0.5 ? ph * 2 : (1 - ph) * 2;
-    // たまごの真上から指さす手（人さし指が下向き・にぎった指が右に並ぶ）。大きく、たまごに触れるまで下りる
-    const fx = CHAR_X + 6;
-    const fy = ey - 104 + down * 30;
-    g.circle(fx, fy + 34, 5, 'ink'); // 指先（丸）
-    g.rect(fx - 5, fy, 10, 36, 'ink'); // 人さし指
-    g.rect(fx + 5, fy + 6, 10, 18, 'ink'); // 中指
-    g.rect(fx + 15, fy + 8, 9, 16, 'ink'); // 薬指
-    g.rect(fx + 24, fy + 10, 7, 13, 'ink'); // 小指
-    g.rect(fx - 5, fy, 36, 8, 'ink'); // 手の甲
-    g.rect(fx - 14, fy + 3, 10, 6, 'ink'); // 親指
-    if (down > 0.9) {
-      g.circleLine(ex, ey - 6, 18, 'ink', 2);
-      g.circleLine(ex, ey - 6, 26, 'ink', 1);
-    }
-  }
-}
-
 /* ---- おわかれ（設計 §8）-------------------------------------------- */
 
 function drawBye(g: Painter, s: IppunIsshoState, sx: number, sy: number, ink: ColorKey, hole: ColorKey): void {
@@ -1947,24 +1869,6 @@ function drawIcon(g: Painter, kind: Kind, cx: number, cy: number, size: number, 
 }
 
 /* ---- ドット絵（16×16。顔は本体に穴を空けて描く）------------------------ */
-
-const EGG = [
-  '....XXXX....',
-  '...XXXXXX...',
-  '..XXXXXXXX..',
-  '.XXXXXXXXXX.',
-  '.XXXXXXXXXX.',
-  'XXXXXXXXXXXX',
-  'XXXXXXXXXXXX',
-  'XXXXXXXXXXXX',
-  'XXXXXXXXXXXX',
-  'XXXXXXXXXXXX',
-  'XXXXXXXXXXXX',
-  '.XXXXXXXXXX.',
-  '.XXXXXXXXXX.',
-  '..XXXXXXXX..',
-  '...XXXXXX...',
-];
 
 /** つぶ（生まれたて）。小さくて頼りない */
 const BODY_TSUBU = [

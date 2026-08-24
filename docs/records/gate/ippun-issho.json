@@ -5,15 +5,15 @@
   "runs": 400,
   "pass": true,
   "idle": {
-    "secondsP50": 60.5
+    "secondsP50": 30.5
   },
   "random": {
-    "secondsP50": 61.9,
-    "scoreP50": 46
+    "secondsP50": 60.2,
+    "scoreP50": 43
   },
   "smart": {
-    "secondsP50": 63,
-    "scoreP50": 165,
-    "scoreP90": 217
+    "secondsP50": 62,
+    "scoreP50": 115,
+    "scoreP90": 170
   }
 }
