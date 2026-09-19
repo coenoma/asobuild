@@ -9,7 +9,7 @@ import next from 'eslint-config-next/core-web-vitals';
  * 2. **このリポジトリの絶対ルールのうち、機械で見られるもの** → 下の asobuild/games
  *
  * 2 がこのファイルの本題。
- * CLAUDE.md と .claude/rules/games.md に日本語で書いてある「やってはいけないこと」は、
+ * AGENTS.md と .claude/rules/games.md に日本語で書いてある「やってはいけないこと」は、
  * これまで人とAIの注意力だけが頼りだった。破っても、面白さゲートが「再現性」で
  * 落ちてはじめて気づく（しかも何が原因かは推測になる）。
  * **書いてあるだけのルールは、そのうち必ず破られる。** 機械で見られるものはここで止める。
