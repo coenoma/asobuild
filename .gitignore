@@ -10,3 +10,8 @@ next-env.d.ts
 
 # 収録カンペの作業ログ（PUBLIC なので公開しない。台本にするなら npm run live -- archive）
 .live/
+
+# 環境ファイル（秘密を含みうる）。見本の .env.example だけは追跡する
+.env
+.env.*
+!.env.example
